@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pump Social Capital - Frontend (Web)
+
+This is the frontend application for **Pump Social Capital**, a decentralized platform enabling creators to launch personal tokens via bonding curves on the Solana blockchain.
+
+Built with [Next.js](https://nextjs.org) (App Router), [Tailwind CSS v4](https://tailwindcss.com), and standard Solana wallet adapters.
+
+## Prerequisites
+
+Before running this application, ensure that you have the following running locally or accessible remotely:
+1. **Solana Localnet/Mainnet**: A running Solana validator/test-ledger with the Anchor program deployed.
+2. **Backend API**: The Fastify backend (from `apps/api`) running, which serves market data, price candles, and WebSocket updates.
 
 ## Getting Started
 
-First, run the development server:
+First, install the dependencies from the monorepo root:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+```
+
+Make sure your environment variables are set correctly in `apps/web/.env.local`. Copy from `.env.example` if available, and ensure `NEXT_PUBLIC_RPC_URL`, `NEXT_PUBLIC_API_URL`, and `NEXT_PUBLIC_WS_URL` point to your running infrastructure.
+
+Run the development server:
+
+```bash
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **`src/app/`**: Next.js App Router pages (Home, Claim, Creator Dashboard).
+- **`src/components/`**: React components.
+  - `TradingWidget.tsx`: Interface for buying/selling creator keys.
+  - `ChartComponent.tsx`: Real-time trading chart using lightweight-charts.
+  - `WalletContextProvider.tsx`: Solana wallet connection wrapper.
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework**: Next.js 15 (React 19)
+- **Styling**: Tailwind CSS v4 (Retro/Hacker aesthetic)
+- **Blockchain**: `@solana/web3.js`, `@solana/wallet-adapter-react`
+- **Charts**: `lightweight-charts`
