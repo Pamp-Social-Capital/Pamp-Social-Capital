@@ -3,6 +3,7 @@ import * as dotenv from "dotenv";
 import { resolve } from "path";
 import fastifyWebsocket from "@fastify/websocket";
 import fastifyRateLimit from "@fastify/rate-limit";
+import fastifyCors from "@fastify/cors";
 import { processHeliusPayload } from "./indexer";
 import { authRoutes } from "./routes/auth";
 import { marketRoutes } from "./routes/markets";
@@ -13,6 +14,10 @@ dotenv.config({ path: resolve(__dirname, "../../../.env") });
 
 const fastify = Fastify({
   logger: true,
+});
+
+fastify.register(fastifyCors, {
+  origin: "*", // Adjust for production
 });
 
 fastify.register(fastifyRateLimit, {
