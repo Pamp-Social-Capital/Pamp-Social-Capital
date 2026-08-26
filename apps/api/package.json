@@ -1,0 +1,30 @@
+{
+  "name": "@social-capital/api",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@fastify/rate-limit": "^11.2.0",
+    "@fastify/websocket": "^11.3.0",
+    "@social-capital/db": "workspace:*",
+    "@social-capital/sdk": "workspace:*",
+    "@solana/web3.js": "^1.95.3",
+    "bs58": "^6.0.0",
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.30.9",
+    "fastify": "^4.26.2",
+    "jsonwebtoken": "^9.0.3",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.7.2",
+    "typescript": "^5.0.0"
+  }
+}
