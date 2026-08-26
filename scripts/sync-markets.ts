@@ -2,14 +2,22 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { PumpSocialCapitalSDK } from "../packages/sdk/dist/index.js";
 import { db, creatorMarkets } from "../packages/db/src/index.ts";
 import * as anchor from "@coral-xyz/anchor";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 async function sync() {
-  const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+  const rpcUrl = process.env.SOLANA_RPC_URL;
+  if (!rpcUrl) {
+    throw new Error("SOLANA_RPC_URL environment variable is not set. Please define it in your .env file.");
+  }
+  
+  const connection = new Connection(rpcUrl, "confirmed");
   // A dummy wallet is enough to fetch accounts
   const dummyWallet = new anchor.Wallet(anchor.web3.Keypair.generate());
   const sdk = new PumpSocialCapitalSDK(connection, dummyWallet as any);
 
-  console.log("Fetching markets from Devnet...");
+  console.log("Fetching markets from blockchain...");
   const markets = await sdk.program.account.creatorMarket.all();
   console.log(`Found ${markets.length} markets on-chain.`);
 

@@ -13,6 +13,7 @@ export class PumpSocialCapitalSDK {
   ) {
     const provider = new anchor.AnchorProvider(connection, wallet, {
       preflightCommitment: "confirmed",
+      commitment: "confirmed",
     });
     
     // We use 'any' as the type parameter to bypass strict IDL constraints

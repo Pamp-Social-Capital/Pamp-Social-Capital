@@ -16,11 +16,13 @@ export const creatorMarkets = pgTable("creator_markets", {
   creatorIdHex: text("creator_id_hex").unique().notNull(), // The 32-byte zero-padded hex representation
   creatorWallet: text("creator_wallet").notNull(),
   marketPda: text("market_pda").unique().notNull(),
+  avatarUrl: text("avatar_url"), // Cached avatar from Twitter
   supply: bigint("supply", { mode: "number" }).default(0).notNull(),
   reserveLamports: bigint("reserve_lamports", { mode: "number" }).default(0).notNull(),
   totalVolumeLamports: text("total_volume_lamports").default("0").notNull(), // Using text because u128 can be very large
   claimed: boolean("claimed").default(false).notNull(),
   paused: boolean("paused").default(false).notNull(),
+  txSignature: text("tx_signature"), // Transaction hash for market creation/claim
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

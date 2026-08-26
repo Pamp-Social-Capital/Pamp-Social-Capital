@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
-import { db, users } from "@social-capital/db";
+import { db, users, creatorMarkets } from "@social-capital/db";
 import { eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import { TwitterApi } from "twitter-api-v2";
@@ -97,10 +97,11 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       // Fetch user profile info
       const user = await loggedClient.v2.me({ 'user.fields': ['profile_image_url'] });
       const twitterHandle = user.data.username;
+      const avatarUrl = user.data.profile_image_url;
       
       // Create OAuth token for our frontend to use
       const oauthToken = jwt.sign(
-        { twitterHandle, isOAuth: true }, 
+        { twitterHandle, avatarUrl, isOAuth: true }, 
         config.jwtSecret, 
         { expiresIn: '15m' }
       );
@@ -129,16 +130,26 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       const decodedWallet = jwt.verify(walletToken, config.jwtSecret) as { wallet: string };
       
       // Verify OAuth token
-      const decodedOAuth = jwt.verify(oauthToken, config.jwtSecret) as { twitterHandle: string, isOAuth: boolean };
+      const decodedOAuth = jwt.verify(oauthToken, config.jwtSecret) as { twitterHandle: string, avatarUrl?: string, isOAuth: boolean };
       
       if (!decodedOAuth.isOAuth) {
         return reply.status(400).send({ success: false, error: "Invalid OAuth token type" });
       }
       
-      // Save link in DB
+      // Save link in DB (users table)
       await db.update(users)
-        .set({ username: decodedOAuth.twitterHandle })
+        .set({ 
+          username: decodedOAuth.twitterHandle,
+          avatarUrl: decodedOAuth.avatarUrl
+        })
         .where(eq(users.walletAddress, decodedWallet.wallet));
+
+      // Also update the cached avatar in creator_markets if it exists
+      if (decodedOAuth.avatarUrl) {
+        await db.update(creatorMarkets)
+          .set({ avatarUrl: decodedOAuth.avatarUrl })
+          .where(eq(creatorMarkets.twitterHandle, decodedOAuth.twitterHandle));
+      }
         
       return reply.send({ 
         success: true, 

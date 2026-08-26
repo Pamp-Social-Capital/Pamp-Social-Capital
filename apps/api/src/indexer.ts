@@ -99,7 +99,8 @@ export async function processHeliusPayload(transactions: any[]) {
             creatorWallet: creatorWallet,
             supply: 0,
             reserveLamports: 0,
-            totalVolumeLamports: "0"
+            totalVolumeLamports: "0",
+            txSignature: tx.signature
           }).onConflictDoNothing();
           
           console.log(`Indexed new market: ${twitterHandle} (${marketPda})`);

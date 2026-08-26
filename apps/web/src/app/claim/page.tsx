@@ -21,6 +21,7 @@ export default function ClaimPage() {
   const [twitterHandle, setTwitterHandle] = useState("");
   const [oauthToken, setOauthToken] = useState("");
   const [isXLinked, setIsXLinked] = useState(false);
+  const [createdMarketPda, setCreatedMarketPda] = useState("");
 
   const handleClaim = async () => {
     if (!publicKey || !signMessage) {
@@ -105,13 +106,28 @@ export default function ClaimPage() {
             setOauthToken(token);
             setTwitterHandle(handle);
             setIsXLinked(true);
-            setStatus("AUTHENTICATED");
-            setMessage("X account linked successfully!");
             
-            // Clean up URL without refreshing
-            window.history.replaceState({}, document.title, window.location.pathname);
+            const isPopup = params.get("popup") === "true";
+            
+            if (isPopup && window.opener) {
+              window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle }, '*');
+              window.close();
+              return;
+            } else {
+              setStatus("AUTHENTICATED");
+              setMessage("X account linked successfully!");
+              // Clean up URL without refreshing
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
           } catch (err: any) {
             console.error(err);
+            const isPopup = params.get("popup") === "true";
+            if (isPopup && window.opener) {
+              window.opener.postMessage({ type: 'OAUTH_LINK_ERROR', error: err.message }, '*');
+              window.close();
+              return;
+            }
+            
             setStatus("ERROR");
             setMessage(err.message || "An error occurred while linking X account.");
           }
@@ -122,15 +138,43 @@ export default function ClaimPage() {
     }
   }, []);
 
+  // Listen for popup messages
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'OAUTH_LINK_SUCCESS') {
+        setOauthToken(event.data.token);
+        setTwitterHandle(event.data.handle);
+        setIsXLinked(true);
+        setStatus("AUTHENTICATED");
+        setMessage("X account linked successfully!");
+      } else if (event.data?.type === 'OAUTH_LINK_ERROR') {
+        setStatus("ERROR");
+        setMessage(event.data.error || "An error occurred while linking X account.");
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   const handleOAuthLogin = () => {
     setStatus("LOADING");
-    setMessage("Redirecting to X (Twitter)...");
+    setMessage("Waiting for X (Twitter) authentication...");
     
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const redirectUrl = encodeURIComponent(window.location.origin + "/claim");
+    const redirectUrl = encodeURIComponent(window.location.origin + "/claim?popup=true");
     
-    // Direct browser to the backend's OAuth login route
-    window.location.href = `${apiUrl}/api/oauth/twitter/login?redirect_to=${redirectUrl}`;
+    // Open in popup modal
+    const width = 600;
+    const height = 700;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+    
+    window.open(
+      `${apiUrl}/api/oauth/twitter/login?redirect_to=${redirectUrl}`,
+      "TwitterLogin",
+      `width=${width},height=${height},left=${left},top=${top},toolbar=0,location=0,menubar=0`
+    );
   };
 
   const handleCreateMarket = async () => {
@@ -164,28 +208,38 @@ export default function ClaimPage() {
       // Get the PDA so we can redirect to the creator page
       const marketPda = sdk.getCreatorMarketPda(new Uint8Array(creatorIdArray));
       
-      // Check if market already exists
-      const marketAccountInfo = await sdk.program.provider.connection.getAccountInfo(marketPda);
+      // Check market state first
+      let marketState = null;
+      try {
+        marketState = await sdk.program.account.creatorMarket.fetch(marketPda);
+      } catch (e) {
+        // Doesn't exist yet
+      }
       
-      if (!marketAccountInfo) {
+      if (!marketState) {
         // Send transaction via SDK
         const signature = await sdk.createCreatorMarket(creatorIdArray);
         setStatus("LOADING");
         setMessage(`Market Created! Signature: ${signature} Claiming market ownership...`);
-      } else {
+        
+        // Automatically claim the market so the creatorWallet is set to the user's wallet
+        const claimSig = await sdk.claimCreator(new Uint8Array(creatorIdArray));
+        setStatus("SUCCESS");
+        setMessage(`Market Claimed Successfully! Signature: ${claimSig}`);
+        setCreatedMarketPda(marketPda.toBase58());
+      } else if (!marketState.claimed) {
         setStatus("LOADING");
         setMessage(`Market already exists on-chain! Skipping creation, proceeding to claim...`);
+        
+        const claimSig = await sdk.claimCreator(new Uint8Array(creatorIdArray));
+        setStatus("SUCCESS");
+        setMessage(`Market Claimed Successfully! Signature: ${claimSig}`);
+        setCreatedMarketPda(marketPda.toBase58());
+      } else {
+        setStatus("SUCCESS");
+        setMessage(`Market is already fully set up and claimed!`);
+        setCreatedMarketPda(marketPda.toBase58());
       }
-      
-      // Automatically claim the market so the creatorWallet is set to the user's wallet
-      const claimSig = await sdk.claimCreator(new Uint8Array(creatorIdArray));
-      
-      setStatus("SUCCESS");
-      setMessage(`Market Claimed Successfully! Signature: ${claimSig} Redirecting...`);
-      
-      setTimeout(() => {
-        router.push(`/creator/${marketPda.toBase58()}`);
-      }, 2000);
     } catch (err: any) {
       console.error("Transaction Error:", err);
       if (err.logs) console.error("Logs:", err.logs);
@@ -292,8 +346,16 @@ export default function ClaimPage() {
             </div>
             <div className="text-center">
               <p className="text-white font-bold text-xl mb-1">Market Launched!</p>
-              <p className="text-color-muted text-sm">Your bonding curve is now live on Devnet.</p>
+              <p className="text-color-muted text-sm">Your bonding curve is now live.</p>
             </div>
+            {createdMarketPda && (
+              <button
+                onClick={() => router.push(`/creator/${createdMarketPda}`)}
+                className="mt-4 w-full bg-[#1DA1F2] text-white font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-[#1DA1F2]/20"
+              >
+                View Your Market
+              </button>
+            )}
           </div>
         )}
 

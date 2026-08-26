@@ -59,7 +59,7 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
     
     // Setup WebSocket for realtime updates
     if (marketPda) {
-      ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}/ws`);
+      ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}`);
       ws.onopen = () => {
         ws.send(JSON.stringify({ type: "subscribe", channel: `market:${marketPda}` }));
       };
@@ -306,7 +306,7 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
                <div className="ml-11 mb-6 flex items-center gap-2">
                  <span className="text-color-foreground font-mono text-xs break-all flex-1">{modalSignature}</span>
                  <a 
-                   href={`https://solscan.io/tx/${modalSignature}?cluster=devnet`}
+                   href={`https://solscan.io/tx/${modalSignature}`}
                    target="_blank"
                    rel="noopener noreferrer"
                    title="View on Solscan"
