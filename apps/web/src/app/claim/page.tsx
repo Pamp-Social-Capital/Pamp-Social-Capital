@@ -1,17 +1,26 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useState } from "react";
+import dynamic from "next/dynamic";
+import { useState, useEffect } from "react";
+
+const WalletMultiButton = dynamic(
+  () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
+  { ssr: false }
+);
 import bs58 from "bs58";
 import { useRouter } from "next/navigation";
+import { useSocialCapital } from "../../hooks/useSocialCapital";
 
 export default function ClaimPage() {
   const router = useRouter();
+  const sdk = useSocialCapital();
   const { publicKey, signMessage } = useWallet();
   const [status, setStatus] = useState<"IDLE" | "LOADING" | "AUTHENTICATED" | "SUCCESS" | "ERROR">("IDLE");
   const [message, setMessage] = useState<string>("");
   const [twitterHandle, setTwitterHandle] = useState("");
+  const [oauthToken, setOauthToken] = useState("");
+  const [isXLinked, setIsXLinked] = useState(false);
 
   const handleClaim = async () => {
     if (!publicKey || !signMessage) {
@@ -24,13 +33,37 @@ export default function ClaimPage() {
       setStatus("LOADING");
       setMessage("Requesting challenge from server...");
       
-      // MOCK FLOW FOR UI PURPOSES
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setMessage("Please sign the message in your wallet...");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const challengeRes = await fetch(`${apiUrl}/auth/challenge?wallet=${publicKey.toBase58()}`);
+      const challengeData = await challengeRes.json();
       
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!challengeData.success) {
+        throw new Error(challengeData.error || "Failed to get challenge");
+      }
+      
+      setMessage("Please sign the message in your wallet...");
+      const messageUint8 = new TextEncoder().encode(challengeData.message);
+      const signature = await signMessage(messageUint8);
+      
+      setMessage("Verifying signature...");
+      const verifyRes = await fetch(`${apiUrl}/auth/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wallet: publicKey.toBase58(),
+          message: challengeData.message,
+          signature: bs58.encode(signature)
+        })
+      });
+      
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success) {
+        throw new Error(verifyData.error || "Failed to verify signature");
+      }
+      
+      localStorage.setItem("walletToken", verifyData.token);
       setStatus("AUTHENTICATED");
-      setMessage("Wallet authenticated! Please setup your profile.");
+      setMessage("Wallet authenticated! Please link your X account.");
 
     } catch (err: any) {
       console.error(err);
@@ -39,28 +72,138 @@ export default function ClaimPage() {
     }
   };
 
+  useEffect(() => {
+    // Check if returning from OAuth
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("oauth_token");
+      const handle = params.get("handle");
+      
+      if (token && handle) {
+        const linkTwitter = async () => {
+          try {
+            const walletToken = localStorage.getItem("walletToken");
+            if (!walletToken) {
+              throw new Error("Wallet not authenticated. Please connect wallet first.");
+            }
+            
+            setStatus("LOADING");
+            setMessage("Linking X account to your wallet...");
+            
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const linkRes = await fetch(`${apiUrl}/api/oauth/twitter/link`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ oauthToken: token, walletToken })
+            });
+            
+            const linkData = await linkRes.json();
+            if (!linkData.success) {
+              throw new Error(linkData.error || "Failed to link Twitter account");
+            }
+            
+            setOauthToken(token);
+            setTwitterHandle(handle);
+            setIsXLinked(true);
+            setStatus("AUTHENTICATED");
+            setMessage("X account linked successfully!");
+            
+            // Clean up URL without refreshing
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (err: any) {
+            console.error(err);
+            setStatus("ERROR");
+            setMessage(err.message || "An error occurred while linking X account.");
+          }
+        };
+        
+        linkTwitter();
+      }
+    }
+  }, []);
+
+  const handleOAuthLogin = () => {
+    setStatus("LOADING");
+    setMessage("Redirecting to X (Twitter)...");
+    
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const redirectUrl = encodeURIComponent(window.location.origin + "/claim");
+    
+    // Direct browser to the backend's OAuth login route
+    window.location.href = `${apiUrl}/api/oauth/twitter/login?redirect_to=${redirectUrl}`;
+  };
+
   const handleCreateMarket = async () => {
-    if (!twitterHandle) {
-      setMessage("Please enter your X (Twitter) handle.");
+    if (!twitterHandle || !isXLinked) {
+      setMessage("Please link your X (Twitter) handle first.");
       setStatus("ERROR");
       return;
     }
     
+    if (!sdk) {
+      setMessage("Wallet not connected or SDK not initialized.");
+      setStatus("ERROR");
+      return;
+    }
+
     try {
       setStatus("LOADING");
-      setMessage("Initializing market on-chain...");
+      setMessage("Requesting approval from wallet to create market on-chain...");
       
-      // MOCK SUBMIT
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Convert handle to 32 bytes zero-padded array
+      const textBytes = new TextEncoder().encode(twitterHandle);
+      if (textBytes.length > 32) {
+        throw new Error("Handle is too long");
+      }
+      
+      const creatorIdArray = new Array(32).fill(0);
+      for (let i = 0; i < textBytes.length; i++) {
+        creatorIdArray[i] = textBytes[i];
+      }
+      
+      // Get the PDA so we can redirect to the creator page
+      const marketPda = sdk.getCreatorMarketPda(new Uint8Array(creatorIdArray));
+      
+      // Check if market already exists
+      const marketAccountInfo = await sdk.program.provider.connection.getAccountInfo(marketPda);
+      
+      if (!marketAccountInfo) {
+        // Send transaction via SDK
+        const signature = await sdk.createCreatorMarket(creatorIdArray);
+        setStatus("LOADING");
+        setMessage(`Market Created! Signature: ${signature} Claiming market ownership...`);
+      } else {
+        setStatus("LOADING");
+        setMessage(`Market already exists on-chain! Skipping creation, proceeding to claim...`);
+      }
+      
+      // Automatically claim the market so the creatorWallet is set to the user's wallet
+      const claimSig = await sdk.claimCreator(new Uint8Array(creatorIdArray));
+      
       setStatus("SUCCESS");
-      setMessage("Market Created Successfully! Redirecting to your dashboard...");
+      setMessage(`Market Claimed Successfully! Signature: ${claimSig} Redirecting...`);
+      
       setTimeout(() => {
-        router.push("/portfolio");
-      }, 1500);
+        router.push(`/creator/${marketPda.toBase58()}`);
+      }, 2000);
     } catch (err: any) {
-      console.error(err);
+      console.error("Transaction Error:", err);
+      if (err.logs) console.error("Logs:", err.logs);
       setStatus("ERROR");
-      setMessage(err.message || "An unknown error occurred");
+      
+      let cleanMessage = "Transaction failed. Please try again.";
+      if (err.message) {
+        if (err.message.includes("already in use")) {
+          cleanMessage = "This market has already been created/claimed.";
+        } else if (err.message.includes("User rejected") || err.message.includes("cancelled")) {
+          cleanMessage = "Transaction was cancelled by user.";
+        } else if (err.message.includes("Simulation failed")) {
+          cleanMessage = "Transaction simulation failed. Check console for details.";
+        } else {
+          cleanMessage = err.message.length > 100 ? "Transaction failed. Check console for details." : err.message;
+        }
+      }
+      setMessage(cleanMessage);
     }
   };
 
@@ -90,7 +233,7 @@ export default function ClaimPage() {
             <p className="text-white font-semibold text-lg">Step 1: Connect Wallet</p>
             <WalletMultiButton className="!bg-[#161A22] !border !border-color-border hover:!border-color-buy !transition-all !text-white !h-12 !px-8 !rounded-xl !font-sans !font-semibold w-full flex justify-center shadow-lg" />
           </div>
-        ) : status === "IDLE" || status === "ERROR" || (status === "LOADING" && !twitterHandle) ? (
+        ) : status === "IDLE" || status === "ERROR" || (status === "LOADING" && !isXLinked && !twitterHandle) ? (
           <div className="flex flex-col items-center gap-6 w-full mt-4">
             <div className="text-center">
               <p className="text-white font-semibold text-lg mb-1">Step 2: Authenticate</p>
@@ -107,30 +250,40 @@ export default function ClaimPage() {
               {status === "LOADING" ? "Awaiting Signature..." : "Sign Challenge"}
             </button>
           </div>
-        ) : status === "AUTHENTICATED" || (status === "LOADING" && twitterHandle) ? (
+        ) : status === "AUTHENTICATED" || (status === "LOADING" && (twitterHandle || isXLinked)) ? (
           <div className="flex flex-col items-center gap-6 w-full mt-4">
             <div className="text-center w-full">
               <p className="text-white font-semibold text-lg mb-1">Step 3: Link X Identity</p>
-              <p className="text-color-muted text-sm mb-4">What is your X (Twitter) handle?</p>
-              <div className="relative w-full">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-color-muted font-bold">@</span>
-                <input 
-                  type="text" 
-                  value={twitterHandle}
-                  onChange={(e) => setTwitterHandle(e.target.value)}
-                  placeholder="username"
-                  className="w-full bg-[#0B0E14] border border-color-border rounded-xl p-3.5 pl-9 text-white font-medium focus:outline-none focus:border-color-buy transition-colors"
-                />
-              </div>
+              <p className="text-color-muted text-sm mb-4">
+                {isXLinked ? "Identity verified via X." : "Click below to authenticate your X (Twitter) account."}
+              </p>
+              
+              {isXLinked && (
+                <div className="w-full bg-white/10 border border-white/30 rounded-xl p-4 flex items-center justify-center gap-2 mb-4">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                  <span className="font-bold text-white">@{twitterHandle}</span>
+                  <span className="bg-color-buy text-[#0B0E14] text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">VERIFIED</span>
+                </div>
+              )}
             </div>
             
-            <button
-              onClick={handleCreateMarket}
-              disabled={status === "LOADING" || !twitterHandle}
-              className="w-full bg-[#1DA1F2] text-white font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1DA1F2]/20"
-            >
-              {status === "LOADING" ? "Creating Market..." : "Launch Market"}
-            </button>
+            {!isXLinked ? (
+              <button
+                onClick={handleOAuthLogin}
+                disabled={status === "LOADING"}
+                className="w-full bg-[#161A22] border border-color-border text-white font-bold py-3.5 px-4 rounded-xl hover:bg-[#1DA1F2]/20 hover:border-[#1DA1F2]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+              >
+                {status === "LOADING" ? "Connecting..." : "Connect X"}
+              </button>
+            ) : (
+              <button
+                onClick={handleCreateMarket}
+                disabled={status === "LOADING"}
+                className="w-full bg-[#1DA1F2] text-white font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1DA1F2]/20"
+              >
+                {status === "LOADING" ? "Creating Market..." : "Launch Market"}
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4 w-full mt-4">
@@ -150,7 +303,7 @@ export default function ClaimPage() {
             status === "SUCCESS" ? "bg-color-buy/10 border-color-buy text-color-buy" :
             "bg-[#0B0E14] border-color-border text-white"
           }`}>
-            {status === "LOADING" && <span className="inline-block animate-spin mr-2">⟳</span>}
+            {status === "LOADING" && <svg className="inline-block animate-spin mr-2 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
             {message}
           </div>
         )}

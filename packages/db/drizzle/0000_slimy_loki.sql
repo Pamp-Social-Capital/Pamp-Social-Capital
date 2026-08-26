@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS "creator_markets" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"creator_id" text NOT NULL,
+	"twitter_handle" text NOT NULL,
+	"creator_id_hex" text NOT NULL,
 	"creator_wallet" text NOT NULL,
 	"market_pda" text NOT NULL,
 	"supply" bigint DEFAULT 0 NOT NULL,
@@ -10,7 +11,8 @@ CREATE TABLE IF NOT EXISTS "creator_markets" (
 	"paused" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "creator_markets_creator_id_unique" UNIQUE("creator_id"),
+	CONSTRAINT "creator_markets_twitter_handle_unique" UNIQUE("twitter_handle"),
+	CONSTRAINT "creator_markets_creator_id_hex_unique" UNIQUE("creator_id_hex"),
 	CONSTRAINT "creator_markets_market_pda_unique" UNIQUE("market_pda")
 );
 --> statement-breakpoint
@@ -23,7 +25,8 @@ CREATE TABLE IF NOT EXISTS "price_candles" (
 	"high" bigint NOT NULL,
 	"low" bigint NOT NULL,
 	"close" bigint NOT NULL,
-	"volume_lamports" bigint DEFAULT 0 NOT NULL
+	"volume_lamports" bigint DEFAULT 0 NOT NULL,
+	CONSTRAINT "price_candles_market_pda_resolution_timestamp_unique" UNIQUE("market_pda","resolution","timestamp")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "trade_history" (
@@ -55,6 +58,7 @@ CREATE TABLE IF NOT EXISTS "user_positions" (
 CREATE TABLE IF NOT EXISTS "users" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"wallet_address" text NOT NULL,
+	"nonce" text,
 	"username" text,
 	"avatar_url" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,

@@ -1,5 +1,5 @@
 {
-  "id": "3a334142-33e6-453b-81b0-55d3e74efed5",
+  "id": "e52f9556-8d54-4699-ba7e-b2d665483344",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -15,8 +15,14 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "creator_id": {
-          "name": "creator_id",
+        "twitter_handle": {
+          "name": "twitter_handle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creator_id_hex": {
+          "name": "creator_id_hex",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -87,11 +93,18 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "creator_markets_creator_id_unique": {
-          "name": "creator_markets_creator_id_unique",
+        "creator_markets_twitter_handle_unique": {
+          "name": "creator_markets_twitter_handle_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "creator_id"
+            "twitter_handle"
+          ]
+        },
+        "creator_markets_creator_id_hex_unique": {
+          "name": "creator_markets_creator_id_hex_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "creator_id_hex"
           ]
         },
         "creator_markets_market_pda_unique": {
@@ -167,7 +180,17 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "price_candles_market_pda_resolution_timestamp_unique": {
+          "name": "price_candles_market_pda_resolution_timestamp_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "market_pda",
+            "resolution",
+            "timestamp"
+          ]
+        }
+      }
     },
     "trade_history": {
       "name": "trade_history",
@@ -337,6 +360,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "nonce": {
+          "name": "nonce",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "username": {
           "name": "username",

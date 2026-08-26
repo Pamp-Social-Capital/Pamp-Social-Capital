@@ -7,6 +7,7 @@ import fastifyCors from "@fastify/cors";
 import { processHeliusPayload } from "./indexer";
 import { authRoutes } from "./routes/auth";
 import { marketRoutes } from "./routes/markets";
+import { oauthRoutes } from "./routes/oauth";
 import { portfolioRoutes } from "./routes/portfolio";
 import { websocketRoutes } from "./routes/websocket";
 
@@ -28,6 +29,7 @@ fastify.register(fastifyRateLimit, {
 fastify.register(fastifyWebsocket);
 
 fastify.register(authRoutes, { prefix: "/auth" });
+fastify.register(oauthRoutes, { prefix: "/api/oauth" });
 fastify.register(marketRoutes, { prefix: "/api/markets" });
 fastify.register(portfolioRoutes, { prefix: "/api/portfolio" });
 fastify.register(websocketRoutes, { prefix: "/ws" });

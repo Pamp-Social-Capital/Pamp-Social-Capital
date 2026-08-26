@@ -11,11 +11,12 @@ export type SocialCapital = {
   instructions: [
     {
       name: "initializeProtocol";
+      discriminator: [188, 233, 252, 106, 134, 146, 202, 91];
       accounts: [
-        { name: "protocolConfig"; isMut: true; isSigner: false },
-        { name: "authority"; isMut: true; isSigner: true },
-        { name: "treasury"; isMut: false; isSigner: false },
-        { name: "systemProgram"; isMut: false; isSigner: false }
+        { name: "protocolConfig"; writable: true; signer: false },
+        { name: "authority"; writable: true; signer: true },
+        { name: "treasury"; writable: false; signer: false },
+        { name: "systemProgram"; writable: false; signer: false }
       ];
       args: [
         { name: "protocolFeeBps"; type: "u16" },
@@ -24,39 +25,90 @@ export type SocialCapital = {
     },
     {
       name: "createCreatorMarket";
+      discriminator: [189, 161, 33, 59, 174, 10, 224, 217];
       accounts: [
-        { name: "creatorMarket"; isMut: true; isSigner: false },
-        { name: "protocolConfig"; isMut: false; isSigner: false },
-        { name: "payer"; isMut: true; isSigner: true },
-        { name: "systemProgram"; isMut: false; isSigner: false }
+        { name: "creatorMarket"; writable: true; signer: false },
+        { name: "protocolConfig"; writable: false; signer: false },
+        { name: "payer"; writable: true; signer: true },
+        { name: "systemProgram"; writable: false; signer: false }
       ];
       args: [{ name: "creatorId"; type: { array: ["u8", 32] } }];
     },
     {
       name: "buyKeys";
+      discriminator: [24, 8, 156, 247, 54, 32, 202, 117];
       accounts: [
-        { name: "creatorMarket"; isMut: true; isSigner: false },
-        { name: "userPosition"; isMut: true; isSigner: false },
-        { name: "protocolConfig"; isMut: false; isSigner: false },
-        { name: "treasury"; isMut: true; isSigner: false },
-        { name: "creatorFeeVault"; isMut: true; isSigner: false },
-        { name: "buyer"; isMut: true; isSigner: true },
-        { name: "systemProgram"; isMut: false; isSigner: false }
+        { name: "creatorMarket"; writable: true; signer: false },
+        { name: "userPosition"; writable: true; signer: false },
+        { name: "protocolConfig"; writable: false; signer: false },
+        { name: "treasury"; writable: true; signer: false },
+        { name: "creatorFeeVault"; writable: true; signer: false },
+        { name: "buyer"; writable: true; signer: true },
+        { name: "systemProgram"; writable: false; signer: false }
       ];
       args: [
         { name: "amount"; type: "u64" },
         { name: "maxSolCost"; type: "u64" }
       ];
+    },
+    {
+      name: "sellKeys";
+      discriminator: [211, 221, 116, 16, 58, 49, 1, 247];
+      accounts: [
+        { name: "creatorMarket"; writable: true; signer: false },
+        { name: "userPosition"; writable: true; signer: false },
+        { name: "protocolConfig"; writable: false; signer: false },
+        { name: "treasury"; writable: true; signer: false },
+        { name: "seller"; writable: true; signer: true },
+        { name: "systemProgram"; writable: false; signer: false }
+      ];
+      args: [
+        { name: "amount"; type: "u64" },
+        { name: "minSolOutput"; type: "u64" }
+      ];
+    },
+    {
+      name: "claimCreator";
+      discriminator: [231, 240, 197, 249, 244, 10, 21, 59];
+      accounts: [
+        { name: "creatorMarket"; writable: true; signer: false },
+        { name: "creatorWallet"; writable: true; signer: true }
+      ];
+      args: [];
+    },
+    {
+      name: "withdrawCreatorFees";
+      discriminator: [8, 30, 213, 18, 121, 105, 129, 222];
+      accounts: [
+        { name: "creatorMarket"; writable: true; signer: false },
+        { name: "creatorFeeVault"; writable: true; signer: false },
+        { name: "creatorWallet"; writable: true; signer: true }
+      ];
+      args: [];
     }
   ];
   accounts: [
     {
       name: "protocolConfig";
+      discriminator: [207, 91, 250, 28, 152, 179, 215, 209];
+    },
+    {
+      name: "creatorMarket";
+      discriminator: [88, 120, 123, 203, 45, 70, 195, 119];
+    },
+    {
+      name: "userPosition";
+      discriminator: [251, 248, 209, 245, 83, 234, 17, 27];
+    }
+  ];
+  types: [
+    {
+      name: "protocolConfig";
       type: {
         kind: "struct";
         fields: [
-          { name: "authority"; type: "publicKey" },
-          { name: "treasury"; type: "publicKey" },
+          { name: "authority"; type: "pubkey" },
+          { name: "treasury"; type: "pubkey" },
           { name: "protocolFeeBps"; type: "u16" },
           { name: "defaultCreatorFeeBps"; type: "u16" },
           { name: "paused"; type: "bool" },
@@ -70,7 +122,7 @@ export type SocialCapital = {
         kind: "struct";
         fields: [
           { name: "creatorId"; type: { array: ["u8", 32] } },
-          { name: "creatorWallet"; type: "publicKey" },
+          { name: "creatorWallet"; type: "pubkey" },
           { name: "reserveLamports"; type: "u64" },
           { name: "supply"; type: "u64" },
           { name: "totalVolumeLamports"; type: "u128" },
@@ -86,8 +138,8 @@ export type SocialCapital = {
       type: {
         kind: "struct";
         fields: [
-          { name: "owner"; type: "publicKey" },
-          { name: "creatorMarket"; type: "publicKey" },
+          { name: "owner"; type: "pubkey" },
+          { name: "creatorMarket"; type: "pubkey" },
           { name: "keyBalance"; type: "u64" },
           { name: "totalBoughtLamports"; type: "u128" },
           { name: "totalSoldLamports"; type: "u128" },
@@ -113,11 +165,12 @@ export const IDL: SocialCapital = {
   instructions: [
     {
       name: "initializeProtocol",
+      discriminator: [188, 233, 252, 106, 134, 146, 202, 91],
       accounts: [
-        { name: "protocolConfig", isMut: true, isSigner: false },
-        { name: "authority", isMut: true, isSigner: true },
-        { name: "treasury", isMut: false, isSigner: false },
-        { name: "systemProgram", isMut: false, isSigner: false }
+        { name: "protocolConfig", writable: true, signer: false },
+        { name: "authority", writable: true, signer: true },
+        { name: "treasury", writable: false, signer: false },
+        { name: "systemProgram", writable: false, signer: false }
       ],
       args: [
         { name: "protocolFeeBps", type: "u16" },
@@ -126,39 +179,90 @@ export const IDL: SocialCapital = {
     },
     {
       name: "createCreatorMarket",
+      discriminator: [189, 161, 33, 59, 174, 10, 224, 217],
       accounts: [
-        { name: "creatorMarket", isMut: true, isSigner: false },
-        { name: "protocolConfig", isMut: false, isSigner: false },
-        { name: "payer", isMut: true, isSigner: true },
-        { name: "systemProgram", isMut: false, isSigner: false }
+        { name: "creatorMarket", writable: true, signer: false },
+        { name: "protocolConfig", writable: false, signer: false },
+        { name: "payer", writable: true, signer: true },
+        { name: "systemProgram", writable: false, signer: false }
       ],
       args: [{ name: "creatorId", type: { array: ["u8", 32] } }]
     },
     {
       name: "buyKeys",
+      discriminator: [24, 8, 156, 247, 54, 32, 202, 117],
       accounts: [
-        { name: "creatorMarket", isMut: true, isSigner: false },
-        { name: "userPosition", isMut: true, isSigner: false },
-        { name: "protocolConfig", isMut: false, isSigner: false },
-        { name: "treasury", isMut: true, isSigner: false },
-        { name: "creatorFeeVault", isMut: true, isSigner: false },
-        { name: "buyer", isMut: true, isSigner: true },
-        { name: "systemProgram", isMut: false, isSigner: false }
+        { name: "creatorMarket", writable: true, signer: false },
+        { name: "userPosition", writable: true, signer: false },
+        { name: "protocolConfig", writable: false, signer: false },
+        { name: "treasury", writable: true, signer: false },
+        { name: "creatorFeeVault", writable: true, signer: false },
+        { name: "buyer", writable: true, signer: true },
+        { name: "systemProgram", writable: false, signer: false }
       ],
       args: [
         { name: "amount", type: "u64" },
         { name: "maxSolCost", type: "u64" }
       ]
+    },
+    {
+      name: "sellKeys",
+      discriminator: [211, 221, 116, 16, 58, 49, 1, 247],
+      accounts: [
+        { name: "creatorMarket", writable: true, signer: false },
+        { name: "userPosition", writable: true, signer: false },
+        { name: "protocolConfig", writable: false, signer: false },
+        { name: "treasury", writable: true, signer: false },
+        { name: "seller", writable: true, signer: true },
+        { name: "systemProgram", writable: false, signer: false }
+      ],
+      args: [
+        { name: "amount", type: "u64" },
+        { name: "minSolOutput", type: "u64" }
+      ]
+    },
+    {
+      name: "claimCreator",
+      discriminator: [231, 240, 197, 249, 244, 10, 21, 59],
+      accounts: [
+        { name: "creatorMarket", writable: true, signer: false },
+        { name: "creatorWallet", writable: true, signer: true }
+      ],
+      args: []
+    },
+    {
+      name: "withdrawCreatorFees",
+      discriminator: [8, 30, 213, 18, 121, 105, 129, 222],
+      accounts: [
+        { name: "creatorMarket", writable: true, signer: false },
+        { name: "creatorFeeVault", writable: true, signer: false },
+        { name: "creatorWallet", writable: true, signer: true }
+      ],
+      args: []
     }
   ],
   accounts: [
     {
       name: "protocolConfig",
+      discriminator: [207, 91, 250, 28, 152, 179, 215, 209]
+    },
+    {
+      name: "creatorMarket",
+      discriminator: [88, 120, 123, 203, 45, 70, 195, 119]
+    },
+    {
+      name: "userPosition",
+      discriminator: [251, 248, 209, 245, 83, 234, 17, 27]
+    }
+  ],
+  types: [
+    {
+      name: "protocolConfig",
       type: {
         kind: "struct",
         fields: [
-          { name: "authority", type: "publicKey" },
-          { name: "treasury", type: "publicKey" },
+          { name: "authority", type: "pubkey" },
+          { name: "treasury", type: "pubkey" },
           { name: "protocolFeeBps", type: "u16" },
           { name: "defaultCreatorFeeBps", type: "u16" },
           { name: "paused", type: "bool" },
@@ -172,7 +276,7 @@ export const IDL: SocialCapital = {
         kind: "struct",
         fields: [
           { name: "creatorId", type: { array: ["u8", 32] } },
-          { name: "creatorWallet", type: "publicKey" },
+          { name: "creatorWallet", type: "pubkey" },
           { name: "reserveLamports", type: "u64" },
           { name: "supply", type: "u64" },
           { name: "totalVolumeLamports", type: "u128" },
@@ -188,8 +292,8 @@ export const IDL: SocialCapital = {
       type: {
         kind: "struct",
         fields: [
-          { name: "owner", type: "publicKey" },
-          { name: "creatorMarket", type: "publicKey" },
+          { name: "owner", type: "pubkey" },
+          { name: "creatorMarket", type: "pubkey" },
           { name: "keyBalance", type: "u64" },
           { name: "totalBoughtLamports", type: "u128" },
           { name: "totalSoldLamports", type: "u128" },
@@ -201,3 +305,4 @@ export const IDL: SocialCapital = {
   events: [],
   errors: []
 };
+

@@ -28,7 +28,7 @@ export default function CreatorPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <div className="animate-spin text-4xl mb-4 text-color-muted">⟳</div>
+        <div className="flex justify-center mb-4"><svg className="animate-spin h-10 w-10 text-color-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
         <p className="text-color-muted">Loading market details...</p>
       </div>
     );
@@ -59,7 +59,15 @@ export default function CreatorPage({ params }: PageProps) {
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
             {creatorName}
-            <svg className="w-6 h-6 text-[#1DA1F2]" fill="currentColor" viewBox="0 0 24 24"><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></svg>
+            <a 
+              href={`https://x.com/${creatorName}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-white hover:text-gray-300 transition-colors"
+              title={`View @${creatorName} on X`}
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+            </a>
           </h1>
           <div className="flex items-center gap-2 mt-1 mb-3">
             <p className="text-color-muted text-sm truncate max-w-[200px] md:max-w-xs font-mono">{id}</p>
@@ -67,11 +75,18 @@ export default function CreatorPage({ params }: PageProps) {
               href={`https://solscan.io/account/${id}?cluster=devnet`} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-xs flex items-center gap-1 bg-[#161A22] text-color-muted hover:text-white border border-color-border px-2 py-0.5 rounded transition-colors"
+              title="View on Solscan"
+              className="p-1 bg-[#161A22] text-color-muted hover:text-white border border-color-border rounded transition-colors flex items-center justify-center"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-              Solscan
             </a>
+            <button
+              onClick={() => navigator.clipboard.writeText(id as string)}
+              title="Copy Address"
+              className="p-1 bg-[#161A22] text-color-muted hover:text-white border border-color-border rounded transition-colors flex items-center justify-center"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+            </button>
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
             <span className="bg-[#161A22] border border-color-border px-3 py-1 rounded-full text-white">
@@ -115,7 +130,7 @@ export default function CreatorPage({ params }: PageProps) {
 
         {/* Right Sidebar */}
         <div className="flex flex-col gap-6">
-          <TradingWidget marketPda={id} />
+          <TradingWidget marketPda={id} twitterHandle={market.twitterHandle} />
 
           {/* Market Stats */}
           <div className="bg-color-card rounded-2xl p-6 border border-color-border shadow-lg">

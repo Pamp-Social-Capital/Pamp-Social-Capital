@@ -79,7 +79,31 @@ export async function processHeliusPayload(transactions: any[]) {
         
         if (!decoded) continue;
 
-        if (decoded.name === "buyKeys") {
+        if (decoded.name === "createCreatorMarket") {
+          const data = decoded.data as any;
+          // data.creatorId is a number array of 32 bytes
+          const creatorIdArray = data.creatorId;
+          const creatorIdHex = Buffer.from(creatorIdArray).toString('hex');
+          
+          // To get twitter handle, strip trailing zeros
+          const handleBytes = Buffer.from(creatorIdArray).filter(b => b !== 0);
+          const twitterHandle = Buffer.from(handleBytes).toString('utf-8');
+          
+          const marketPda = ix.accounts[0]; // creatorMarket account
+          const creatorWallet = tx.feePayer; // assuming payer is the creator for now
+          
+          await db.insert(creatorMarkets).values({
+            marketPda: marketPda,
+            twitterHandle: twitterHandle,
+            creatorIdHex: creatorIdHex,
+            creatorWallet: creatorWallet,
+            supply: 0,
+            reserveLamports: 0,
+            totalVolumeLamports: "0"
+          }).onConflictDoNothing();
+          
+          console.log(`Indexed new market: ${twitterHandle} (${marketPda})`);
+        } else if (decoded.name === "buyKeys") {
           const data = decoded.data as any;
           const amount = data.amount as BN;
           const maxSolCost = data.maxSolCost as BN;
