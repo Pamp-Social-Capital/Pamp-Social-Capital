@@ -32,7 +32,7 @@ export default function RootLayout({
         <WalletContextProvider>
           <div className="flex flex-col min-h-screen">
             <TopNav />
-            <main className="flex-grow max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8">
+            <main className="flex-grow w-full px-4 sm:px-8 lg:px-12 py-6">
               {children}
             </main>
           </div>

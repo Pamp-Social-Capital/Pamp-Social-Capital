@@ -12,7 +12,8 @@ export const users = pgTable("users", {
 
 export const creatorMarkets = pgTable("creator_markets", {
   id: uuid("id").primaryKey().defaultRandom(),
-  creatorId: text("creator_id").unique().notNull(), // The 32-byte ID string or public key
+  twitterHandle: text("twitter_handle").unique().notNull(), // The raw Twitter handle string
+  creatorIdHex: text("creator_id_hex").unique().notNull(), // The 32-byte zero-padded hex representation
   creatorWallet: text("creator_wallet").notNull(),
   marketPda: text("market_pda").unique().notNull(),
   supply: bigint("supply", { mode: "number" }).default(0).notNull(),

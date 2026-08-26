@@ -6,7 +6,7 @@ import Link from "next/link";
 export const TopNav = () => {
   return (
     <header className="border-b border-color-border bg-[#0B0E14] sticky top-0 z-50">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="w-full px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
         
         {/* Left Side: Logo & Navigation */}
         <div className="flex items-center gap-10">
@@ -23,6 +23,10 @@ export const TopNav = () => {
             </Link>
             <Link href="/portfolio" className="hover:text-white transition-colors">
               Portfolio
+            </Link>
+            <Link href="/claim" className="flex items-center gap-1 hover:text-white transition-colors text-color-buy">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+              Create Market
             </Link>
           </nav>
         </div>

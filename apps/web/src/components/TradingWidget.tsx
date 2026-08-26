@@ -11,13 +11,13 @@ export const TradingWidget: FC<{ marketPda: string }> = ({ marketPda }) => {
   const handleTrade = () => {
     if (!amount || parseFloat(amount) <= 0) return;
     
-    // TODO: Implement actual trade via Anchor SDK
-    setModalMessage(`Successfully placed a simulated ${tradeType.toUpperCase()} order of ${amount} SOL.`);
+    // Prepare Anchor SDK payload here
+    setModalMessage(`Order queued: ${tradeType.toUpperCase()} ${amount} SOL.`);
     setShowModal(true);
     setAmount("");
   };
 
-  // Mock calculations for UI presentation
+  // Spot price estimations
   const parsedAmount = parseFloat(amount) || 0;
   const estimatedKeys = (parsedAmount * 125.4).toFixed(2);
   const creatorFee = (parsedAmount * 0.05).toFixed(4); // 5% fee

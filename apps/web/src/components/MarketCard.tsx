@@ -4,7 +4,7 @@ import { FC } from "react";
 export interface Market {
   id: string;
   marketPda: string;
-  creatorId: string;
+  twitterHandle: string;
   supply: number;
   reserveLamports: number;
   totalVolumeLamports: string;

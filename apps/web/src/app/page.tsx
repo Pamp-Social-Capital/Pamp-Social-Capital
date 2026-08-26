@@ -1,50 +1,33 @@
+"use client";
+
 import { MarketCard, Market } from "@/components/MarketCard";
 import Link from "next/link";
+import useSWR from "swr";
 
-// Dummy data for testing UI before connecting to API
-const DUMMY_MARKETS = [
-  {
-    id: "m1",
-    marketPda: "Market1111111111111111111111111111111111111",
-    creatorId: "12345",
-    supply: 25000,
-    reserveLamports: 15500000000,
-    totalVolumeLamports: "45000000000",
-    currentPriceLamports: "620000",
-    marketCapLamports: "15500000000",
-    holderCount: 142,
-    creatorFeeBps: 500,
-    username: "SolanaWhale",
-  },
-  {
-    id: "m2",
-    marketPda: "Market2222222222222222222222222222222222222",
-    creatorId: "67890",
-    supply: 12000,
-    reserveLamports: 8200000000,
-    totalVolumeLamports: "12000000000",
-    currentPriceLamports: "680000",
-    marketCapLamports: "8160000000",
-    holderCount: 89,
-    creatorFeeBps: 200,
-    username: "DegenTrader",
-  },
-  {
-    id: "m3",
-    marketPda: "Market3333333333333333333333333333333333333",
-    creatorId: "13579",
-    supply: 80000,
-    reserveLamports: 42000000000,
-    totalVolumeLamports: "150000000000",
-    currentPriceLamports: "525000",
-    marketCapLamports: "42000000000",
-    holderCount: 412,
-    creatorFeeBps: 750,
-    username: "AlphaCaller",
-  }
-];
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function Home() {
+  const { data, error, isLoading } = useSWR(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/markets`, 
+    fetcher
+  );
+
+  // Map API response to the Market interface expected by MarketCard
+  const markets: Market[] = data?.markets?.map((m: any) => ({
+    id: m.id,
+    marketPda: m.marketPda,
+    twitterHandle: m.twitterHandle,
+    supply: m.supply,
+    reserveLamports: m.reserveLamports,
+    totalVolumeLamports: m.totalVolumeLamports,
+    // Provide default/calculated fields for properties not yet in the DB schema
+    currentPriceLamports: m.currentPriceLamports || "620000", 
+    marketCapLamports: m.marketCapLamports || (m.supply * 620000).toString(),
+    holderCount: m.holderCount || 0,
+    creatorFeeBps: m.creatorFeeBps || 500,
+    username: m.twitterHandle || "Unknown",
+  })) || [];
+
   return (
     <div className="flex flex-col gap-8 pb-12">
       {/* Hero Section */}
@@ -109,11 +92,25 @@ export default function Home() {
 
       {/* Markets Grid */}
       <section>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-2">
-          {DUMMY_MARKETS.map((market) => (
-            <MarketCard key={market.id} market={market} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-24 text-color-muted">
+            <span className="animate-spin text-2xl mr-3">⟳</span> Loading live markets...
+          </div>
+        ) : error ? (
+          <div className="text-center py-24 text-color-sell">
+            Error loading markets. Please ensure the backend is running.
+          </div>
+        ) : markets.length === 0 ? (
+          <div className="text-center py-24 text-color-muted border border-dashed border-color-border rounded-2xl mt-2">
+            No live markets found on-chain. <br /> Be the first to create one!
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-2">
+            {markets.map((market: Market) => (
+              <MarketCard key={market.id} market={market} />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
