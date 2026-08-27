@@ -150,6 +150,14 @@ export default function CreatorPage({ params }: PageProps) {
                   className={chartResolution === "1m" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
                 >1M</button>
                 <button 
+                  onClick={() => setChartResolution("5m")}
+                  className={chartResolution === "5m" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
+                >5M</button>
+                <button 
+                  onClick={() => setChartResolution("15m")}
+                  className={chartResolution === "15m" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
+                >15M</button>
+                <button 
                   onClick={() => setChartResolution("1h")}
                   className={chartResolution === "1h" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
                 >1H</button>
@@ -157,10 +165,6 @@ export default function CreatorPage({ params }: PageProps) {
                   onClick={() => setChartResolution("1d")}
                   className={chartResolution === "1d" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
                 >1D</button>
-                <button 
-                  onClick={() => setChartResolution("1w")}
-                  className={chartResolution === "1w" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
-                >1W</button>
               </div>
             </div>
             <div className="w-full bg-[#0B0E14] border border-color-border rounded-xl h-[400px] overflow-hidden">
