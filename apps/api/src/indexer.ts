@@ -1,5 +1,5 @@
-import { BorshInstructionCoder, Program, BN } from "@coral-xyz/anchor";
-import { PublicKey } from "@solana/web3.js";
+import { BorshCoder, Program, BN, EventParser } from "@coral-xyz/anchor";
+import { PublicKey, Connection } from "@solana/web3.js";
 import { IDL } from "@social-capital/sdk/dist/idl/social_capital";
 import { db, tradeHistory, creatorMarkets, userPositions, priceCandles } from "@social-capital/db";
 import { eq, sql } from "drizzle-orm";
@@ -13,7 +13,7 @@ const patchedIdl = JSON.parse(JSON.stringify(IDL));
 for (const ix of patchedIdl.instructions) {
   ix.discriminator = Array.from(createHash('sha256').update('global:' + ix.name).digest().slice(0, 8));
 }
-const coder = new BorshInstructionCoder(patchedIdl as any);
+const coder = new BorshCoder(patchedIdl as any);
 
 async function processTradeForCandles(marketPda: string, price: number, volume: number) {
   const resolutions = [
@@ -58,42 +58,54 @@ async function processTradeForCandles(marketPda: string, price: number, volume: 
 }
 
 export async function processHeliusPayload(transactions: any[]) {
+  const rpcUrl = process.env.SOLANA_RPC_URL;
+  if (!rpcUrl) {
+    console.error("SOLANA_RPC_URL is missing");
+    return;
+  }
+  const connection = new Connection(rpcUrl, 'confirmed');
+  const eventParser = new EventParser(PROGRAM_ID, coder);
+
   for (const tx of transactions) {
     if (tx.transactionError) {
       console.log(`Skipping failed tx: ${tx.signature}`);
       continue;
     }
 
-    // Find instructions for our program
-    const ourInstructions = tx.instructions?.filter(
-      (ix: any) => ix.programId === PROGRAM_ID.toBase58()
-    );
+    try {
+      const txInfo = await connection.getTransaction(tx.signature, {
+        maxSupportedTransactionVersion: 0,
+        commitment: 'confirmed'
+      });
+      
+      if (!txInfo) {
+        console.log(`[Warning] Transaction ${tx.signature} not found on RPC. Check if RPC Network matches Webhook Network.`);
+        continue;
+      }
+      
+      if (!txInfo.meta || !txInfo.meta.logMessages) {
+        console.log(`[Warning] Transaction ${tx.signature} has no metadata or logs.`);
+        continue;
+      }
 
-    if (!ourInstructions || ourInstructions.length === 0) continue;
+      const events: any[] = [];
+      for (const event of eventParser.parseLogs(txInfo.meta.logMessages)) {
+        events.push(event);
+      }
 
-    for (const ix of ourInstructions) {
-      try {
-        // Helius returns bs58 encoded data
-        const dataBuffer = Buffer.from(bs58.decode(ix.data));
-        const decoded = coder.decode(dataBuffer, "base58");
-        
-        if (!decoded) continue;
-
-        if (decoded.name === "createCreatorMarket") {
-          const data = decoded.data as any;
-          // data.creatorId is a number array of 32 bytes
-          const creatorIdArray = data.creatorId;
+      for (const event of events) {
+        if (event.name === "MarketCreated") {
+          const { creatorId, marketPda, creatorHandle } = event.data as any;
+          const creatorIdArray = creatorId;
           const creatorIdHex = Buffer.from(creatorIdArray).toString('hex');
           
-          // To get twitter handle, strip trailing zeros
-          const handleBytes = Buffer.from(creatorIdArray).filter(b => b !== 0);
+          const handleBytes = Buffer.from(creatorIdArray).filter((b: number) => b !== 0);
           const twitterHandle = Buffer.from(handleBytes).toString('utf-8');
           
-          const marketPda = ix.accounts[0]; // creatorMarket account
-          const creatorWallet = tx.feePayer; // assuming payer is the creator for now
+          const creatorWallet = tx.feePayer || txInfo.transaction.message.staticAccountKeys[0].toString();
           
           await db.insert(creatorMarkets).values({
-            marketPda: marketPda,
+            marketPda: marketPda.toString(),
             twitterHandle: twitterHandle,
             creatorIdHex: creatorIdHex,
             creatorWallet: creatorWallet,
@@ -103,120 +115,90 @@ export async function processHeliusPayload(transactions: any[]) {
             txSignature: tx.signature
           }).onConflictDoNothing();
           
-          console.log(`Indexed new market: ${twitterHandle} (${marketPda})`);
-        } else if (decoded.name === "buyKeys") {
-          const data = decoded.data as any;
-          const amount = data.amount as BN;
-          const maxSolCost = data.maxSolCost as BN;
+          console.log(`Indexed new market: ${twitterHandle} (${marketPda.toString()})`);
           
-          const marketPda = ix.accounts[0]; // Assuming creatorMarket is the first account
-          const userPositionPda = ix.accounts[1];
-          const buyer = tx.feePayer;
+        } else if (event.name === "KeysBought" || event.name === "KeysSold") {
+          const data = event.data as any;
+          const marketPda = data.market.toString();
+          const userWallet = (data.buyer || data.seller).toString();
+          const tradeType = event.name === "KeysBought" ? "buy" : "sell";
           
-          // In a real production app, we would calculate exact lamports spent from nativeTransfers
-          // Here we just use a placeholder 0 for lamports to show the schema working
+          const amount = (data.keyAmount as BN).toNumber();
+          const lamports = (data.solAmount as BN).toNumber();
+          const creatorFee = (data.creatorFee as BN).toNumber();
+          const protocolFee = (data.protocolFee as BN).toNumber();
+          const feeLamports = creatorFee + protocolFee;
+
           await db.insert(tradeHistory).values({
             signature: tx.signature,
             marketPda: marketPda,
-            traderWallet: buyer,
-            tradeType: "buy",
-            amount: amount.toNumber(),
-            lamports: maxSolCost.toNumber(), // Simplification
-            feeLamports: 0,
+            traderWallet: userWallet,
+            tradeType: tradeType,
+            amount: amount,
+            lamports: lamports,
+            feeLamports: feeLamports,
           }).onConflictDoNothing();
 
-          // Update user position (upsert)
-          // Note: using sql`` for atomic increments in production is better, but here we simplify
-          await db.insert(userPositions).values({
-            walletAddress: buyer,
-            marketPda: marketPda,
-            positionPda: userPositionPda,
-            keyBalance: amount.toNumber(),
-            totalBoughtLamports: maxSolCost.toString(),
-            totalSoldLamports: "0"
-          }).onConflictDoUpdate({
-            target: userPositions.positionPda,
-            set: {
-              keyBalance: sql`${userPositions.keyBalance} + ${amount.toNumber()}`,
-            }
-          });
+          const [positionPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("position"), data.market.toBuffer(), new PublicKey(userWallet).toBuffer()],
+            PROGRAM_ID
+          );
 
-          // Update creator market
-          await db.update(creatorMarkets)
-            .set({
-              supply: sql`${creatorMarkets.supply} + ${amount.toNumber()}`,
-              // Volume would be incremented here
-            })
-            .where(eq(creatorMarkets.marketPda, marketPda));
+          if (tradeType === "buy") {
+            await db.insert(userPositions).values({
+              walletAddress: userWallet,
+              marketPda: marketPda,
+              positionPda: positionPda.toString(),
+              keyBalance: amount,
+              totalBoughtLamports: lamports.toString(),
+              totalSoldLamports: "0"
+            }).onConflictDoUpdate({
+              target: userPositions.positionPda,
+              set: {
+                keyBalance: sql`${userPositions.keyBalance} + ${amount}`,
+              }
+            });
 
-          const price = amount.toNumber() > 0 ? Math.floor(maxSolCost.toNumber() / amount.toNumber()) : 0;
-          await processTradeForCandles(marketPda, price, maxSolCost.toNumber());
+            await db.update(creatorMarkets)
+              .set({ supply: sql`${creatorMarkets.supply} + ${amount}` })
+              .where(eq(creatorMarkets.marketPda, marketPda));
+          } else {
+            await db.insert(userPositions).values({
+              walletAddress: userWallet,
+              marketPda: marketPda,
+              positionPda: positionPda.toString(),
+              keyBalance: 0,
+              totalBoughtLamports: "0",
+              totalSoldLamports: lamports.toString()
+            }).onConflictDoUpdate({
+              target: userPositions.positionPda,
+              set: {
+                keyBalance: sql`${userPositions.keyBalance} - ${amount}`,
+              }
+            });
+
+            await db.update(creatorMarkets)
+              .set({ supply: sql`${creatorMarkets.supply} - ${amount}` })
+              .where(eq(creatorMarkets.marketPda, marketPda));
+          }
+
+          const price = amount > 0 ? Math.floor(lamports / amount) : 0;
+          await processTradeForCandles(marketPda, price, lamports);
           
           realtimeEmitter.emit("trade", {
             marketPda,
-            traderWallet: buyer,
-            tradeType: "buy",
-            amount: amount.toNumber(),
-            lamports: maxSolCost.toNumber(),
+            traderWallet: userWallet,
+            tradeType,
+            amount,
+            lamports,
             timestamp: Date.now()
           });
-
-        } else if (decoded.name === "sellKeys") {
-          const data = decoded.data as any;
-          const amount = data.amount as BN;
-          const minSolOutput = data.minSolOutput as BN;
           
-          const marketPda = ix.accounts[0];
-          const userPositionPda = ix.accounts[1];
-          const seller = tx.feePayer;
-          
-          await db.insert(tradeHistory).values({
-            signature: tx.signature,
-            marketPda: marketPda,
-            traderWallet: seller,
-            tradeType: "sell",
-            amount: amount.toNumber(),
-            lamports: minSolOutput.toNumber(), // Simplification
-            feeLamports: 0,
-          }).onConflictDoNothing();
-
-          // Update user position
-          await db.insert(userPositions).values({
-            walletAddress: seller,
-            marketPda: marketPda,
-            positionPda: userPositionPda,
-            keyBalance: 0, // Should already exist before sell
-            totalBoughtLamports: "0",
-            totalSoldLamports: minSolOutput.toString()
-          }).onConflictDoUpdate({
-            target: userPositions.positionPda,
-            set: {
-              keyBalance: sql`${userPositions.keyBalance} - ${amount.toNumber()}`
-            }
-          });
-          
-          // Update creator market
-          await db.update(creatorMarkets)
-            .set({
-              supply: sql`${creatorMarkets.supply} - ${amount.toNumber()}`,
-            })
-            .where(eq(creatorMarkets.marketPda, marketPda));
-            
-          const price = amount.toNumber() > 0 ? Math.floor(minSolOutput.toNumber() / amount.toNumber()) : 0;
-          await processTradeForCandles(marketPda, price, minSolOutput.toNumber());
-          
-          realtimeEmitter.emit("trade", {
-            marketPda,
-            traderWallet: seller,
-            tradeType: "sell",
-            amount: amount.toNumber(),
-            lamports: minSolOutput.toNumber(),
-            timestamp: Date.now()
-          });
+          console.log(`Indexed ${tradeType} for ${amount} keys at ${marketPda}`);
         }
-      } catch (e) {
-        console.error(`Error decoding instruction for tx ${tx.signature}:`, e);
       }
+    } catch (e) {
+      console.error(`Error processing tx ${tx.signature}:`, e);
     }
   }
 }

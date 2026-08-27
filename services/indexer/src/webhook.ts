@@ -41,9 +41,9 @@ export async function processHeliusWebhook(fastify: FastifyInstance, payload: an
       const events: any[] = [];
       const eventParser = new (sdk as any).program.coder.events.EventParser((sdk as any).program.programId, (sdk as any).program.coder);
       
-      eventParser.parseLogs(txInfo.meta.logMessages, (event: any) => {
+      for (const event of eventParser.parseLogs(txInfo.meta.logMessages)) {
         events.push(event);
-      });
+      }
 
       for (const event of events) {
         if (event.name === 'MarketCreated') {
