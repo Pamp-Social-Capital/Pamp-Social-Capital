@@ -48,7 +48,7 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        if (msg.type === "trade_update" && msg.data && msg.data.marketPda === marketPda) {
+        if (msg.type === "trade" && msg.data && msg.data.marketPda === marketPda) {
           setTrades(prev => [msg.data, ...prev].slice(0, 50));
         }
       } catch (e) {

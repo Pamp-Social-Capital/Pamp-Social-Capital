@@ -4,6 +4,7 @@ import { FC, useState, useEffect } from "react";
 import { useSocialCapital } from "../hooks/useSocialCapital";
 import { BN } from "@coral-xyz/anchor";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { mutate } from "swr";
 
 const K_CONSTANT = 100_000; // 0.0001 SOL in lamports
 
@@ -174,6 +175,8 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
           const pos = await sdk.getUserPosition(creatorIdUint8, publicKey);
           setKeyBalance(pos.keyBalance.toNumber());
         }
+        // Force SWR to re-fetch global market stats so the parent page (MCAP/Reserve) updates instantly
+        mutate(`${process.env.NEXT_PUBLIC_API_URL}/api/markets`);
       } catch (fetchErr) {
         console.error("Failed to sync balance post-trade:", fetchErr);
       }

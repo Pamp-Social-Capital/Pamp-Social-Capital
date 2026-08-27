@@ -32,7 +32,7 @@ async function processTradeForCandles(marketPda: string, price: number, volume: 
   for (const res of resolutions) {
     const roundedTimestamp = new Date(now - (now % res.ms));
     
-    await db.insert(priceCandles).values({
+    const [updatedCandle] = await db.insert(priceCandles).values({
       marketPda,
       resolution: res.name,
       timestamp: roundedTimestamp,
@@ -49,14 +49,11 @@ async function processTradeForCandles(marketPda: string, price: number, volume: 
         close: price,
         volumeLamports: sql`${priceCandles.volumeLamports} + ${volume}`,
       }
-    });
+    }).returning();
 
-    realtimeEmitter.emit("candle_update", {
-      marketPda,
-      resolution: res.name,
-      timestamp: roundedTimestamp,
-      close: price
-    });
+    if (updatedCandle) {
+      realtimeEmitter.emit("candle_update", updatedCandle);
+    }
   }
 }
 
