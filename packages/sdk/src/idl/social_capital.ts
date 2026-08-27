@@ -149,7 +149,23 @@ export type SocialCapital = {
       };
     }
   ];
-  events: [];
+  events: [
+    {
+      name: "CreatorMarketCreated";
+      discriminator: [0,0,0,0,0,0,0,0];
+      type: { kind: "struct"; fields: [{ name: "creatorMarket"; type: "pubkey" }, { name: "creatorId"; type: { array: ["u8", 32] } }, { name: "creatorWallet"; type: "pubkey" }, { name: "creatorFeeBps"; type: "u16" }, { name: "timestamp"; type: "i64" }] };
+    },
+    {
+      name: "KeysPurchased";
+      discriminator: [0,0,0,0,0,0,0,0];
+      type: { kind: "struct"; fields: [{ name: "buyer"; type: "pubkey" }, { name: "creatorMarket"; type: "pubkey" }, { name: "keyAmount"; type: "u64" }, { name: "grossCost"; type: "u64" }, { name: "curveCost"; type: "u64" }, { name: "creatorFee"; type: "u64" }, { name: "protocolFee"; type: "u64" }, { name: "newSupply"; type: "u64" }, { name: "spotPrice"; type: "u64" }, { name: "timestamp"; type: "i64" }] };
+    },
+    {
+      name: "KeysSold";
+      discriminator: [0,0,0,0,0,0,0,0];
+      type: { kind: "struct"; fields: [{ name: "seller"; type: "pubkey" }, { name: "creatorMarket"; type: "pubkey" }, { name: "keyAmount"; type: "u64" }, { name: "grossReturn"; type: "u64" }, { name: "netReturn"; type: "u64" }, { name: "creatorFee"; type: "u64" }, { name: "protocolFee"; type: "u64" }, { name: "newSupply"; type: "u64" }, { name: "spotPrice"; type: "u64" }, { name: "timestamp"; type: "i64" }] };
+    }
+  ];
   errors: [];
 };
 
@@ -304,7 +320,23 @@ export const IDL: SocialCapital = {
       }
     }
   ],
-  events: [],
+  events: [
+    {
+      name: "CreatorMarketCreated",
+      discriminator: [0,0,0,0,0,0,0,0],
+      type: { kind: "struct", fields: [{ name: "creatorMarket", type: "pubkey" }, { name: "creatorId", type: { array: ["u8", 32] } }, { name: "creatorWallet", type: "pubkey" }, { name: "creatorFeeBps", type: "u16" }, { name: "timestamp", type: "i64" }] }
+    },
+    {
+      name: "KeysPurchased",
+      discriminator: [0,0,0,0,0,0,0,0],
+      type: { kind: "struct", fields: [{ name: "buyer", type: "pubkey" }, { name: "creatorMarket", type: "pubkey" }, { name: "keyAmount", type: "u64" }, { name: "grossCost", type: "u64" }, { name: "curveCost", type: "u64" }, { name: "creatorFee", type: "u64" }, { name: "protocolFee", type: "u64" }, { name: "newSupply", type: "u64" }, { name: "spotPrice", type: "u64" }, { name: "timestamp", type: "i64" }] }
+    },
+    {
+      name: "KeysSold",
+      discriminator: [0,0,0,0,0,0,0,0],
+      type: { kind: "struct", fields: [{ name: "seller", type: "pubkey" }, { name: "creatorMarket", type: "pubkey" }, { name: "keyAmount", type: "u64" }, { name: "grossReturn", type: "u64" }, { name: "netReturn", type: "u64" }, { name: "creatorFee", type: "u64" }, { name: "protocolFee", type: "u64" }, { name: "newSupply", type: "u64" }, { name: "spotPrice", type: "u64" }, { name: "timestamp", type: "i64" }] }
+    }
+  ],
   errors: []
 };
 

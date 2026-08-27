@@ -13,6 +13,9 @@ const patchedIdl = JSON.parse(JSON.stringify(IDL));
 for (const ix of patchedIdl.instructions) {
   ix.discriminator = Array.from(createHash('sha256').update('global:' + ix.name).digest().slice(0, 8));
 }
+for (const ev of patchedIdl.events) {
+  ev.discriminator = Array.from(createHash('sha256').update('event:' + ev.name).digest().slice(0, 8));
+}
 const coder = new BorshCoder(patchedIdl as any);
 
 async function processTradeForCandles(marketPda: string, price: number, volume: number) {

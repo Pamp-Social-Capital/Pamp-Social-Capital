@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import * as dotenv from "dotenv";
 import { resolve } from "path";
+import { db, webhookLogs } from "@social-capital/db";
 import fastifyWebsocket from "@fastify/websocket";
 import fastifyRateLimit from "@fastify/rate-limit";
 import fastifyCors from "@fastify/cors";
@@ -45,7 +46,17 @@ fastify.post("/webhook/helius", async (request, reply) => {
 
     const payload = request.body as any[];
     
-    // For now, just log the payload.
+    // Log the payload to the database
+    try {
+      await db.insert(webhookLogs).values({
+        type: 'helius',
+        payload: JSON.stringify(payload),
+        status: 'success'
+      });
+    } catch (dbErr) {
+      fastify.log.error(dbErr, "Failed to log webhook to db");
+    }
+    
     fastify.log.info(`Received Helius webhook payload: ${payload.length} transactions`);
     
     // Process and insert to database

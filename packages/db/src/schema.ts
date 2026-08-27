@@ -64,3 +64,12 @@ export const priceCandles = pgTable("price_candles", {
 }, (t) => ({
   unq: unique().on(t.marketPda, t.resolution, t.timestamp)
 }));
+
+export const webhookLogs = pgTable("webhook_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  type: text("type").notNull(), // 'helius' or others
+  payload: text("payload").notNull(), // JSON string of the payload
+  status: text("status").notNull(), // 'success', 'error', 'skipped'
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
