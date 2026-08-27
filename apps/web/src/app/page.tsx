@@ -135,7 +135,6 @@ export default function LandingPage() {
           <div className="text-xl font-bold tracking-widest">SOLANA</div>
           <div className="text-xl font-bold tracking-widest">ANCHOR</div>
           <div className="text-xl font-bold tracking-widest">HELIUS</div>
-          <div className="text-xl font-bold tracking-widest">NEXT.JS</div>
         </section>
 
         {/* Feature Section 1 */}

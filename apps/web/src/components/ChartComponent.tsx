@@ -10,15 +10,15 @@ export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    // Chart Configuration for retro dark theme
+    // Chart Configuration for modern dark theme
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#0a0a0a' },
-        textColor: '#00ff00',
+        background: { type: ColorType.Solid, color: 'transparent' },
+        textColor: '#9CA3AF',
       },
       grid: {
-        vertLines: { color: '#333333' },
-        horzLines: { color: '#333333' },
+        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
       },
       width: chartContainerRef.current.clientWidth,
       height: 400,
@@ -29,11 +29,11 @@ export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
     });
 
     const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#39ff14',
-      downColor: '#ff073a',
+      upColor: '#22c55e', // text-color-buy
+      downColor: '#ef4444', // text-color-sell
       borderVisible: false,
-      wickUpColor: '#39ff14',
-      wickDownColor: '#ff073a',
+      wickUpColor: '#22c55e',
+      wickDownColor: '#ef4444',
     });
     
     candlestickSeriesRef.current = candlestickSeries;

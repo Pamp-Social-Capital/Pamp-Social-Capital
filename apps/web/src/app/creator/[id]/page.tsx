@@ -21,8 +21,9 @@ export default function CreatorPage({ params }: PageProps) {
   const [isChainLoading, setIsChainLoading] = useState(true);
   
   // Fetch from database API
+  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
   const { data, error, isLoading } = useSWR(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/markets`, 
+    `${API_URL}/api/markets`, 
     fetcher
   );
 
