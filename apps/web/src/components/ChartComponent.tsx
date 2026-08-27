@@ -3,7 +3,7 @@
 import { createChart, ColorType, ISeriesApi, Time, CandlestickSeries } from 'lightweight-charts';
 import React, { useEffect, useRef } from 'react';
 
-export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
+export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: string, resolution?: string }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const candlestickSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 
@@ -40,7 +40,7 @@ export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
 
     // Fetch initial historical candles
     const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
-    fetch(`${API_URL}/api/markets/${marketPda}/candles`)
+    fetch(`${API_URL}/api/markets/${marketPda}/candles?resolution=${resolution}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.candles) {
@@ -52,6 +52,9 @@ export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
             close: Number(c.close) / 1e9,
           }));
           candlestickSeries.setData(formattedData);
+          if (formattedData.length > 0) {
+            chart.timeScale().fitContent();
+          }
         }
       })
       .catch(err => console.error("Failed to load historical candles:", err));
@@ -94,7 +97,7 @@ export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
       ws.close();
       chart.remove();
     };
-  }, [marketPda]);
+  }, [marketPda, resolution]);
 
   return (
     <div className="w-full h-[400px]" ref={chartContainerRef} />

@@ -41,8 +41,8 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
   fastify.get("/:pda/candles", async (request, reply) => {
     try {
       const { pda } = request.params as { pda: string };
-      // Default to 1m resolution for now
-      const resolution = "1m";
+      const query = request.query as { resolution?: string };
+      const resolution = query.resolution || "1m";
       
       const candles = await db.query.priceCandles.findMany({
         where: (priceCandles, { eq, and }) => and(

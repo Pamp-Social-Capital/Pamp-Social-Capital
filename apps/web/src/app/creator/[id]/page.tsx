@@ -19,6 +19,7 @@ export default function CreatorPage({ params }: PageProps) {
   const sdk = useSocialCapital();
   const [onChainMarket, setOnChainMarket] = useState<any>(null);
   const [isChainLoading, setIsChainLoading] = useState(true);
+  const [chartResolution, setChartResolution] = useState("1m");
   
   // Fetch from database API
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -144,13 +145,26 @@ export default function CreatorPage({ params }: PageProps) {
                 <div className="text-color-buy text-sm mt-1">{price} SOL</div>
               </div>
               <div className="flex gap-2">
-                <button className="text-color-muted hover:text-white text-sm px-2">1H</button>
-                <button className="text-white font-medium bg-[#232832] rounded text-sm px-2 py-1">1D</button>
-                <button className="text-color-muted hover:text-white text-sm px-2">1W</button>
+                <button 
+                  onClick={() => setChartResolution("1m")}
+                  className={chartResolution === "1m" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
+                >1M</button>
+                <button 
+                  onClick={() => setChartResolution("1h")}
+                  className={chartResolution === "1h" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
+                >1H</button>
+                <button 
+                  onClick={() => setChartResolution("1d")}
+                  className={chartResolution === "1d" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
+                >1D</button>
+                <button 
+                  onClick={() => setChartResolution("1w")}
+                  className={chartResolution === "1w" ? "text-white font-medium bg-[#232832] rounded text-sm px-2 py-1" : "text-color-muted hover:text-white text-sm px-2"}
+                >1W</button>
               </div>
             </div>
             <div className="w-full bg-[#0B0E14] border border-color-border rounded-xl h-[400px] overflow-hidden">
-              <ChartComponent marketPda={id} />
+              <ChartComponent marketPda={id} resolution={chartResolution} />
             </div>
           </section>
 
