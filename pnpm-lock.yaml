@@ -111,6 +111,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@social-capital/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       '@solana/wallet-adapter-base':
         specifier: ^0.9.27
         version: 0.9.27(@solana/web3.js@1.98.4)
