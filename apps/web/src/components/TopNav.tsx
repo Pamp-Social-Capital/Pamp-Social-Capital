@@ -23,7 +23,7 @@ export const TopNav = () => {
           </Link>
           
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-color-muted">
-            <Link href="/" className="hover:text-white transition-colors">
+            <Link href="/dashboard" className="hover:text-white transition-colors">
               Markets
             </Link>
             <Link href="/portfolio" className="hover:text-white transition-colors">

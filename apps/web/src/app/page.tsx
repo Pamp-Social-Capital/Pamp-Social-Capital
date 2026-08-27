@@ -1,117 +1,258 @@
 "use client";
 
-import { MarketCard, Market } from "@/components/MarketCard";
 import Link from "next/link";
-import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
-export default function Home() {
-  const { data, error, isLoading } = useSWR(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/markets`, 
-    fetcher
-  );
-
-  // Map API response to the Market interface expected by MarketCard
-  const markets: Market[] = data?.markets?.map((m: any) => ({
-    id: m.id,
-    marketPda: m.marketPda,
-    twitterHandle: m.twitterHandle,
-    supply: m.supply,
-    reserveLamports: m.reserveLamports,
-    totalVolumeLamports: m.totalVolumeLamports,
-    // Provide default/calculated fields for properties not yet in the DB schema
-    currentPriceLamports: m.currentPriceLamports || "620000", 
-    marketCapLamports: m.marketCapLamports || (m.supply * 620000).toString(),
-    holderCount: m.holderCount || 0,
-    creatorFeeBps: m.creatorFeeBps || 500,
-    username: m.twitterHandle || "Unknown",
-  })) || [];
-
+export default function LandingPage() {
   return (
-    <div className="flex flex-col gap-8 pb-12">
-      {/* Hero Section */}
-      <section className="mt-6">
-        <div className="w-full bg-gradient-to-r from-[#0f1d17] to-[#161A22] rounded-2xl border border-color-border p-8 flex flex-col lg:flex-row justify-between items-start lg:items-center relative overflow-hidden">
-          {/* Subtle glow effect */}
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-color-buy opacity-10 rounded-full blur-[100px] pointer-events-none" />
+    <div className="min-h-screen bg-[#0B0E14] text-white overflow-hidden font-sans">
+      
+      {/* Background Glows */}
+      <div className="fixed top-[-20%] left-[50%] translate-x-[-50%] w-[800px] h-[600px] bg-color-buy opacity-20 blur-[150px] rounded-[100%] pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[500px] bg-color-buy opacity-10 blur-[120px] rounded-[100%] pointer-events-none" />
+
+      <main className="max-w-7xl mx-auto px-6 relative z-10">
+        
+        {/* Hero Section */}
+        <section className="pt-32 pb-20 flex flex-col items-center text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-color-muted mb-8">
+            <span className="w-2 h-2 rounded-full bg-color-buy animate-pulse" />
+            Pump Social Capital is live on Solana
+          </div>
           
-          <div className="z-10">
-            <h1 className="text-3xl font-bold text-white mb-2">Social Capital Hub</h1>
-            <p className="text-color-muted max-w-xl text-sm mb-8">
-              Discover top creators, trade keys on the bonding curve, and build your portfolio in one seamless hub.
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 max-w-4xl leading-tight text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">
+            The modern social capital platform
+          </h1>
+          
+          <p className="text-lg md:text-xl text-color-muted max-w-2xl mb-12 font-light leading-relaxed">
+            We're eliminating the friction of traditional creator monetization. Tokenize your influence and trade keys instantly on automated bonding curves.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <Link 
+              href="/dashboard" 
+              className="bg-color-buy text-[#0B0E14] font-semibold px-8 py-4 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2"
+            >
+              Launch App
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </Link>
+            <Link
+              href="/docs" 
+              className="bg-white/5 border border-white/10 text-white font-semibold px-8 py-4 rounded-full hover:bg-white/10 transition-all flex items-center justify-center"
+            >
+              Read Docs
+            </Link>
+          </div>
+        </section>
+
+        {/* Logos Section */}
+        <section className="py-12 border-y border-white/5 flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+          <div className="text-xl font-bold tracking-widest">SOLANA</div>
+          <div className="text-xl font-bold tracking-widest">ANCHOR</div>
+          <div className="text-xl font-bold tracking-widest">HELIUS</div>
+          <div className="text-xl font-bold tracking-widest">NEXT.JS</div>
+        </section>
+
+        {/* Feature Section 1 */}
+        <section className="py-32 grid md:grid-cols-2 gap-16 items-center">
+          <div>
+            <h4 className="text-color-buy font-medium mb-3 text-sm tracking-wider uppercase">On-chain First Architecture</h4>
+            <h2 className="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">
+              Automated Bonding Curves
+            </h2>
+            <p className="text-color-muted text-lg mb-8 font-light">
+              We leverage Solana Program Account Ledgers for precise, math-driven bonding curves (Price = base + k × s²). No presales, no hidden allocations. Just pure supply and demand.
             </p>
             
-            <div className="flex gap-12">
-              <div>
-                <p className="text-color-muted text-xs mb-1">Total TVL</p>
-                <p className="text-2xl font-bold text-white">45,250.55 <span className="text-sm font-normal text-color-muted">SOL</span></p>
+            <div className="space-y-4">
+              <div className="bg-[#161A22] border border-color-border p-4 rounded-2xl flex justify-between items-center hover:border-color-buy/50 transition-colors cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-color-buy/10 flex items-center justify-center text-color-buy">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                  </div>
+                  <span className="font-medium text-white/90">Instant Liquidity</span>
+                </div>
+                <svg className="w-5 h-5 text-color-muted group-hover:text-color-buy transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
               </div>
-              <div>
-                <p className="text-color-muted text-xs mb-1">24h Volume</p>
-                <p className="text-2xl font-bold text-white">12,430.00 <span className="text-sm font-normal text-color-muted">SOL</span></p>
-              </div>
-              <div>
-                <p className="text-color-muted text-xs mb-1">Total Markets</p>
-                <p className="text-2xl font-bold text-white">1,205</p>
+              <div className="bg-[#161A22] border border-color-border p-4 rounded-2xl flex justify-between items-center hover:border-color-buy/50 transition-colors cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-color-buy/10 flex items-center justify-center text-color-buy">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                  </div>
+                  <span className="font-medium text-white/90">Program Account Ledgers</span>
+                </div>
+                <svg className="w-5 h-5 text-color-muted group-hover:text-color-buy transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
               </div>
             </div>
           </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-color-buy/20 to-transparent blur-[80px] rounded-full" />
+            <div className="relative bg-[#161A22]/50 backdrop-blur-xl border border-white/10 rounded-3xl p-12 overflow-hidden flex items-center justify-center aspect-square shadow-2xl">
+              {/* Floating Element */}
+              <div className="w-40 h-40 bg-gradient-to-br from-color-buy to-emerald-700 rounded-3xl rotate-12 shadow-[0_0_50px_rgba(34,197,94,0.4)] flex items-center justify-center animate-bounce duration-[3000ms]">
+                 <svg className="w-16 h-16 text-[#0B0E14]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+              </div>
+            </div>
+          </div>
+        </section>
 
-          <div className="mt-8 lg:mt-0 z-10 flex flex-col sm:flex-row gap-4">
-            <button className="bg-white text-[#0B0E14] font-semibold px-6 py-2.5 rounded-full hover:bg-gray-200 transition-colors">
-              Explore Markets
-            </button>
-            <Link href="/claim" className="glass-panel text-white font-semibold px-6 py-2.5 rounded-full hover:bg-white/10 transition-colors text-center">
-              Create Market
-            </Link>
+        {/* Feature Section 2 (Centered) */}
+        <section className="py-24 text-center flex flex-col items-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
+            Built for Scale. Priced in Realtime.
+          </h2>
+          <p className="text-color-muted text-lg max-w-xl mx-auto mb-16 font-light">
+            Powered by Solana, Anchor, and Helius webhooks. State changes are pushed instantly via Redis and WebSockets for lightning-fast price discovery.
+          </p>
+
+          <div className="w-full max-w-4xl relative">
+            <div className="absolute inset-0 bg-color-buy/10 blur-[100px] rounded-full" />
+            <div className="relative bg-[#0F141A] border border-white/5 rounded-3xl p-8 md:p-16 overflow-hidden">
+              <div className="grid md:grid-cols-2 gap-8 text-left relative z-10">
+                <div>
+                  <h3 className="text-2xl font-bold mb-4 text-white">Optimized for scale</h3>
+                  <p className="text-color-muted font-light leading-relaxed mb-6">
+                    Designed for high throughput, the system employs robust Solana programs and advanced mathematical bonding curve mechanics to ensure a highly secure, deterministic pricing environment.
+                  </p>
+                  <Link href="/dashboard" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm font-medium">
+                    Learn More <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                  </Link>
+                </div>
+                <div className="relative h-64 md:h-auto">
+                  {/* Decorative Mockup elements */}
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-full h-full perspective-[1000px] flex items-center justify-center">
+                    <div className="w-full max-w-[280px] aspect-video bg-[#161A22] border border-white/10 rounded-xl shadow-2xl transform rotate-y-[-15deg] rotate-x-[10deg] p-4 flex flex-col gap-3">
+                      <div className="flex gap-2 mb-2">
+                         <div className="w-2 h-2 rounded-full bg-color-sell" />
+                         <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                         <div className="w-2 h-2 rounded-full bg-color-buy" />
+                      </div>
+                      <div className="h-4 w-1/3 bg-white/5 rounded" />
+                      <div className="h-24 w-full bg-color-buy/10 rounded-lg flex items-end p-2 gap-1">
+                         <div className="w-full bg-color-buy/40 rounded-t-sm h-[30%]" />
+                         <div className="w-full bg-color-buy/60 rounded-t-sm h-[50%]" />
+                         <div className="w-full bg-color-buy/80 rounded-t-sm h-[80%]" />
+                         <div className="w-full bg-color-buy rounded-t-sm h-[100%]" />
+                      </div>
+                    </div>
+                    {/* Floating pill */}
+                    <div className="absolute -right-4 -top-4 bg-color-buy text-[#0B0E14] px-4 py-2 rounded-full font-bold text-sm shadow-[0_0_20px_rgba(34,197,94,0.4)] animate-pulse">
+                      + 45.2 SOL
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How Fees Work Section */}
+        <section className="py-24 border-t border-white/5">
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-16">
+              <h4 className="text-color-buy font-medium mb-3 text-sm tracking-wider uppercase">Fee Structure</h4>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">
+                HOW CREATOR FEES WORK.
+              </h2>
+              <p className="text-color-muted text-lg font-light leading-relaxed mb-6">
+                Virality ≈ Monetization that you're missing out on — 99% of the time the creator does not receive a dollar of fees generated from YOUR movement / project. We make sure you get paid what you deserve.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-16 mb-24">
+              <div>
+                <h3 className="text-2xl font-bold mb-4 text-white">The core insight</h3>
+                <p className="text-color-muted font-light leading-relaxed mb-6">
+                  Every trade generates creator fees & the creator almost NEVER gets what's theirs.
+                </p>
+                <p className="text-color-muted font-light leading-relaxed">
+                  Most platforms take a large percentage of transactions for themselves. Pump Social Capital flips the script: the vast majority of the fee goes directly to the creator. Every single time a Creator Key is bought or sold on the bonding curve, you earn 5% of the transaction volume. We only take 2% to keep the protocol running.
+                </p>
+              </div>
+              
+              <div className="bg-[#161A22] border border-color-border rounded-3xl p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 blur-[50px]" />
+                <h3 className="text-xl font-bold mb-8 text-white">Where the money goes (7% Total Fee)</h3>
+                
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center pb-6 border-b border-white/5">
+                    <div>
+                      <p className="font-semibold text-color-buy">Creator fee</p>
+                      <p className="text-sm text-color-muted">Goes to you directly</p>
+                    </div>
+                    <span className="text-2xl font-bold text-color-buy">5.0%</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-6 border-b border-white/5">
+                    <div>
+                      <p className="font-semibold text-white">Protocol fee</p>
+                      <p className="text-sm text-color-muted">Goes to the protocol</p>
+                    </div>
+                    <span className="text-2xl font-bold text-white/50">2.0%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="font-semibold text-white">Total fee per trade</p>
+                    <span className="text-2xl font-bold text-white">7.0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-16">
+              <h3 className="text-3xl font-bold mb-4 text-white">Permanent Bonding Curve Fees</h3>
+              <p className="text-color-muted font-light mb-8">NO PRESALES. NO HIDDEN ALLOCATIONS. Your market operates entirely on a transparent on-chain bonding curve. Your creator cut is 5.0% of every transaction — permanently and automatically routed to your wallet vault.</p>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 text-color-muted">
+                      <th className="py-4 px-6 font-medium">Pricing Mechanism</th>
+                      <th className="py-4 px-6 font-medium text-color-buy">Creator Fee</th>
+                      <th className="py-4 px-6 font-medium">Protocol Fee</th>
+                      <th className="py-4 px-6 font-medium">Total Fee</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="bg-white/5 border-b border-white/5">
+                      <td className="py-4 px-6 text-white font-medium">Quadratic Curve (Price = base + k × s²)</td>
+                      <td className="py-4 px-6 text-color-buy font-bold">5.0%</td>
+                      <td className="py-4 px-6 text-white/70">2.0%</td>
+                      <td className="py-4 px-6 text-white font-medium">7.0%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="mt-24 text-center">
+               <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">READY TO CLAIM WHAT'S YOURS?</h2>
+               <p className="text-color-muted max-w-xl mx-auto mb-8 font-light">We set it all up. You need an audience and a Solana wallet. We handle the rest — permanently, on-chain.</p>
+               <Link href="/dashboard" className="bg-color-buy text-[#0B0E14] font-bold px-8 py-4 rounded-full hover:bg-opacity-90 transition-all inline-block">
+                 APPLY AS A CREATOR
+               </Link>
+            </div>
+          </div>
+        </section>
+
+      </main>
+      
+      {/* Footer */}
+      <footer className="border-t border-white/5 py-12 mt-12">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2 text-lg font-bold text-white">
+            <div className="w-5 h-5 rounded-sm bg-color-buy flex items-center justify-center transform rotate-45">
+              <div className="w-2.5 h-2.5 bg-[#0B0E14] rounded-sm transform -rotate-45" />
+            </div>
+            PumpSocial
+          </div>
+          <div className="text-color-muted text-sm">
+            © 2026 Pump Social Capital. All rights reserved.
+          </div>
+          <div className="flex gap-6">
+            <a href="#" className="text-color-muted hover:text-white transition-colors">Twitter</a>
+            <a href="#" className="text-color-muted hover:text-white transition-colors">GitHub</a>
           </div>
         </div>
-      </section>
-
-      {/* Tabs and Filters */}
-      <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-color-border pb-4 mt-4">
-        <div className="flex gap-6 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-          <button className="text-white font-semibold whitespace-nowrap bg-[#232832] px-4 py-1.5 rounded-lg">Overall Ranking</button>
-          <button className="text-color-muted hover:text-white font-medium whitespace-nowrap transition-colors px-2 py-1.5">Highest Volume</button>
-          <button className="text-color-muted hover:text-white font-medium whitespace-nowrap transition-colors px-2 py-1.5">Newest</button>
-          <button className="text-color-muted hover:text-white font-medium whitespace-nowrap transition-colors px-2 py-1.5">Most Holders</button>
-        </div>
-        
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <button className="glass-panel text-white px-4 py-1.5 rounded-lg flex items-center text-sm font-medium hover:bg-white/5 transition-colors">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-            Filter
-          </button>
-          <div className="flex items-center bg-[#161A22] border border-color-border rounded-lg px-3 py-1.5 w-full md:w-48">
-            <svg className="w-4 h-4 text-color-muted mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            <input type="text" placeholder="Search" className="bg-transparent border-none outline-none text-sm text-white placeholder-color-muted w-full" />
-          </div>
-        </div>
-      </section>
-
-      {/* Markets Grid */}
-      <section>
-        {isLoading ? (
-          <div className="flex justify-center items-center py-24 text-color-muted">
-            <svg className="animate-spin text-color-muted h-6 w-6 mr-3 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Loading live markets...
-          </div>
-        ) : error ? (
-          <div className="text-center py-24 text-color-sell">
-            Error loading markets. Please ensure the backend is running.
-          </div>
-        ) : markets.length === 0 ? (
-          <div className="text-center py-24 text-color-muted border border-dashed border-color-border rounded-2xl mt-2">
-            No live markets found on-chain. <br /> Be the first to create one!
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-2">
-            {markets.map((market: Market) => (
-              <MarketCard key={market.id} market={market} />
-            ))}
-          </div>
-        )}
-      </section>
+      </footer>
     </div>
   );
 }

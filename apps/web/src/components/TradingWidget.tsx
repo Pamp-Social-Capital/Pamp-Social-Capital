@@ -120,7 +120,7 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
       setShowModal(true);
       return;
     }
-    if (!sdk) {
+    if (!publicKey) {
       setModalMessage("Error: Wallet not connected.");
       setModalSignature("");
       setShowModal(true);
