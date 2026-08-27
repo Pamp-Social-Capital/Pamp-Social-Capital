@@ -63,9 +63,30 @@ export default function CreatorPage({ params }: PageProps) {
 
   if (isLoadingTotal) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <div className="flex justify-center mb-4"><svg className="animate-spin h-10 w-10 text-color-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
-        <p className="text-color-muted">Loading market details...</p>
+      <div className="flex flex-col gap-6 pb-12 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex items-center gap-6 bg-color-card p-6 rounded-2xl border border-color-border shadow-lg">
+          <div className="w-24 h-24 rounded-full bg-white/5"></div>
+          <div className="flex-1">
+            <div className="h-8 w-48 bg-white/5 rounded mb-3"></div>
+            <div className="h-4 w-32 bg-white/5 rounded mb-4"></div>
+            <div className="flex gap-4">
+              <div className="h-8 w-32 bg-white/5 rounded-full"></div>
+              <div className="h-8 w-32 bg-white/5 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-2 flex flex-col gap-6">
+            <div className="h-[500px] bg-color-card rounded-2xl border border-color-border"></div>
+            <div className="h-[300px] bg-color-card rounded-2xl border border-color-border"></div>
+          </div>
+          <div className="flex flex-col gap-6">
+            <div className="h-[400px] bg-color-card rounded-2xl border border-color-border"></div>
+            <div className="h-[200px] bg-color-card rounded-2xl border border-color-border"></div>
+          </div>
+        </div>
       </div>
     );
   }

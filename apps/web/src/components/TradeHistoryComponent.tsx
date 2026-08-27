@@ -62,7 +62,32 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
   }, [marketPda]);
 
   if (loading) {
-    return <div className="text-center py-8 text-color-muted">Loading trades...</div>;
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-color-border text-color-muted text-sm uppercase">
+              <th className="py-3 font-semibold">Type</th>
+              <th className="py-3 font-semibold">Keys</th>
+              <th className="py-3 font-semibold">Amount (SOL)</th>
+              <th className="py-3 font-semibold">Trader</th>
+              <th className="py-3 font-semibold">Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <tr key={i} className="border-b border-[#1A1F2B]">
+                <td className="py-4"><div className="h-4 w-12 bg-white/5 rounded animate-pulse"></div></td>
+                <td className="py-4"><div className="h-4 w-8 bg-white/5 rounded animate-pulse"></div></td>
+                <td className="py-4"><div className="h-4 w-16 bg-white/5 rounded animate-pulse"></div></td>
+                <td className="py-4"><div className="h-4 w-24 bg-white/5 rounded animate-pulse"></div></td>
+                <td className="py-4"><div className="h-4 w-20 bg-white/5 rounded animate-pulse"></div></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
   }
 
   if (trades.length === 0) {
