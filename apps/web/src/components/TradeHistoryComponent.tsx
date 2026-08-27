@@ -34,8 +34,9 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
       });
 
     // Connect WebSocket for live updates
-    const WS_URL = process.env.NEXT_PUBLIC_WS_URL as string;
-    if (!WS_URL) return;
+    const baseUrl = process.env.NEXT_PUBLIC_WS_URL as string || "";
+    const WS_URL = baseUrl.endsWith('/ws') ? baseUrl : `${baseUrl}/ws`;
+    if (!WS_URL || WS_URL === "/ws") return;
     
     const ws = new WebSocket(WS_URL);
     

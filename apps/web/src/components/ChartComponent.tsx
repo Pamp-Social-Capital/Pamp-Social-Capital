@@ -60,7 +60,8 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
       .catch(err => console.error("Failed to load historical candles:", err));
 
     // Connect WebSocket
-    const WS_URL = process.env.NEXT_PUBLIC_WS_URL as string;
+    const baseUrl = process.env.NEXT_PUBLIC_WS_URL as string || "";
+    const WS_URL = baseUrl.endsWith('/ws') ? baseUrl : `${baseUrl}/ws`;
     const ws = new WebSocket(WS_URL);
     
     ws.onopen = () => {

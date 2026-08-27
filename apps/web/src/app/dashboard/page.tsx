@@ -12,21 +12,32 @@ export default function Home() {
     fetcher
   );
 
+  const calculateNextKeyPriceLamports = (currentSupply: number) => {
+    const K_CONSTANT = 100_000;
+    const s1 = BigInt(currentSupply || 0);
+    const s2 = BigInt((currentSupply || 0) + 1);
+    const cost = (BigInt(K_CONSTANT) * ((s2 ** BigInt(3)) - (s1 ** BigInt(3)))) / BigInt(3);
+    return cost.toString();
+  };
+
   // Map API response to the Market interface expected by MarketCard
-  const markets: Market[] = data?.markets?.map((m: any) => ({
-    id: m.id,
-    marketPda: m.marketPda,
-    twitterHandle: m.twitterHandle,
-    supply: m.supply,
-    reserveLamports: m.reserveLamports,
-    totalVolumeLamports: m.totalVolumeLamports,
-    // Provide default/calculated fields for properties not yet in the DB schema
-    currentPriceLamports: m.currentPriceLamports || "620000", 
-    marketCapLamports: m.marketCapLamports || (m.supply * 620000).toString(),
-    holderCount: m.holderCount || 0,
-    creatorFeeBps: m.creatorFeeBps || 500,
-    username: m.twitterHandle || "Unknown",
-  })) || [];
+  const markets: Market[] = data?.markets?.map((m: any) => {
+    const currentPriceLamports = m.currentPriceLamports || calculateNextKeyPriceLamports(m.supply);
+    return {
+      id: m.id,
+      marketPda: m.marketPda,
+      twitterHandle: m.twitterHandle,
+      supply: m.supply,
+      reserveLamports: m.reserveLamports,
+      totalVolumeLamports: m.totalVolumeLamports,
+      // Provide default/calculated fields for properties not yet in the DB schema
+      currentPriceLamports, 
+      marketCapLamports: m.marketCapLamports || (BigInt(m.supply || 0) * BigInt(currentPriceLamports)).toString(),
+      holderCount: m.holderCount || 0,
+      creatorFeeBps: m.creatorFeeBps || 30, // 30 bps = 0.3%
+      username: m.twitterHandle || "Unknown",
+    };
+  }) || [];
 
   return (
     <div className="flex flex-col gap-8 pb-12">
@@ -42,20 +53,27 @@ export default function Home() {
               Discover top creators, trade keys on the bonding curve, and build your portfolio in one seamless hub.
             </p>
             
-            <div className="flex gap-12">
-              <div>
-                <p className="text-color-muted text-xs mb-1">Total TVL</p>
-                <p className="text-2xl font-bold text-white">45,250.55 <span className="text-sm font-normal text-color-muted">SOL</span></p>
-              </div>
-              <div>
-                <p className="text-color-muted text-xs mb-1">24h Volume</p>
-                <p className="text-2xl font-bold text-white">12,430.00 <span className="text-sm font-normal text-color-muted">SOL</span></p>
-              </div>
-              <div>
-                <p className="text-color-muted text-xs mb-1">Total Markets</p>
-                <p className="text-2xl font-bold text-white">1,205</p>
-              </div>
-            </div>
+            {(() => {
+              const totalMarkets = data?.markets?.length || 0;
+              const totalTvl = (data?.markets?.reduce((acc: number, m: any) => acc + Number(m.reserveLamports), 0) / 1e9 || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              const totalVol = (data?.markets?.reduce((acc: number, m: any) => acc + Number(m.totalVolumeLamports), 0) / 1e9 || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              return (
+                <div className="flex gap-12">
+                  <div>
+                    <p className="text-color-muted text-xs mb-1">Total TVL</p>
+                    <p className="text-2xl font-bold text-white">{totalTvl} <span className="text-sm font-normal text-color-muted">SOL</span></p>
+                  </div>
+                  <div>
+                    <p className="text-color-muted text-xs mb-1">Total Volume</p>
+                    <p className="text-2xl font-bold text-white">{totalVol} <span className="text-sm font-normal text-color-muted">SOL</span></p>
+                  </div>
+                  <div>
+                    <p className="text-color-muted text-xs mb-1">Live Markets</p>
+                    <p className="text-2xl font-bold text-white">{totalMarkets}</p>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="mt-8 lg:mt-0 z-10 flex flex-col sm:flex-row gap-4">

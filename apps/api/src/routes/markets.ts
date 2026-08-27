@@ -9,7 +9,28 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         orderBy: [desc(creatorMarkets.createdAt)],
         limit: 50,
       });
-      return reply.send({ success: true, markets });
+      const pdas = markets.map(m => m.marketPda);
+      
+      let holderCounts: Record<string, number> = {};
+      if (pdas.length > 0) {
+        const inClause = sql.join(pdas.map(p => sql`${p}`), sql`, `);
+        const counts = await db.execute(sql`
+          SELECT market_pda, COUNT(DISTINCT wallet_address) as count
+          FROM user_positions
+          WHERE market_pda IN (${inClause}) AND key_balance > 0
+          GROUP BY market_pda
+        `);
+        for (const row of counts) {
+          holderCounts[row.market_pda as string] = Number(row.count);
+        }
+      }
+
+      const marketsWithHolders = markets.map(m => ({
+        ...m,
+        holderCount: holderCounts[m.marketPda] || 0
+      }));
+
+      return reply.send({ success: true, markets: marketsWithHolders });
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send({ success: false, error: "Failed to fetch markets" });

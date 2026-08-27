@@ -59,11 +59,9 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
             <div className="text-color-buy text-xs mt-1">{mcapSol} Market Cap</div>
           </div>
           
-          {/* Placeholder Sparkline */}
-          <div className="flex items-end gap-1 h-8 opacity-70">
-            {[4, 6, 3, 7, 5, 8, 4, 9, 6].map((h, i) => (
-              <div key={i} className={`w-1.5 rounded-t-sm ${i % 3 === 0 ? 'bg-color-sell' : 'bg-color-buy'}`} style={{ height: `${h * 10}%` }} />
-            ))}
+          {/* Sparkline (To be implemented with real historical data API) */}
+          <div className="flex items-end gap-1 h-8 opacity-30 text-[10px] text-color-muted">
+             No recent data
           </div>
         </div>
 

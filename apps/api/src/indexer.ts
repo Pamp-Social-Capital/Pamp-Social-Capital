@@ -170,8 +170,12 @@ export async function processHeliusPayload(transactions: any[]) {
               }
             });
 
+            const curveCost = data.curveCost ? (data.curveCost as BN).toNumber() : 0;
             await db.update(creatorMarkets)
-              .set({ supply: sql`${creatorMarkets.supply} + ${amount}` })
+              .set({ 
+                supply: sql`${creatorMarkets.supply} + ${amount}`,
+                reserveLamports: sql`${creatorMarkets.reserveLamports} + ${curveCost}`
+              })
               .where(eq(creatorMarkets.marketPda, marketPda));
           } else {
             await db.insert(userPositions).values({
@@ -188,8 +192,12 @@ export async function processHeliusPayload(transactions: any[]) {
               }
             });
 
+            const grossReturn = data.grossReturn ? (data.grossReturn as BN).toNumber() : 0;
             await db.update(creatorMarkets)
-              .set({ supply: sql`${creatorMarkets.supply} - ${amount}` })
+              .set({ 
+                supply: sql`${creatorMarkets.supply} - ${amount}`,
+                reserveLamports: sql`${creatorMarkets.reserveLamports} - ${grossReturn}`
+              })
               .where(eq(creatorMarkets.marketPda, marketPda));
           }
 

@@ -79,10 +79,19 @@ export default function CreatorPage({ params }: PageProps) {
     );
   }
 
+  const calculateNextKeyPrice = (currentSupply: number) => {
+    const K_CONSTANT = 100_000;
+    const s1 = BigInt(currentSupply);
+    const s2 = BigInt(currentSupply + 1);
+    const cost = (BigInt(K_CONSTANT) * ((s2 ** BigInt(3)) - (s1 ** BigInt(3)))) / BigInt(3);
+    return Number(cost) / 1e9;
+  };
+
   const supply = finalMarket.supply || 0;
   const reserve = (Number(finalMarket.reserveLamports || 0) / 1e9).toFixed(2);
-  const mcap = (supply * 0.0062).toFixed(2); // Simplified spot math
-  const price = "0.0062"; // Simplified spot price
+  const spotPrice = calculateNextKeyPrice(supply);
+  const mcap = (supply * spotPrice).toFixed(4); 
+  const price = spotPrice.toFixed(6); 
   const creatorName = finalMarket.twitterHandle || "Unknown";
   
   return (
