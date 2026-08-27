@@ -123,11 +123,11 @@ export type SocialCapital = {
         fields: [
           { name: "creatorId"; type: { array: ["u8", 32] } },
           { name: "creatorWallet"; type: "pubkey" },
-          { name: "reserveLamports"; type: "u64" },
+          { name: "claimed"; type: "bool" },
           { name: "supply"; type: "u64" },
+          { name: "reserveLamports"; type: "u64" },
           { name: "totalVolumeLamports"; type: "u128" },
           { name: "creatorFeeBps"; type: "u16" },
-          { name: "claimed"; type: "bool" },
           { name: "paused"; type: "bool" },
           { name: "bump"; type: "u8" }
         ];
@@ -277,11 +277,11 @@ export const IDL: SocialCapital = {
         fields: [
           { name: "creatorId", type: { array: ["u8", 32] } },
           { name: "creatorWallet", type: "pubkey" },
-          { name: "reserveLamports", type: "u64" },
+          { name: "claimed", type: "bool" },
           { name: "supply", type: "u64" },
+          { name: "reserveLamports", type: "u64" },
           { name: "totalVolumeLamports", type: "u128" },
           { name: "creatorFeeBps", type: "u16" },
-          { name: "claimed", type: "bool" },
           { name: "paused", type: "bool" },
           { name: "bump", type: "u8" }
         ]
