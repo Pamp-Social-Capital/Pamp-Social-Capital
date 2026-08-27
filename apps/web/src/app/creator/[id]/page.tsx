@@ -2,6 +2,7 @@
 
 import { TradingWidget } from "@/components/TradingWidget";
 import { ChartComponent } from "@/components/ChartComponent";
+import { TradeHistoryComponent } from "@/components/TradeHistoryComponent";
 import { use, useState, useEffect } from "react";
 import useSWR from "swr";
 import { useSocialCapital } from "../../../hooks/useSocialCapital";
@@ -155,9 +156,7 @@ export default function CreatorPage({ params }: PageProps) {
           {/* Trade History */}
           <section className="bg-color-card border border-color-border p-6 rounded-2xl shadow-lg">
             <h2 className="text-xl font-bold text-white mb-6">Recent Trades</h2>
-            <div className="overflow-x-auto text-center py-8 text-color-muted">
-              Live trade history sync is being implemented via Helius webhook...
-            </div>
+            <TradeHistoryComponent marketPda={id} />
           </section>
         </div>
 

@@ -46,10 +46,10 @@ export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
         if (data.success && data.candles) {
           const formattedData = data.candles.map((c: any) => ({
             time: (new Date(c.timestamp).getTime() / 1000) as Time,
-            open: Number(c.openLamports) / 1e9,
-            high: Number(c.highLamports) / 1e9,
-            low: Number(c.lowLamports) / 1e9,
-            close: Number(c.closeLamports) / 1e9,
+            open: Number(c.open) / 1e9,
+            high: Number(c.high) / 1e9,
+            low: Number(c.low) / 1e9,
+            close: Number(c.close) / 1e9,
           }));
           candlestickSeries.setData(formattedData);
         }
@@ -72,10 +72,10 @@ export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
           const c = msg.data;
           candlestickSeries.update({
             time: (new Date(c.timestamp).getTime() / 1000) as Time,
-            open: Number(c.openLamports) / 1e9,
-            high: Number(c.highLamports) / 1e9,
-            low: Number(c.lowLamports) / 1e9,
-            close: Number(c.closeLamports) / 1e9,
+            open: Number(c.open) / 1e9,
+            high: Number(c.high) / 1e9,
+            low: Number(c.low) / 1e9,
+            close: Number(c.close) / 1e9,
           });
         }
       } catch (e) {

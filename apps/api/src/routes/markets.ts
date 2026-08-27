@@ -62,4 +62,21 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       return reply.status(500).send({ success: false, error: "Failed to fetch candles" });
     }
   });
+
+  fastify.get("/:pda/trades", async (request, reply) => {
+    try {
+      const { pda } = request.params as { pda: string };
+      
+      // Fetch all trades for the market
+      const trades = await db.query.tradeHistory.findMany({
+        where: (tradeHistory, { eq }) => eq(tradeHistory.marketPda, pda),
+        orderBy: (tradeHistory, { desc }) => [desc(tradeHistory.timestamp)],
+      });
+      
+      return reply.send({ success: true, trades });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ success: false, error: "Failed to fetch trades" });
+    }
+  });
 };
