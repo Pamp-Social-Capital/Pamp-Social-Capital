@@ -166,6 +166,17 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
       setAmount("");
       
       // The websocket should pick up the trade and update state automatically
+      // However, we manually fetch just in case the backend webhook isn't running locally yet
+      try {
+        const marketState = await sdk.getMarketState(creatorIdUint8);
+        setSupply(marketState.supply.toNumber());
+        if (publicKey) {
+          const pos = await sdk.getUserPosition(creatorIdUint8, publicKey);
+          setKeyBalance(pos.keyBalance.toNumber());
+        }
+      } catch (fetchErr) {
+        console.error("Failed to sync balance post-trade:", fetchErr);
+      }
     } catch (err: any) {
       console.error("Transaction Error:", err);
       if (err.logs) console.error("Logs:", err.logs);
