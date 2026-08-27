@@ -6,9 +6,95 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white overflow-hidden font-sans">
       
-      {/* Background Glows */}
-      <div className="fixed top-[-20%] left-[50%] translate-x-[-50%] w-[800px] h-[600px] bg-color-buy opacity-20 blur-[150px] rounded-[100%] pointer-events-none" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[500px] bg-color-buy opacity-10 blur-[120px] rounded-[100%] pointer-events-none" />
+      <style>{`
+        @keyframes pulse-beam-x {
+          0% { transform: translateX(-100vw); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateX(100vw); opacity: 0; }
+        }
+        @keyframes pulse-beam-y {
+          0% { transform: translateY(-100vh); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(100vh); opacity: 0; }
+        }
+        .beam-x {
+          animation: pulse-beam-x 6s linear infinite;
+        }
+        .beam-y {
+          animation: pulse-beam-y 8s linear infinite;
+        }
+        .delay-1 { animation-delay: 1.5s; }
+        .delay-2 { animation-delay: 3s; }
+        .delay-3 { animation-delay: 4.5s; }
+      `}</style>
+
+      {/* Neon Grid Background */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden flex justify-center">
+        {/* Dark Overlay to fade the edges of the grid */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,#0B0E14_80%)] z-10" />
+        
+        {/* The Static Grid Pattern */}
+        <div 
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(34, 197, 94, 0.15) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(34, 197, 94, 0.15) 1px, transparent 1px)
+            `,
+            backgroundSize: '160px 160px',
+            backgroundPosition: 'center top'
+          }}
+        />
+        
+        {/* Moving Data Beams */}
+        <div className="absolute inset-0 z-0">
+           {/* Horizontal Beams */}
+           <div className="absolute top-[160px] left-0 w-full h-[2px] overflow-hidden">
+             <div className="w-[300px] h-full bg-gradient-to-r from-transparent via-color-buy to-transparent beam-x blur-[1px] opacity-80" />
+           </div>
+           <div className="absolute top-[480px] left-0 w-full h-[2px] overflow-hidden">
+             <div className="w-[400px] h-full bg-gradient-to-r from-transparent via-color-buy to-transparent beam-x delay-2 blur-[1px] opacity-80" />
+           </div>
+           <div className="absolute top-[800px] left-0 w-full h-[2px] overflow-hidden">
+             <div className="w-[200px] h-full bg-gradient-to-r from-transparent via-color-buy to-transparent beam-x delay-1 blur-[1px] opacity-80" />
+           </div>
+           
+           {/* Vertical Beams */}
+           <div className="absolute left-[calc(50%-160px)] top-0 w-[2px] h-full overflow-hidden">
+             <div className="h-[300px] w-full bg-gradient-to-b from-transparent via-color-buy to-transparent beam-y delay-1 blur-[1px] opacity-80" />
+           </div>
+           <div className="absolute left-[calc(50%+320px)] top-0 w-[2px] h-full overflow-hidden">
+             <div className="h-[400px] w-full bg-gradient-to-b from-transparent via-color-buy to-transparent beam-y delay-3 blur-[1px] opacity-80" />
+           </div>
+           <div className="absolute left-[calc(50%-480px)] top-0 w-[2px] h-full overflow-hidden">
+             <div className="h-[200px] w-full bg-gradient-to-b from-transparent via-color-buy to-transparent beam-y delay-2 blur-[1px] opacity-80" />
+           </div>
+        </div>
+        
+        {/* Main Glowing Cross Intersection (Left) */}
+        <div className="absolute top-[240px] left-[calc(50%-480px)]">
+          {/* Horizontal Beam */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[2px] bg-color-buy blur-[3px] opacity-80" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[4px] bg-white blur-[4px] opacity-90" />
+          
+          {/* Vertical Beam */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[2px] bg-color-buy blur-[3px] opacity-80" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[200px] w-[4px] bg-white blur-[4px] opacity-90" />
+          
+          {/* Ambient Core Glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-color-buy rounded-full blur-[60px] opacity-50" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full blur-[20px] opacity-80" />
+        </div>
+
+        {/* Secondary Glowing Cross Intersection (Right/Bottom) */}
+        <div className="absolute top-[560px] right-[calc(50%-480px)] opacity-50">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[2px] bg-color-buy blur-[3px] opacity-70" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[2px] bg-color-buy blur-[3px] opacity-70" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-color-buy rounded-full blur-[50px] opacity-40" />
+        </div>
+      </div>
 
       <main className="max-w-7xl mx-auto px-6 relative z-10">
         
