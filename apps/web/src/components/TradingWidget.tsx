@@ -105,8 +105,8 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
     solValue = calculateSellReturn(supply, parsedAmount);
   }
   
-  const creatorFee = solValue * 0.05; // 5%
-  const protocolFee = solValue * 0.02; // 2%
+  const creatorFee = solValue * 0.003; // 0.30%
+  const protocolFee = solValue * 0.0095; // 0.95%
   
   const totalSol = tradeType === "buy" 
     ? solValue + creatorFee + protocolFee 
@@ -248,11 +248,11 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
             <span className="font-semibold text-white">{parsedAmount > 0 ? solValue.toFixed(4) : "--"} SOL</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-color-muted">Creator Fee (5%)</span>
+            <span className="text-color-muted">Creator Fee (0.30%)</span>
             <span className="text-color-foreground">{parsedAmount > 0 ? creatorFee.toFixed(4) : "--"} SOL</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-color-muted">Protocol Fee (2%)</span>
+            <span className="text-color-muted">Protocol Fee (0.95%)</span>
             <span className="text-color-foreground">{parsedAmount > 0 ? protocolFee.toFixed(4) : "--"} SOL</span>
           </div>
           <div className="border-t border-color-border pt-3 mt-1 flex justify-between font-semibold">

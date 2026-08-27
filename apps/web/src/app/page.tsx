@@ -252,13 +252,13 @@ export default function LandingPage() {
                   Every trade generates creator fees & the creator almost NEVER gets what's theirs.
                 </p>
                 <p className="text-color-muted font-light leading-relaxed">
-                  Most platforms take a large percentage of transactions for themselves. Pump Social Capital flips the script: the vast majority of the fee goes directly to the creator. Every single time a Creator Key is bought or sold on the bonding curve, you earn 5% of the transaction volume. We only take 2% to keep the protocol running.
+                  Most platforms take a large percentage of transactions for themselves. Pump Social Capital flips the script: the vast majority of the fee goes directly to the creator. Every single time a Creator Key is bought or sold on the bonding curve, you earn 0.30% of the transaction volume. We only take 0.95% to keep the protocol running.
                 </p>
               </div>
               
               <div className="bg-[#161A22] border border-color-border rounded-3xl p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 blur-[50px]" />
-                <h3 className="text-xl font-bold mb-8 text-white">Where the money goes (7% Total Fee)</h3>
+                <h3 className="text-xl font-bold mb-8 text-white">Where the money goes (1.25% Total Fee)</h3>
                 
                 <div className="space-y-6">
                   <div className="flex justify-between items-center pb-6 border-b border-white/5">
@@ -266,44 +266,100 @@ export default function LandingPage() {
                       <p className="font-semibold text-color-buy">Creator fee</p>
                       <p className="text-sm text-color-muted">Goes to you directly</p>
                     </div>
-                    <span className="text-2xl font-bold text-color-buy">5.0%</span>
+                    <span className="text-2xl font-bold text-color-buy">0.30%</span>
                   </div>
                   <div className="flex justify-between items-center pb-6 border-b border-white/5">
                     <div>
                       <p className="font-semibold text-white">Protocol fee</p>
                       <p className="text-sm text-color-muted">Goes to the protocol</p>
                     </div>
-                    <span className="text-2xl font-bold text-white/50">2.0%</span>
+                    <span className="text-2xl font-bold text-white/50">0.95%</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="font-semibold text-white">Total fee per trade</p>
-                    <span className="text-2xl font-bold text-white">7.0%</span>
+                    <span className="text-2xl font-bold text-white">1.25%</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="mb-16">
-              <h3 className="text-3xl font-bold mb-4 text-white">Permanent Bonding Curve Fees</h3>
-              <p className="text-color-muted font-light mb-8">NO PRESALES. NO HIDDEN ALLOCATIONS. Your market operates entirely on a transparent on-chain bonding curve. Your creator cut is 5.0% of every transaction — permanently and automatically routed to your wallet vault.</p>
+              <h3 className="text-3xl font-bold mb-4 text-white">Bonding curve fees (BEFORE GRADUATION)</h3>
+              <p className="text-color-muted font-light mb-8">While your token is on the bonding curve, every trade generates a flat 1.25% fee. Your creator cut is 0.30% of every transaction — automatically.</p>
               
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto mb-16">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-white/10 text-color-muted">
-                      <th className="py-4 px-6 font-medium">Pricing Mechanism</th>
+                      <th className="py-4 px-6 font-medium">Stage</th>
                       <th className="py-4 px-6 font-medium text-color-buy">Creator Fee</th>
                       <th className="py-4 px-6 font-medium">Protocol Fee</th>
+                      <th className="py-4 px-6 font-medium">LP Fee</th>
                       <th className="py-4 px-6 font-medium">Total Fee</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="bg-white/5 border-b border-white/5">
-                      <td className="py-4 px-6 text-white font-medium">Quadratic Curve (Price = base + k × s²)</td>
-                      <td className="py-4 px-6 text-color-buy font-bold">5.0%</td>
-                      <td className="py-4 px-6 text-white/70">2.0%</td>
-                      <td className="py-4 px-6 text-white font-medium">7.0%</td>
+                      <td className="py-4 px-6 text-white font-medium">Bonding curve</td>
+                      <td className="py-4 px-6 text-color-buy font-bold">0.300%</td>
+                      <td className="py-4 px-6 text-white/70">0.950%</td>
+                      <td className="py-4 px-6 text-white/70">0%</td>
+                      <td className="py-4 px-6 text-white font-medium">1.250%</td>
                     </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 className="text-3xl font-bold mb-4 text-white">PumpSwap fees (AFTER GRADUATION)</h3>
+              <p className="text-color-muted font-light mb-8">Once graduated to PumpSwap, the creator fee scales dynamically with market cap. As your token grows, your creator fee percentage increases.</p>
+              
+              <div className="overflow-x-auto rounded-xl border border-white/10">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead className="bg-[#161A22]">
+                    <tr className="border-b border-white/10 text-color-muted">
+                      <th className="py-3 px-4 font-medium">Market Cap (SOL)</th>
+                      <th className="py-3 px-4 font-medium text-color-buy">Creator Fee</th>
+                      <th className="py-3 px-4 font-medium">Protocol Fee</th>
+                      <th className="py-3 px-4 font-medium">LP Fee</th>
+                      <th className="py-3 px-4 font-medium text-white">Total Fee</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {[
+                      ["0 – 420", "0.300%", "0.930%", "0.020%", "1.250%"],
+                      ["420 – 1,470", "0.950%", "0.050%", "0.200%", "1.200%"],
+                      ["1,470 – 2,460", "0.900%", "0.050%", "0.200%", "1.150%"],
+                      ["2,460 – 3,440", "0.850%", "0.050%", "0.200%", "1.100%"],
+                      ["3,440 – 4,420", "0.800%", "0.050%", "0.200%", "1.050%"],
+                      ["4,420 – 9,820", "0.750%", "0.050%", "0.200%", "1.000%"],
+                      ["9,820 – 14,740", "0.700%", "0.050%", "0.200%", "0.950%"],
+                      ["14,740 – 19,650", "0.650%", "0.050%", "0.200%", "0.900%"],
+                      ["19,650 – 24,560", "0.600%", "0.050%", "0.200%", "0.850%"],
+                      ["24,560 – 29,470", "0.550%", "0.050%", "0.200%", "0.800%"],
+                      ["29,470 – 34,380", "0.500%", "0.050%", "0.200%", "0.750%"],
+                      ["34,380 – 39,300", "0.450%", "0.050%", "0.200%", "0.700%"],
+                      ["39,300 – 44,210", "0.400%", "0.050%", "0.200%", "0.650%"],
+                      ["44,210 – 49,120", "0.350%", "0.050%", "0.200%", "0.600%"],
+                      ["49,120 – 54,030", "0.300%", "0.050%", "0.200%", "0.550%"],
+                      ["54,030 – 58,940", "0.275%", "0.050%", "0.200%", "0.525%"],
+                      ["58,940 – 63,860", "0.250%", "0.050%", "0.200%", "0.500%"],
+                      ["63,860 – 68,770", "0.225%", "0.050%", "0.200%", "0.475%"],
+                      ["68,770 – 73,681", "0.200%", "0.050%", "0.200%", "0.450%"],
+                      ["73,681 – 78,590", "0.175%", "0.050%", "0.200%", "0.425%"],
+                      ["78,590 – 83,500", "0.150%", "0.050%", "0.200%", "0.400%"],
+                      ["83,500 – 88,400", "0.125%", "0.050%", "0.200%", "0.375%"],
+                      ["88,400 – 93,330", "0.100%", "0.050%", "0.200%", "0.350%"],
+                      ["93,330 – 98,240", "0.075%", "0.050%", "0.200%", "0.325%"],
+                      ["98,240+", "0.050%", "0.050%", "0.200%", "0.300%"]
+                    ].map((row, i) => (
+                      <tr key={i} className="hover:bg-white/5 transition-colors">
+                        <td className="py-3 px-4 font-medium">{row[0]}</td>
+                        <td className="py-3 px-4 text-color-buy">{row[1]}</td>
+                        <td className="py-3 px-4 text-white/70">{row[2]}</td>
+                        <td className="py-3 px-4 text-white/70">{row[3]}</td>
+                        <td className="py-3 px-4 font-medium text-white">{row[4]}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

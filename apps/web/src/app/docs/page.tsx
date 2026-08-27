@@ -116,11 +116,70 @@ export default function DocsPage() {
         <p className="leading-relaxed">
           Pump Social Capital separates accounting strictly. Reserve liquidity is never mixed with fees.
         </p>
-        <ul className="list-disc pl-6 space-y-2 mb-6">
-          <li><strong>Creator Fee:</strong> 5% (500 BPS) - Routed to Creator Fee Vault PDA.</li>
-          <li><strong>Protocol Fee:</strong> 2% (200 BPS) - Routed to Protocol Treasury PDA.</li>
-          <li><strong>Total Fee:</strong> 7% (700 BPS)</li>
-        </ul>
+        <div className="mb-8">
+          <h3 className="text-2xl font-semibold text-white mb-4">Bonding Curve Fees (Before Graduation)</h3>
+          <p className="text-color-muted mb-4">While your token is on the bonding curve, every trade generates a flat 1.25% fee.</p>
+          <ul className="list-disc pl-6 space-y-2 mb-6">
+            <li><strong>Creator Fee:</strong> 0.30% - Routed to Creator Fee Vault PDA.</li>
+            <li><strong>Protocol Fee:</strong> 0.95% - Routed to Protocol Treasury PDA.</li>
+            <li><strong>Total Fee:</strong> 1.25%</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 className="text-2xl font-semibold text-white mb-4">PumpSwap Fees (Graduated Tokens)</h3>
+          <p className="text-color-muted mb-4">Once graduated to PumpSwap, the creator fee scales dynamically with market cap.</p>
+          <div className="overflow-x-auto rounded-xl border border-white/10">
+            <table className="w-full text-left border-collapse text-sm">
+              <thead className="bg-[#161A22]">
+                <tr className="border-b border-white/10 text-color-muted">
+                  <th className="py-3 px-4 font-medium">Market Cap (SOL)</th>
+                  <th className="py-3 px-4 font-medium text-color-buy">Creator Fee</th>
+                  <th className="py-3 px-4 font-medium">Protocol Fee</th>
+                  <th className="py-3 px-4 font-medium">LP Fee</th>
+                  <th className="py-3 px-4 font-medium text-white">Total Fee</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {[
+                  ["0 – 420", "0.300%", "0.930%", "0.020%", "1.250%"],
+                  ["420 – 1,470", "0.950%", "0.050%", "0.200%", "1.200%"],
+                  ["1,470 – 2,460", "0.900%", "0.050%", "0.200%", "1.150%"],
+                  ["2,460 – 3,440", "0.850%", "0.050%", "0.200%", "1.100%"],
+                  ["3,440 – 4,420", "0.800%", "0.050%", "0.200%", "1.050%"],
+                  ["4,420 – 9,820", "0.750%", "0.050%", "0.200%", "1.000%"],
+                  ["9,820 – 14,740", "0.700%", "0.050%", "0.200%", "0.950%"],
+                  ["14,740 – 19,650", "0.650%", "0.050%", "0.200%", "0.900%"],
+                  ["19,650 – 24,560", "0.600%", "0.050%", "0.200%", "0.850%"],
+                  ["24,560 – 29,470", "0.550%", "0.050%", "0.200%", "0.800%"],
+                  ["29,470 – 34,380", "0.500%", "0.050%", "0.200%", "0.750%"],
+                  ["34,380 – 39,300", "0.450%", "0.050%", "0.200%", "0.700%"],
+                  ["39,300 – 44,210", "0.400%", "0.050%", "0.200%", "0.650%"],
+                  ["44,210 – 49,120", "0.350%", "0.050%", "0.200%", "0.600%"],
+                  ["49,120 – 54,030", "0.300%", "0.050%", "0.200%", "0.550%"],
+                  ["54,030 – 58,940", "0.275%", "0.050%", "0.200%", "0.525%"],
+                  ["58,940 – 63,860", "0.250%", "0.050%", "0.200%", "0.500%"],
+                  ["63,860 – 68,770", "0.225%", "0.050%", "0.200%", "0.475%"],
+                  ["68,770 – 73,681", "0.200%", "0.050%", "0.200%", "0.450%"],
+                  ["73,681 – 78,590", "0.175%", "0.050%", "0.200%", "0.425%"],
+                  ["78,590 – 83,500", "0.150%", "0.050%", "0.200%", "0.400%"],
+                  ["83,500 – 88,400", "0.125%", "0.050%", "0.200%", "0.375%"],
+                  ["88,400 – 93,330", "0.100%", "0.050%", "0.200%", "0.350%"],
+                  ["93,330 – 98,240", "0.075%", "0.050%", "0.200%", "0.325%"],
+                  ["98,240+", "0.050%", "0.050%", "0.200%", "0.300%"]
+                ].map((row, i) => (
+                  <tr key={i} className="hover:bg-white/5 transition-colors">
+                    <td className="py-3 px-4 font-medium">{row[0]}</td>
+                    <td className="py-3 px-4 text-color-buy">{row[1]}</td>
+                    <td className="py-3 px-4 text-white/70">{row[2]}</td>
+                    <td className="py-3 px-4 text-white/70">{row[3]}</td>
+                    <td className="py-3 px-4 font-medium text-white">{row[4]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
         <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-lg text-yellow-500 text-sm">
           <strong>Security Note:</strong> The bonding curve reserve is completely isolated and cannot be used as protocol treasury.
         </div>

@@ -179,11 +179,11 @@ export default function CreatorPage({ params }: PageProps) {
               </div>
               <div className="flex justify-between border-b border-color-border pb-3">
                 <span className="text-color-muted">Creator Fee</span>
-                <span className="font-semibold text-white">5.0%</span>
+                <span className="font-semibold text-white">0.30%</span>
               </div>
               <div className="flex justify-between pb-1">
                 <span className="text-color-muted">Protocol Fee</span>
-                <span className="font-semibold text-white">2.0%</span>
+                <span className="font-semibold text-white">0.95%</span>
               </div>
             </div>
           </div>
