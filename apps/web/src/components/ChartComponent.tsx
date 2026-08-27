@@ -45,7 +45,7 @@ export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
       .then(data => {
         if (data.success && data.candles) {
           const formattedData = data.candles.map((c: any) => ({
-            time: (new Date(c.timestamp).getTime() / 1000) as Time,
+            time: Math.floor(new Date(c.timestamp).getTime() / 1000) as Time,
             open: Number(c.open) / 1e9,
             high: Number(c.high) / 1e9,
             low: Number(c.low) / 1e9,
@@ -71,7 +71,7 @@ export const ChartComponent = ({ marketPda }: { marketPda: string }) => {
         if (msg.type === "candle_update" && msg.data) {
           const c = msg.data;
           candlestickSeries.update({
-            time: (new Date(c.timestamp).getTime() / 1000) as Time,
+            time: Math.floor(new Date(c.timestamp).getTime() / 1000) as Time,
             open: Number(c.open) / 1e9,
             high: Number(c.high) / 1e9,
             low: Number(c.low) / 1e9,
