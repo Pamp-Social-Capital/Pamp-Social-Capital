@@ -94,37 +94,38 @@ export async function processHeliusPayload(transactions: any[]) {
       }
 
       for (const event of events) {
-        if (event.name === "MarketCreated") {
-          const { creatorId, marketPda, creatorHandle } = event.data as any;
+        if (event.name === "CreatorMarketCreated") {
+          const { creatorId, creatorMarket, creatorWallet } = event.data as any;
           const creatorIdArray = creatorId;
           const creatorIdHex = Buffer.from(creatorIdArray).toString('hex');
           
           const handleBytes = Buffer.from(creatorIdArray).filter((b: number) => b !== 0);
           const twitterHandle = Buffer.from(handleBytes).toString('utf-8');
           
-          const creatorWallet = tx.feePayer || txInfo.transaction.message.staticAccountKeys[0].toString();
+          const creatorWalletStr = creatorWallet.toString();
+          const marketPdaStr = creatorMarket.toString();
           
           await db.insert(creatorMarkets).values({
-            marketPda: marketPda.toString(),
+            marketPda: marketPdaStr,
             twitterHandle: twitterHandle,
             creatorIdHex: creatorIdHex,
-            creatorWallet: creatorWallet,
+            creatorWallet: creatorWalletStr,
             supply: 0,
             reserveLamports: 0,
             totalVolumeLamports: "0",
             txSignature: tx.signature
           }).onConflictDoNothing();
           
-          console.log(`Indexed new market: ${twitterHandle} (${marketPda.toString()})`);
+          console.log(`Indexed new market: ${twitterHandle} (${marketPdaStr})`);
           
-        } else if (event.name === "KeysBought" || event.name === "KeysSold") {
+        } else if (event.name === "KeysPurchased" || event.name === "KeysSold") {
           const data = event.data as any;
-          const marketPda = data.market.toString();
+          const marketPda = data.creatorMarket.toString();
           const userWallet = (data.buyer || data.seller).toString();
-          const tradeType = event.name === "KeysBought" ? "buy" : "sell";
+          const tradeType = event.name === "KeysPurchased" ? "buy" : "sell";
           
           const amount = (data.keyAmount as BN).toNumber();
-          const lamports = (data.solAmount as BN).toNumber();
+          const lamports = tradeType === "buy" ? (data.grossCost as BN).toNumber() : (data.netReturn as BN).toNumber();
           const creatorFee = (data.creatorFee as BN).toNumber();
           const protocolFee = (data.protocolFee as BN).toNumber();
           const feeLamports = creatorFee + protocolFee;
@@ -140,7 +141,7 @@ export async function processHeliusPayload(transactions: any[]) {
           }).onConflictDoNothing();
 
           const [positionPda] = PublicKey.findProgramAddressSync(
-            [Buffer.from("position"), data.market.toBuffer(), new PublicKey(userWallet).toBuffer()],
+            [Buffer.from("position"), data.creatorMarket.toBuffer(), new PublicKey(userWallet).toBuffer()],
             PROGRAM_ID
           );
 
