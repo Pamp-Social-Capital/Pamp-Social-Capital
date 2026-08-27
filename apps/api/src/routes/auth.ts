@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
 import crypto from "crypto";
-import { db, users } from "@social-capital/db";
+import { db, users, activityLogs } from "@social-capital/db";
 import { eq } from "drizzle-orm";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
@@ -60,6 +60,12 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
       const isValid = nacl.sign.detached.verify(messageUint8, signatureUint8, pubKeyUint8);
       
       if (!isValid) {
+        await db.insert(activityLogs).values({
+          action: 'WALLET_LOGIN',
+          walletAddress: wallet,
+          details: JSON.stringify({ error: "Invalid signature" }),
+          status: 'ERROR'
+        });
         return reply.status(401).send({ success: false, error: "Invalid signature" });
       }
 
@@ -69,6 +75,12 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
       // Generate JWT
       const jwtSecret = process.env.JWT_SECRET || "super_secret_dev_key";
       const token = jwt.sign({ wallet }, jwtSecret, { expiresIn: '7d' });
+
+      await db.insert(activityLogs).values({
+        action: 'WALLET_LOGIN',
+        walletAddress: wallet,
+        status: 'SUCCESS'
+      });
 
       return reply.send({ success: true, token });
     } catch (err) {

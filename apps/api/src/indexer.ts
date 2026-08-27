@@ -1,7 +1,7 @@
 import { BorshCoder, Program, BN, EventParser } from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { IDL } from "@social-capital/sdk/dist/idl/social_capital";
-import { db, tradeHistory, creatorMarkets, userPositions, priceCandles } from "@social-capital/db";
+import { db, tradeHistory, creatorMarkets, userPositions, priceCandles, activityLogs } from "@social-capital/db";
 import { eq, sql } from "drizzle-orm";
 import { createHash } from "crypto";
 import bs58 from "bs58";
@@ -119,6 +119,13 @@ export async function processHeliusPayload(transactions: any[]) {
             txSignature: tx.signature
           }).onConflictDoNothing();
           
+          await db.insert(activityLogs).values({
+            action: 'MARKET_CREATED',
+            walletAddress: creatorWalletStr,
+            details: JSON.stringify({ marketPda: marketPdaStr, twitterHandle }),
+            status: 'SUCCESS'
+          });
+          
           console.log(`Indexed new market: ${twitterHandle} (${marketPdaStr})`);
           
         } else if (event.name === "KeysPurchased" || event.name === "KeysSold") {
@@ -188,6 +195,13 @@ export async function processHeliusPayload(transactions: any[]) {
 
           const price = amount > 0 ? Math.floor(lamports / amount) : 0;
           await processTradeForCandles(marketPda, price, lamports);
+          
+          await db.insert(activityLogs).values({
+            action: tradeType === 'buy' ? 'TRADE_BUY' : 'TRADE_SELL',
+            walletAddress: userWallet,
+            details: JSON.stringify({ marketPda, amount, lamports, signature: tx.signature }),
+            status: 'SUCCESS'
+          });
           
           realtimeEmitter.emit("trade", {
             marketPda,

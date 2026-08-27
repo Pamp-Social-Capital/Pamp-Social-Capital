@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
-import { db, users, creatorMarkets } from "@social-capital/db";
+import { db, users, creatorMarkets, activityLogs } from "@social-capital/db";
 import { eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import { TwitterApi } from "twitter-api-v2";
@@ -150,6 +150,13 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
           .set({ avatarUrl: decodedOAuth.avatarUrl })
           .where(eq(creatorMarkets.twitterHandle, decodedOAuth.twitterHandle));
       }
+      
+      await db.insert(activityLogs).values({
+        action: 'TWITTER_LINK',
+        walletAddress: decodedWallet.wallet,
+        details: JSON.stringify({ twitterHandle: decodedOAuth.twitterHandle }),
+        status: 'SUCCESS'
+      });
         
       return reply.send({ 
         success: true, 
@@ -158,6 +165,11 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       
     } catch (e) {
       fastify.log.error(e);
+      await db.insert(activityLogs).values({
+        action: 'TWITTER_LINK',
+        details: JSON.stringify({ error: "Invalid or expired tokens" }),
+        status: 'ERROR'
+      });
       return reply.status(401).send({ success: false, error: "Invalid or expired tokens" });
     }
   });

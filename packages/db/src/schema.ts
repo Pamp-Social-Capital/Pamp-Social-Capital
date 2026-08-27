@@ -65,11 +65,12 @@ export const priceCandles = pgTable("price_candles", {
   unq: unique().on(t.marketPda, t.resolution, t.timestamp)
 }));
 
-export const webhookLogs = pgTable("webhook_logs", {
+export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
-  type: text("type").notNull(), // 'helius' or others
-  payload: text("payload").notNull(), // JSON string of the payload
-  status: text("status").notNull(), // 'success', 'error', 'skipped'
+  action: text("action").notNull(), // 'WALLET_LOGIN', 'TWITTER_LINK', 'WEBHOOK_RECEIVED', 'MARKET_CREATED', 'TRADE_BUY', 'TRADE_SELL'
+  walletAddress: text("wallet_address"), // The user associated with the action, if any
+  details: text("details"), // JSON string of extra context (payload, errors, etc)
+  status: text("status").notNull(), // 'SUCCESS', 'ERROR', 'WARNING'
   errorMessage: text("error_message"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
