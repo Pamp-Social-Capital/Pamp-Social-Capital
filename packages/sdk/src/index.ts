@@ -109,6 +109,7 @@ export class PumpSocialCapitalSDK {
   ): Promise<string> {
     const marketPda = this.getCreatorMarketPda(creatorId);
     const positionPda = this.getUserPositionPda(marketPda, this.wallet.publicKey);
+    const feeVault = this.getCreatorFeeVaultPda(marketPda);
     const configPda = this.getProtocolConfigPda();
 
     // Fetch config to get treasury
@@ -121,6 +122,7 @@ export class PumpSocialCapitalSDK {
         userPosition: positionPda,
         protocolConfig: configPda,
         treasury: config.treasury,
+        creatorFeeVault: feeVault,
         seller: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       } as any)

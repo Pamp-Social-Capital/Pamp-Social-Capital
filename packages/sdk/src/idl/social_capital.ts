@@ -59,6 +59,7 @@ export type SocialCapital = {
         { name: "userPosition"; writable: true; signer: false },
         { name: "protocolConfig"; writable: false; signer: false },
         { name: "treasury"; writable: true; signer: false },
+        { name: "creatorFeeVault"; writable: true; signer: false },
         { name: "seller"; writable: true; signer: true },
         { name: "systemProgram"; writable: false; signer: false }
       ];
@@ -213,6 +214,7 @@ export const IDL: SocialCapital = {
         { name: "userPosition", writable: true, signer: false },
         { name: "protocolConfig", writable: false, signer: false },
         { name: "treasury", writable: true, signer: false },
+        { name: "creatorFeeVault", writable: true, signer: false },
         { name: "seller", writable: true, signer: true },
         { name: "systemProgram", writable: false, signer: false }
       ],
