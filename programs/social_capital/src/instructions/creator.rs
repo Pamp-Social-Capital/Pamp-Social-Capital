@@ -72,6 +72,8 @@ pub struct WithdrawCreatorFees<'info> {
     
     #[account(mut)]
     pub creator_wallet: Signer<'info>,
+    
+    pub system_program: Program<'info, System>,
 }
 
 pub fn withdraw_creator_fees(ctx: Context<WithdrawCreatorFees>) -> Result<()> {
@@ -89,8 +91,17 @@ pub fn withdraw_creator_fees(ctx: Context<WithdrawCreatorFees>) -> Result<()> {
     ];
     let signer = &[&seeds[..]];
 
-    vault.sub_lamports(amount)?;
-    ctx.accounts.creator_wallet.add_lamports(amount)?;
+    anchor_lang::system_program::transfer(
+        CpiContext::new_with_signer(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::Transfer {
+                from: vault.to_account_info(),
+                to: ctx.accounts.creator_wallet.to_account_info(),
+            },
+            signer,
+        ),
+        amount,
+    )?;
 
     emit!(CreatorFeesWithdrawn {
         creator_market: market_key,

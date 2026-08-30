@@ -151,6 +151,7 @@ export class PumpSocialCapitalSDK {
         creatorMarket: marketPda,
         creatorWallet: this.wallet.publicKey,
         creatorFeeVault: feeVault,
+        systemProgram: SystemProgram.programId,
       } as any)
       .rpc();
   }

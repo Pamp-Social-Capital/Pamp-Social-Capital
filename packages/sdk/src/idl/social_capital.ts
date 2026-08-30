@@ -83,7 +83,8 @@ export type SocialCapital = {
       accounts: [
         { name: "creatorMarket"; writable: true; signer: false },
         { name: "creatorFeeVault"; writable: true; signer: false },
-        { name: "creatorWallet"; writable: true; signer: true }
+        { name: "creatorWallet"; writable: true; signer: true },
+        { name: "systemProgram"; writable: false; signer: false }
       ];
       args: [];
     }
@@ -263,7 +264,8 @@ export const IDL: SocialCapital = {
       accounts: [
         { name: "creatorMarket", writable: true, signer: false },
         { name: "creatorFeeVault", writable: true, signer: false },
-        { name: "creatorWallet", writable: true, signer: true }
+        { name: "creatorWallet", writable: true, signer: true },
+        { name: "systemProgram", writable: false, signer: false }
       ],
       args: []
     }
