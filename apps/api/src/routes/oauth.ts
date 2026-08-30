@@ -107,7 +107,10 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       );
       
       // Redirect back to frontend
-      return reply.redirect(`${session.redirectUrl}?oauth_token=${oauthToken}&handle=${twitterHandle}`);
+      const redirectUrlObj = new URL(session.redirectUrl);
+      redirectUrlObj.searchParams.append("oauth_token", oauthToken);
+      redirectUrlObj.searchParams.append("handle", twitterHandle);
+      return reply.redirect(redirectUrlObj.toString());
       
     } catch (e) {
       fastify.log.error(e);
