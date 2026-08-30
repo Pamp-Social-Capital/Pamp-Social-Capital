@@ -110,8 +110,10 @@ export default function ClaimPage() {
             
             const isPopup = params.get("popup") === "true";
             
-            if (isPopup && window.opener) {
-              window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle }, '*');
+            if (isPopup) {
+              if (window.opener) {
+                window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle }, '*');
+              }
               window.close();
               return;
             } else {
@@ -123,8 +125,10 @@ export default function ClaimPage() {
           } catch (err: any) {
             console.error(err);
             const isPopup = params.get("popup") === "true";
-            if (isPopup && window.opener) {
-              window.opener.postMessage({ type: 'OAUTH_LINK_ERROR', error: err.message }, '*');
+            if (isPopup) {
+              if (window.opener) {
+                window.opener.postMessage({ type: 'OAUTH_LINK_ERROR', error: err.message }, '*');
+              }
               window.close();
               return;
             }
