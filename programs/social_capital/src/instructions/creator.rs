@@ -91,6 +91,8 @@ pub fn withdraw_creator_fees(ctx: Context<WithdrawCreatorFees>) -> Result<()> {
     ];
     let signer = &[&seeds[..]];
 
+    msg!("Withdrawing {} lamports from vault via CPI", amount);
+    
     anchor_lang::system_program::transfer(
         CpiContext::new_with_signer(
             ctx.accounts.system_program.to_account_info(),
@@ -102,6 +104,8 @@ pub fn withdraw_creator_fees(ctx: Context<WithdrawCreatorFees>) -> Result<()> {
         ),
         amount,
     )?;
+
+    msg!("Successfully transferred {} lamports to creator", amount);
 
     emit!(CreatorFeesWithdrawn {
         creator_market: market_key,
