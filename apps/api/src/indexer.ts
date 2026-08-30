@@ -113,6 +113,15 @@ export async function processHeliusPayload(transactions: any[]) {
             where: eq(users.walletAddress, payerWalletStr)
           });
           
+          // Check for duplicate processing
+          const existingMarket = await db.query.creatorMarkets.findFirst({
+            where: eq(creatorMarkets.marketPda, marketPdaStr)
+          });
+          if (existingMarket) {
+            console.log(`[Idempotency] Skipping duplicate market creation event for ${marketPdaStr}`);
+            continue;
+          }
+
           await db.insert(creatorMarkets).values({
             marketPda: marketPdaStr,
             twitterHandle: twitterHandle,
@@ -145,6 +154,19 @@ export async function processHeliusPayload(transactions: any[]) {
           const creatorFee = (data.creatorFee as BN).toNumber();
           const protocolFee = (data.protocolFee as BN).toNumber();
           const feeLamports = creatorFee + protocolFee;
+
+          // Check for duplicate processing (Helius often sends duplicate webhooks or retries)
+          const existingTrade = await db.query.tradeHistory.findFirst({
+            where: (tradeHistory, { eq, and }) => and(
+              eq(tradeHistory.signature, tx.signature),
+              eq(tradeHistory.marketPda, marketPda)
+            )
+          });
+          
+          if (existingTrade) {
+            console.log(`[Idempotency] Skipping duplicate trade event for signature: ${tx.signature}`);
+            continue;
+          }
 
           await db.insert(tradeHistory).values({
             signature: tx.signature,
