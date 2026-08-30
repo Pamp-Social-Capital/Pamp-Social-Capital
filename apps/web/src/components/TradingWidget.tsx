@@ -185,6 +185,8 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
       if (err.message) {
         if (err.message.includes("User rejected") || err.message.includes("cancelled")) {
           cleanMessage = "Transaction was cancelled by user.";
+        } else if (err.message.includes("Blockhash not found")) {
+          cleanMessage = "Transaction expired (Blockhash not found). Please approve the prompt in your wallet faster.";
         } else if (err.message.includes("Simulation failed")) {
           cleanMessage = "Transaction simulation failed. Check console for details.";
         } else {

@@ -28,6 +28,7 @@ export default function PortfolioPage() {
   }
 
   const positions = data?.portfolio || [];
+  const totalFeesLamports = data?.totalFeesLamports ? BigInt(data.totalFeesLamports) : BigInt(0);
 
   // Calculate aggregates
   const totalValueLamports = positions.reduce((acc: bigint, pos: any) => acc + BigInt(pos.currentValueLamports), BigInt(0));
@@ -37,6 +38,10 @@ export default function PortfolioPage() {
   const totalPnLSol = (Number(totalPnLLamports) / 1e9).toFixed(2);
   
   const totalKeys = positions.reduce((acc: number, pos: any) => acc + pos.keyBalance, 0);
+
+  const totalFeesSol = (Number(totalFeesLamports) / 1e9).toFixed(2);
+  const netProfitLamports = totalPnLLamports + totalFeesLamports;
+  const netProfitSol = (Number(netProfitLamports) / 1e9).toFixed(2);
 
   return (
     <div className="flex flex-col gap-8 pb-12">
@@ -50,25 +55,37 @@ export default function PortfolioPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-gradient-to-br from-[#1FC782]/20 to-transparent p-6 rounded-2xl border border-color-border shadow-lg relative overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="bg-color-card p-6 rounded-2xl border border-color-border shadow-lg relative overflow-hidden md:col-span-2 xl:col-span-2">
              <div className="text-color-muted text-sm mb-1">Total Value</div>
              <div className="text-3xl font-bold text-white">{totalValueSol} <span className="text-sm font-normal text-color-muted">SOL</span></div>
-             <div className="absolute top-0 right-0 w-24 h-24 bg-color-buy opacity-10 rounded-full blur-2xl -mr-8 -mt-8 pointer-events-none" />
           </div>
-          <div className="bg-gradient-to-br from-[#1FC782]/20 to-transparent p-6 rounded-2xl border border-color-border shadow-lg">
-             <div className="text-color-muted text-sm mb-1">Total PnL</div>
+          <div className="bg-color-card p-6 rounded-2xl border border-color-border shadow-lg md:col-span-1 xl:col-span-1">
+             <div className="text-color-muted text-sm mb-1">Keys Held</div>
+             <div className="text-3xl font-bold text-white">{totalKeys}</div>
+          </div>
+          <div className="bg-color-card p-6 rounded-2xl border border-color-border shadow-lg md:col-span-1 xl:col-span-1">
+             <div className="text-color-muted text-sm mb-1">Markets</div>
+             <div className="text-3xl font-bold text-white">{positions.length}</div>
+          </div>
+          <div className="bg-color-card p-6 rounded-2xl border border-color-border shadow-lg md:col-span-1 xl:col-span-1">
+             <div className="text-color-muted text-sm mb-1">Trading PnL</div>
              <div className={`text-3xl font-bold ${totalPnLLamports >= 0 ? 'text-color-buy' : 'text-color-sell'}`}>
                 {totalPnLLamports >= 0 ? '+' : ''}{totalPnLSol} SOL
              </div>
           </div>
-          <div className="bg-color-card p-6 rounded-2xl border border-color-border shadow-lg">
-             <div className="text-color-muted text-sm mb-1">Keys Held</div>
-             <div className="text-3xl font-bold text-white">{totalKeys}</div>
+          <div className="bg-color-card p-6 rounded-2xl border border-color-border shadow-lg md:col-span-1 xl:col-span-1">
+             <div className="text-color-muted text-sm mb-1">Creator Fees</div>
+             <div className="text-3xl font-bold text-blue-400">
+                +{totalFeesSol} SOL
+             </div>
           </div>
-          <div className="bg-color-card p-6 rounded-2xl border border-color-border shadow-lg">
-             <div className="text-color-muted text-sm mb-1">Markets</div>
-             <div className="text-3xl font-bold text-white">{positions.length}</div>
+          <div className="bg-gradient-to-br from-[#1FC782]/20 to-transparent p-6 rounded-2xl border border-color-border shadow-lg md:col-span-2 xl:col-span-2 relative overflow-hidden">
+             <div className="text-color-muted text-sm mb-1">Total Net Profit</div>
+             <div className={`text-4xl font-bold ${netProfitLamports >= 0 ? 'text-color-buy' : 'text-color-sell'}`}>
+                {netProfitLamports >= 0 ? '+' : ''}{netProfitSol} SOL
+             </div>
+             <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy opacity-10 rounded-full blur-2xl -mr-8 -mt-8 pointer-events-none" />
           </div>
       </div>
 

@@ -51,7 +51,17 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
         };
       });
       
-      return reply.send({ success: true, portfolio });
+      const { feeWithdrawals } = await import("@social-capital/db");
+      const withdrawals = await db.query.feeWithdrawals.findMany({
+        where: eq(feeWithdrawals.creatorWallet, wallet),
+      });
+      const totalFeesLamports = withdrawals.reduce((acc, w) => acc + BigInt(w.amount), BigInt(0));
+      
+      return reply.send({ 
+        success: true, 
+        portfolio, 
+        totalFeesLamports: totalFeesLamports.toString() 
+      });
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send({ success: false, error: "Failed to fetch portfolio" });
