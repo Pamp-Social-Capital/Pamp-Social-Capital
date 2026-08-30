@@ -123,8 +123,12 @@ export default function CreatorPage({ params }: PageProps) {
       
       {/* Header Profile */}
       <div className="flex items-center gap-6 bg-color-card p-6 rounded-2xl border border-color-border shadow-lg">
-        <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-inner">
-          {creatorName.charAt(0).toUpperCase()}
+        <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-inner overflow-hidden">
+          {finalMarket.avatarUrl ? (
+            <img src={finalMarket.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            creatorName.charAt(0).toUpperCase()
+          )}
         </div>
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">

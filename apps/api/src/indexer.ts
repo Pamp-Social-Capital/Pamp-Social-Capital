@@ -1,7 +1,7 @@
 import { BorshCoder, Program, BN, EventParser } from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { IDL } from "@social-capital/sdk/dist/idl/social_capital";
-import { db, tradeHistory, creatorMarkets, userPositions, priceCandles, activityLogs } from "@social-capital/db";
+import { db, tradeHistory, creatorMarkets, userPositions, priceCandles, activityLogs, users } from "@social-capital/db";
 import { eq, sql } from "drizzle-orm";
 import { createHash } from "crypto";
 import bs58 from "bs58";
@@ -105,11 +105,16 @@ export async function processHeliusPayload(transactions: any[]) {
           const creatorWalletStr = creatorWallet.toString();
           const marketPdaStr = creatorMarket.toString();
           
+          const userRecord = await db.query.users.findFirst({
+            where: eq(users.walletAddress, creatorWalletStr)
+          });
+          
           await db.insert(creatorMarkets).values({
             marketPda: marketPdaStr,
             twitterHandle: twitterHandle,
             creatorIdHex: creatorIdHex,
             creatorWallet: creatorWalletStr,
+            avatarUrl: userRecord?.avatarUrl || null,
             supply: 0,
             reserveLamports: 0,
             totalVolumeLamports: "0",

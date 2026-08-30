@@ -36,6 +36,7 @@ export default function Home() {
       holderCount: m.holderCount || 0,
       creatorFeeBps: m.creatorFeeBps || 30, // 30 bps = 0.3%
       username: m.twitterHandle || "Unknown",
+      avatarUrl: m.avatarUrl,
     };
   }) || [];
 
