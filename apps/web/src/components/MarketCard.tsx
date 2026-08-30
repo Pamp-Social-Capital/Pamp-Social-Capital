@@ -14,6 +14,7 @@ export interface Market {
   creatorFeeBps: number;
   username?: string;
   avatarUrl?: string;
+  sparkline?: number[];
 }
 
 export const MarketCard: FC<{ market: Market }> = ({ market }) => {
@@ -59,9 +60,31 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
             <div className="text-color-buy text-xs mt-1">{mcapSol} Market Cap</div>
           </div>
           
-          {/* Sparkline (To be implemented with real historical data API) */}
-          <div className="flex items-end gap-1 h-8 opacity-30 text-[10px] text-color-muted">
-             No recent data
+          {/* Sparkline */}
+          <div className="h-8 w-24 flex items-end">
+            {market.sparkline && market.sparkline.length > 1 ? (
+              <svg viewBox="0 0 100 32" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                <polyline
+                  fill="none"
+                  stroke="#10B981" // color-buy
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  points={market.sparkline.map((price, i, arr) => {
+                    const min = Math.min(...arr);
+                    const max = Math.max(...arr);
+                    const range = max - min || 1;
+                    const x = (i / (arr.length - 1)) * 100;
+                    const y = 32 - ((price - min) / range) * 32;
+                    return `${x},${y}`;
+                  }).join(" ")}
+                />
+              </svg>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center opacity-30 text-[10px] text-color-muted">
+                No recent data
+              </div>
+            )}
           </div>
         </div>
 

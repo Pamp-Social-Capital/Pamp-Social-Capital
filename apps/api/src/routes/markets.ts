@@ -13,8 +13,12 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       const pdas = markets.map(m => m.marketPda);
       
       let holderCounts: Record<string, number> = {};
+      let sparklines: Record<string, number[]> = {};
+      
       if (pdas.length > 0) {
         const inClause = sql.join(pdas.map(p => sql`${p}`), sql`, `);
+        
+        // Fetch holder counts
         const counts = await db.execute(sql`
           SELECT market_pda, COUNT(DISTINCT wallet_address) as count
           FROM user_positions
@@ -24,11 +28,30 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         for (const row of counts) {
           holderCounts[row.market_pda as string] = Number(row.count);
         }
+
+        // Fetch sparklines (last 20 candles of 1h resolution per market)
+        const recentCandles = await db.execute(sql`
+          SELECT market_pda, close, timestamp
+          FROM (
+            SELECT market_pda, close, timestamp,
+                   ROW_NUMBER() OVER (PARTITION BY market_pda ORDER BY timestamp DESC) as rn
+            FROM price_candles
+            WHERE market_pda IN (${inClause}) AND resolution = '1h'
+          ) sub
+          WHERE rn <= 20
+          ORDER BY timestamp ASC
+        `);
+        for (const row of recentCandles) {
+          const pda = row.market_pda as string;
+          if (!sparklines[pda]) sparklines[pda] = [];
+          sparklines[pda].push(Number(row.close) / 1e9);
+        }
       }
 
       const marketsWithHolders = markets.map(m => ({
         ...m,
-        holderCount: holderCounts[m.marketPda] || 0
+        holderCount: holderCounts[m.marketPda] || 0,
+        sparkline: sparklines[m.marketPda] || []
       }));
 
       return reply.send({ success: true, markets: marketsWithHolders });
