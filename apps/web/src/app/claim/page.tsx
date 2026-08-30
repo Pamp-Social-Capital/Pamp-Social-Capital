@@ -11,6 +11,7 @@ const WalletMultiButton = dynamic(
 import bs58 from "bs58";
 import { useRouter } from "next/navigation";
 import { useSocialCapital } from "../../hooks/useSocialCapital";
+import toast from "react-hot-toast";
 
 export default function ClaimPage() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function ClaimPage() {
 
     try {
       setStatus("LOADING");
-      setMessage("Requesting challenge from server...");
+      const loadingId = toast.loading("Requesting challenge from server...");
       
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const challengeRes = await fetch(`${apiUrl}/auth/challenge?wallet=${publicKey.toBase58()}`);
@@ -42,11 +43,11 @@ export default function ClaimPage() {
         throw new Error(challengeData.error || "Failed to get challenge");
       }
       
-      setMessage("Please sign the message in your wallet...");
+      toast.loading("Please sign the message in your wallet...", { id: loadingId });
       const messageUint8 = new TextEncoder().encode(challengeData.message);
       const signature = await signMessage(messageUint8);
       
-      setMessage("Verifying signature...");
+      toast.loading("Verifying signature...", { id: loadingId });
       const verifyRes = await fetch(`${apiUrl}/auth/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,12 +65,12 @@ export default function ClaimPage() {
       
       localStorage.setItem("walletToken", verifyData.token);
       setStatus("AUTHENTICATED");
-      setMessage("Wallet authenticated! Please link your X account.");
+      toast.success("Wallet authenticated! Please link your X account.", { id: loadingId });
 
     } catch (err: any) {
       console.error(err);
       setStatus("ERROR");
-      setMessage(err.message || "An unknown error occurred");
+      toast.error(err.message || "An unknown error occurred");
     }
   };
 
@@ -89,7 +90,7 @@ export default function ClaimPage() {
             }
             
             setStatus("LOADING");
-            setMessage("Linking X account to your wallet...");
+            const loadingId = toast.loading("Linking X account to your wallet...");
             
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const linkRes = await fetch(`${apiUrl}/api/oauth/twitter/link`, {
@@ -115,7 +116,7 @@ export default function ClaimPage() {
               return;
             } else {
               setStatus("AUTHENTICATED");
-              setMessage("X account linked successfully!");
+              toast.success("X account linked successfully!", { id: loadingId });
               // Clean up URL without refreshing
               window.history.replaceState({}, document.title, window.location.pathname);
             }
@@ -129,7 +130,7 @@ export default function ClaimPage() {
             }
             
             setStatus("ERROR");
-            setMessage(err.message || "An error occurred while linking X account.");
+            toast.error(err.message || "An error occurred while linking X account.");
           }
         };
         
@@ -146,10 +147,10 @@ export default function ClaimPage() {
         setTwitterHandle(event.data.handle);
         setIsXLinked(true);
         setStatus("AUTHENTICATED");
-        setMessage("X account linked successfully!");
+        toast.success("X account linked successfully!");
       } else if (event.data?.type === 'OAUTH_LINK_ERROR') {
         setStatus("ERROR");
-        setMessage(event.data.error || "An error occurred while linking X account.");
+        toast.error(event.data.error || "An error occurred while linking X account.");
       }
     };
     
@@ -192,7 +193,7 @@ export default function ClaimPage() {
 
     try {
       setStatus("LOADING");
-      setMessage("Requesting approval from wallet to create market on-chain...");
+      const loadingId = toast.loading("Requesting approval from wallet to create market on-chain...");
       
       // Convert handle to 32 bytes zero-padded array
       const textBytes = new TextEncoder().encode(twitterHandle);
@@ -220,24 +221,24 @@ export default function ClaimPage() {
         // Send transaction via SDK
         const signature = await sdk.createCreatorMarket(creatorIdArray);
         setStatus("LOADING");
-        setMessage(`Market Created! Signature: ${signature} Claiming market ownership...`);
+        toast.loading(`Market Created! Claiming market ownership...`, { id: loadingId });
         
         // Automatically claim the market so the creatorWallet is set to the user's wallet
         const claimSig = await sdk.claimCreator(new Uint8Array(creatorIdArray));
         setStatus("SUCCESS");
-        setMessage(`Market Claimed Successfully! Signature: ${claimSig}`);
+        toast.success(`Market Claimed Successfully!`, { id: loadingId });
         setCreatedMarketPda(marketPda.toBase58());
       } else if (!marketState.claimed) {
         setStatus("LOADING");
-        setMessage(`Market already exists on-chain! Skipping creation, proceeding to claim...`);
+        toast.loading(`Market already exists on-chain! Skipping creation, proceeding to claim...`, { id: loadingId });
         
         const claimSig = await sdk.claimCreator(new Uint8Array(creatorIdArray));
         setStatus("SUCCESS");
-        setMessage(`Market Claimed Successfully! Signature: ${claimSig}`);
+        toast.success(`Market Claimed Successfully!`, { id: loadingId });
         setCreatedMarketPda(marketPda.toBase58());
       } else {
         setStatus("SUCCESS");
-        setMessage(`Market is already fully set up and claimed!`);
+        toast.success(`Market is already fully set up and claimed!`, { id: loadingId });
         setCreatedMarketPda(marketPda.toBase58());
       }
     } catch (err: any) {
@@ -257,7 +258,7 @@ export default function ClaimPage() {
           cleanMessage = err.message.length > 100 ? "Transaction failed. Check console for details." : err.message;
         }
       }
-      setMessage(cleanMessage);
+      toast.error(cleanMessage);
     }
   };
 
@@ -359,16 +360,6 @@ export default function ClaimPage() {
           </div>
         )}
 
-        {message && (
-          <div className={`w-full p-4 rounded-xl text-sm text-center border ${
-            status === "ERROR" ? "bg-color-sell/10 border-color-sell text-color-sell" :
-            status === "SUCCESS" ? "bg-color-buy/10 border-color-buy text-color-buy" :
-            "bg-[#0B0E14] border-color-border text-white"
-          }`}>
-            {status === "LOADING" && <svg className="inline-block animate-spin mr-2 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
-            {message}
-          </div>
-        )}
       </div>
     </div>
   );

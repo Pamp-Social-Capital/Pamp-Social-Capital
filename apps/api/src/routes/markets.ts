@@ -100,4 +100,37 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       return reply.status(500).send({ success: false, error: "Failed to fetch trades" });
     }
   });
+
+  fastify.get("/:pda/analytics", async (request, reply) => {
+    try {
+      const { pda } = request.params as { pda: string };
+      
+      const market = await db.query.creatorMarkets.findFirst({
+        where: (creatorMarkets, { eq }) => eq(creatorMarkets.marketPda, pda),
+      });
+
+      if (!market) {
+        return reply.status(404).send({ success: false, error: "Market not found" });
+      }
+
+      const holderCountResult = await db.execute(sql`
+        SELECT COUNT(DISTINCT wallet_address) as count
+        FROM user_positions
+        WHERE market_pda = ${pda} AND key_balance > 0
+      `);
+      
+      const holderCount = Number(holderCountResult[0]?.count || 0);
+
+      return reply.send({ 
+        success: true, 
+        analytics: {
+          totalVolumeLamports: market.totalVolumeLamports,
+          holderCount
+        }
+      });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ success: false, error: "Failed to fetch analytics" });
+    }
+  });
 };

@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
-import { db, userPositions, creatorMarkets } from "@social-capital/db";
+import { db, userPositions, creatorMarkets, tradeHistory } from "@social-capital/db";
 import { eq, inArray } from "drizzle-orm";
 
 const K_CONSTANT = 100_000n; // 0.0001 SOL in lamports
@@ -55,6 +55,25 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send({ success: false, error: "Failed to fetch portfolio" });
+    }
+  });
+
+  fastify.get("/:wallet/trades", async (request, reply) => {
+    const { wallet } = request.params as { wallet: string };
+    
+    if (!wallet) {
+      return reply.status(400).send({ success: false, error: "Wallet address is required" });
+    }
+
+    try {
+      const trades = await db.query.tradeHistory.findMany({
+        where: eq(tradeHistory.traderWallet, wallet),
+        orderBy: (tradeHistory, { desc }) => [desc(tradeHistory.timestamp)],
+      });
+      return reply.send({ success: true, trades });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ success: false, error: "Failed to fetch user trades" });
     }
   });
 };

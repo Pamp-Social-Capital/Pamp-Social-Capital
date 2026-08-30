@@ -3,6 +3,7 @@
 import { TradingWidget } from "@/components/TradingWidget";
 import { ChartComponent } from "@/components/ChartComponent";
 import { TradeHistoryComponent } from "@/components/TradeHistoryComponent";
+import { CreatorDashboard } from "@/components/CreatorDashboard";
 import { use, useState, useEffect } from "react";
 import useSWR from "swr";
 import { useSocialCapital } from "../../../hooks/useSocialCapital";
@@ -117,6 +118,9 @@ export default function CreatorPage({ params }: PageProps) {
   
   return (
     <div className="flex flex-col gap-6 pb-12">
+      {/* Creator Dashboard (Only shows if connected wallet == creatorWallet) */}
+      {finalMarket && <CreatorDashboard marketPda={id as string} creatorWallet={onChainMarket?.creatorWallet?.toBase58() || ""} />}
+      
       {/* Header Profile */}
       <div className="flex items-center gap-6 bg-color-card p-6 rounded-2xl border border-color-border shadow-lg">
         <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-inner">

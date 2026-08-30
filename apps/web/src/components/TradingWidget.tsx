@@ -5,6 +5,7 @@ import { useSocialCapital } from "../hooks/useSocialCapital";
 import { BN } from "@coral-xyz/anchor";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { mutate } from "swr";
+import toast from "react-hot-toast";
 
 const K_CONSTANT = 100_000; // 0.0001 SOL in lamports
 
@@ -129,16 +130,13 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
     }
     
     if (tradeType === "sell" && parsedAmount > keyBalance) {
-      setModalMessage("Error: Insufficient key balance.");
-      setModalSignature("");
-      setShowModal(true);
+      toast.error("Insufficient key balance.");
       return;
     }
     
+    const loadingToastId = toast.loading(`Processing ${tradeType.toUpperCase()} order for ${parsedAmount} keys...`);
+    
     try {
-      setModalMessage(`Processing ${tradeType.toUpperCase()} order for ${parsedAmount} keys...`);
-      setModalSignature("");
-      setShowModal(true);
       
       const amountBN = new BN(parsedAmount);
       
@@ -162,8 +160,7 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
         sig = await sdk.sellKeys(creatorIdUint8, amountBN, minSolOutputBN);
       }
       
-      setModalMessage("Order Success!");
-      setModalSignature(sig);
+      toast.success("Order Success!", { id: loadingToastId });
       setAmount("");
       
       // The websocket should pick up the trade and update state automatically
@@ -195,8 +192,7 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
         }
       }
       
-      setModalMessage(`Error: ${cleanMessage}`);
-      setModalSignature("");
+      toast.error(cleanMessage, { id: loadingToastId });
     }
   };
 

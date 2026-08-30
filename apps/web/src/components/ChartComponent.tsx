@@ -21,7 +21,7 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
         horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
       },
       width: chartContainerRef.current.clientWidth,
-      height: 400,
+      height: chartContainerRef.current.clientHeight || 400,
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
@@ -88,7 +88,12 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
     };
 
     const handleResize = () => {
-      chart.applyOptions({ width: chartContainerRef.current?.clientWidth || 0 });
+      if (chartContainerRef.current) {
+        chart.applyOptions({ 
+          width: chartContainerRef.current.clientWidth,
+          height: chartContainerRef.current.clientHeight
+        });
+      }
     };
 
     window.addEventListener('resize', handleResize);
@@ -101,6 +106,6 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
   }, [marketPda, resolution]);
 
   return (
-    <div className="w-full h-[400px]" ref={chartContainerRef} />
+    <div className="w-full h-[300px] md:h-[400px]" ref={chartContainerRef} />
   );
 };

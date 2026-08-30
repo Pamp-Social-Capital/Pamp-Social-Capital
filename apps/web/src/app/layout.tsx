@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WalletContextProvider } from "@/components/WalletContextProvider";
 import { TopNav } from "@/components/TopNav";
+import { BottomNav } from "@/components/BottomNav";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,11 +33,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
       >
         <WalletContextProvider>
+          <Toaster position="bottom-right" toastOptions={{ className: 'dark:bg-[#1A1F2B] dark:text-white' }} />
           <div className="flex flex-col min-h-screen">
             <TopNav />
-            <main className="flex-grow w-full px-4 sm:px-8 lg:px-12 py-6">
+            <main className="flex-grow w-full px-4 sm:px-8 lg:px-12 py-6 pb-24 md:pb-6">
               {children}
             </main>
+            <BottomNav />
           </div>
         </WalletContextProvider>
       </body>
