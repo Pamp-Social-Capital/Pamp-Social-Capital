@@ -22,6 +22,7 @@ export const creatorMarkets = pgTable("creator_markets", {
   totalVolumeLamports: text("total_volume_lamports").default("0").notNull(), // Using text because u128 can be very large
   claimed: boolean("claimed").default(false).notNull(),
   paused: boolean("paused").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
   txSignature: text("tx_signature"), // Transaction hash for market creation/claim
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

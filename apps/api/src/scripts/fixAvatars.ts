@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import { resolve } from "path";
 dotenv.config({ path: resolve(__dirname, "../../../../.env") });
 import { db, creatorMarkets, users } from "@social-capital/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 async function main() {
   console.log("Fixing avatars in creator_markets...");
@@ -11,7 +11,7 @@ async function main() {
   for (const m of markets) {
     if (!m.avatarUrl) {
       const u = await db.query.users.findFirst({
-        where: eq(users.walletAddress, m.creatorWallet)
+        where: sql`lower(${users.username}) = lower(${m.twitterHandle})`
       });
       if (u && u.avatarUrl) {
         await db.update(creatorMarkets)

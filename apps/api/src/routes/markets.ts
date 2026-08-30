@@ -1,11 +1,12 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { db, creatorMarkets } from "@social-capital/db";
-import { sql, desc } from "drizzle-orm";
+import { sql, desc, eq } from "drizzle-orm";
 
 export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.get("/", async (request, reply) => {
     try {
       const markets = await db.query.creatorMarkets.findMany({
+        where: eq(creatorMarkets.isActive, true),
         orderBy: [desc(creatorMarkets.createdAt)],
         limit: 50,
       });
@@ -43,12 +44,13 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       
       const result = await db.execute(sql`
         SELECT 
-          market_pda AS "marketPda",
-          SUM(lamports) AS volume_lamports,
-          COUNT(DISTINCT trader_wallet) AS unique_traders
-        FROM trade_history
-        WHERE timestamp >= ${oneDayAgo}
-        GROUP BY market_pda
+          t.market_pda AS "marketPda",
+          SUM(t.lamports) AS volume_lamports,
+          COUNT(DISTINCT t.trader_wallet) AS unique_traders
+        FROM trade_history t
+        JOIN creator_markets m ON t.market_pda = m.market_pda
+        WHERE t.timestamp >= ${oneDayAgo} AND m.is_active = true
+        GROUP BY t.market_pda
         ORDER BY volume_lamports DESC
         LIMIT 20
       `);

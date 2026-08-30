@@ -105,8 +105,12 @@ export async function processHeliusPayload(transactions: any[]) {
           const creatorWalletStr = creatorWallet.toString();
           const marketPdaStr = creatorMarket.toString();
           
+          // The creatorWallet in the event is 11111111111111111111111111111111 before it is claimed.
+          // The actual user who created it is the transaction fee payer.
+          const payerWalletStr = txInfo.transaction.message.getAccountKeys().get(0)?.toString() || creatorWalletStr;
+          
           const userRecord = await db.query.users.findFirst({
-            where: eq(users.walletAddress, creatorWalletStr)
+            where: eq(users.walletAddress, payerWalletStr)
           });
           
           await db.insert(creatorMarkets).values({
