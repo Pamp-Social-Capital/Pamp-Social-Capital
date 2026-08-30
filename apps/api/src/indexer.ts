@@ -176,7 +176,8 @@ export async function processHeliusPayload(transactions: any[]) {
             await db.update(creatorMarkets)
               .set({ 
                 supply: sql`${creatorMarkets.supply} + ${amount}`,
-                reserveLamports: sql`${creatorMarkets.reserveLamports} + ${curveCost}`
+                reserveLamports: sql`${creatorMarkets.reserveLamports} + ${curveCost}`,
+                totalVolumeLamports: sql`CAST(CAST(${creatorMarkets.totalVolumeLamports} AS NUMERIC) + ${lamports} AS TEXT)`
               })
               .where(eq(creatorMarkets.marketPda, marketPda));
           } else {
@@ -198,7 +199,8 @@ export async function processHeliusPayload(transactions: any[]) {
             await db.update(creatorMarkets)
               .set({ 
                 supply: sql`${creatorMarkets.supply} - ${amount}`,
-                reserveLamports: sql`${creatorMarkets.reserveLamports} - ${grossReturn}`
+                reserveLamports: sql`${creatorMarkets.reserveLamports} - ${grossReturn}`,
+                totalVolumeLamports: sql`CAST(CAST(${creatorMarkets.totalVolumeLamports} AS NUMERIC) + ${lamports} AS TEXT)`
               })
               .where(eq(creatorMarkets.marketPda, marketPda));
           }
