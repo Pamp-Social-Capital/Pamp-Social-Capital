@@ -1,7 +1,7 @@
 import { BorshCoder, Program, BN, EventParser } from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { IDL } from "@social-capital/sdk/dist/idl/social_capital";
-import { db, tradeHistory, creatorMarkets, userPositions, priceCandles, activityLogs, users } from "@social-capital/db";
+import { db, tradeHistory, creatorMarkets, userPositions, priceCandles, activityLogs, users, feeWithdrawals } from "@social-capital/db";
 import { eq, sql } from "drizzle-orm";
 import { createHash } from "crypto";
 import bs58 from "bs58";
@@ -251,6 +251,36 @@ export async function processHeliusPayload(transactions: any[]) {
           });
           
           console.log(`Indexed ${tradeType} for ${amount} keys at ${marketPda}`);
+        } else if (event.name === "CreatorFeesWithdrawn") {
+          const data = event.data as any;
+          const marketPda = data.creatorMarket.toString();
+          const creatorWallet = data.creatorWallet.toString();
+          const amount = (data.amount as BN).toNumber();
+
+          const existingWithdrawal = await db.query.feeWithdrawals.findFirst({
+            where: eq(feeWithdrawals.signature, tx.signature)
+          });
+
+          if (existingWithdrawal) {
+            console.log(`[Idempotency] Skipping duplicate withdrawal event for signature: ${tx.signature}`);
+            continue;
+          }
+
+          await db.insert(feeWithdrawals).values({
+            signature: tx.signature,
+            marketPda,
+            creatorWallet,
+            amount
+          }).onConflictDoNothing();
+
+          await db.insert(activityLogs).values({
+            action: 'FEE_WITHDRAWAL',
+            walletAddress: creatorWallet,
+            details: JSON.stringify({ marketPda, amount, signature: tx.signature }),
+            status: 'SUCCESS'
+          });
+
+          console.log(`Indexed fee withdrawal of ${amount} lamports for ${marketPda}`);
         }
       }
     } catch (e) {

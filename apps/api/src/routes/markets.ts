@@ -126,6 +126,22 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
     }
   });
 
+  fastify.get("/:pda/withdrawals", async (request, reply) => {
+    try {
+      const { pda } = request.params as { pda: string };
+      
+      const withdrawals = await db.query.feeWithdrawals.findMany({
+        where: (feeWithdrawals, { eq }) => eq(feeWithdrawals.marketPda, pda),
+        orderBy: (feeWithdrawals, { desc }) => [desc(feeWithdrawals.timestamp)],
+      });
+      
+      return reply.send({ success: true, withdrawals });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ success: false, error: "Failed to fetch withdrawals" });
+    }
+  });
+
   fastify.get("/:pda/analytics", async (request, reply) => {
     try {
       const { pda } = request.params as { pda: string };

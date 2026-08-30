@@ -70,7 +70,25 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
         where: eq(tradeHistory.traderWallet, wallet),
         orderBy: (tradeHistory, { desc }) => [desc(tradeHistory.timestamp)],
       });
-      return reply.send({ success: true, trades });
+      
+      if (trades.length === 0) {
+        return reply.send({ success: true, trades: [] });
+      }
+
+      const marketPdas = [...new Set(trades.map(t => t.marketPda))];
+      const markets = await db.query.creatorMarkets.findMany({
+        where: inArray(creatorMarkets.marketPda, marketPdas)
+      });
+      
+      const marketMap = new Map();
+      markets.forEach(m => marketMap.set(m.marketPda, m));
+      
+      const tradesWithMarket = trades.map(t => ({
+        ...t,
+        marketDetails: marketMap.get(t.marketPda) || null
+      }));
+
+      return reply.send({ success: true, trades: tradesWithMarket });
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send({ success: false, error: "Failed to fetch user trades" });

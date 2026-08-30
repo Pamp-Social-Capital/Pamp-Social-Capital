@@ -75,3 +75,12 @@ export const activityLogs = pgTable("activity_logs", {
   errorMessage: text("error_message"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const feeWithdrawals = pgTable("fee_withdrawals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  signature: text("signature").unique().notNull(),
+  marketPda: text("market_pda").notNull(),
+  creatorWallet: text("creator_wallet").notNull(),
+  amount: bigint("amount", { mode: "number" }).notNull(), // lamports withdrawn
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});

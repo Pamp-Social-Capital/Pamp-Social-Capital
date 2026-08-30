@@ -13,3 +13,4 @@ const client = postgres(connectionString as string, { prepare: false });
 export const db = drizzle(client, { schema });
 
 export * from "./schema";
+export { feeWithdrawals } from "./schema";

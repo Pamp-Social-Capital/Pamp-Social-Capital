@@ -118,11 +118,16 @@ export default function PortfolioPage() {
                   const valSol = (Number(pos.currentValueLamports) / 1e9).toFixed(4);
                   const pnlSol = (Number(pos.pnlLamports) / 1e9).toFixed(4);
                   const isPositive = Number(pos.pnlLamports) >= 0;
+                  const shortMarket = `${pos.marketPda.substring(0,8)}...`;
+                  const marketName = pos.marketDetails?.twitterHandle || "Unknown Creator";
                   
                   return (
                     <tr key={i} className="border-b border-color-border/50 hover:bg-white/5 transition-colors">
-                      <td className="py-4 font-semibold text-color-buy hover:underline">
-                        <Link href={`/creator/${pos.marketPda}`}>{pos.marketPda.substring(0,8)}...</Link>
+                      <td className="py-4 font-semibold hover:underline">
+                        <Link href={`/creator/${pos.marketPda}`} className="flex flex-col">
+                          <span className="text-white text-base">{marketName}</span>
+                          <span className="text-color-buy text-xs font-normal mt-0.5">{shortMarket}</span>
+                        </Link>
                       </td>
                       <td className="py-4">{pos.keyBalance}</td>
                       <td className="py-4 font-medium">{valSol}</td>

@@ -112,11 +112,12 @@ export const UserTradeHistoryComponent = () => {
           </tr>
         </thead>
         <tbody className="text-sm">
-          {trades.map((trade) => {
+          {trades.map((trade: any) => {
             const isBuy = trade.tradeType === "buy";
             const amountSol = (Number(trade.lamports) / 1e9).toFixed(4);
             const timeAgo = new Date(trade.timestamp).toLocaleTimeString();
             const shortMarket = `${trade.marketPda.slice(0, 4)}...${trade.marketPda.slice(-4)}`;
+            const marketName = trade.marketDetails?.twitterHandle || shortMarket;
 
             return (
               <tr key={trade.signature} className="border-b border-[#1A1F2B] hover:bg-[#161A22] transition-colors">
@@ -125,9 +126,10 @@ export const UserTradeHistoryComponent = () => {
                 </td>
                 <td className="py-3 text-white">{trade.amount}</td>
                 <td className="py-3 text-white">{amountSol}</td>
-                <td className="py-3 text-color-muted font-mono">
-                  <a href={`/creator/${trade.marketPda}`} className="hover:text-color-buy transition-colors">
-                    {shortMarket}
+                <td className="py-3 font-semibold hover:underline">
+                  <a href={`/creator/${trade.marketPda}`} className="flex flex-col">
+                    <span className="text-white text-base">{trade.marketDetails?.twitterHandle || "Unknown Creator"}</span>
+                    <span className="text-color-buy text-xs font-normal mt-0.5">{shortMarket}</span>
                   </a>
                 </td>
                 <td className="py-3 text-color-muted">

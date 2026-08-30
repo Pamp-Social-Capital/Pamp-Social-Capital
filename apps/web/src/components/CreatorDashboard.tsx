@@ -19,6 +19,8 @@ export const CreatorDashboard = ({ marketPda, creatorWallet }: CreatorDashboardP
   const [analytics, setAnalytics] = useState<{ totalVolumeLamports: string, holderCount: number } | null>(null);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
 
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+
   // Check if connected wallet is the creator
   const isCreator = publicKey?.toBase58() === creatorWallet;
 
@@ -34,12 +36,22 @@ export const CreatorDashboard = ({ marketPda, creatorWallet }: CreatorDashboardP
         const balance = await connection.getBalance(feeVaultPda);
         setVaultBalance(balance);
 
-        // Fetch analytics from API
+        // Fetch analytics and withdrawals from API
         const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
-        const res = await fetch(`${API_URL}/api/markets/${marketPda}/analytics`);
-        const data = await res.json();
-        if (data.success && data.analytics) {
-          setAnalytics(data.analytics);
+        
+        const [resAnalytics, resWithdrawals] = await Promise.all([
+          fetch(`${API_URL}/api/markets/${marketPda}/analytics`),
+          fetch(`${API_URL}/api/markets/${marketPda}/withdrawals`)
+        ]);
+        
+        const dataAnalytics = await resAnalytics.json();
+        if (dataAnalytics.success && dataAnalytics.analytics) {
+          setAnalytics(dataAnalytics.analytics);
+        }
+
+        const dataWithdrawals = await resWithdrawals.json();
+        if (dataWithdrawals.success && dataWithdrawals.withdrawals) {
+          setWithdrawals(dataWithdrawals.withdrawals);
         }
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err);
@@ -56,14 +68,12 @@ export const CreatorDashboard = ({ marketPda, creatorWallet }: CreatorDashboardP
 
   const handleWithdraw = async () => {
     if (!sdk) return;
+    
+    let loadingId: string | undefined;
+    
     try {
       setIsWithdrawing(true);
-      const loadingId = toast.loading("Requesting withdrawal from wallet...");
-      
-      // The SDK needs creatorId to derive PDAs. 
-      // But wait, claimCreatorFees takes creatorId (Uint8Array).
-      // We don't have creatorId directly in props. We need to fetch it or pass it.
-      // Wait, let's look at the SDK claimCreatorFees signature.
+      loadingId = toast.loading("Requesting withdrawal from wallet...");
       
       const marketState = await sdk.program.account.creatorMarket.fetch(new PublicKey(marketPda));
       const creatorId = marketState.creatorId;
@@ -77,7 +87,11 @@ export const CreatorDashboard = ({ marketPda, creatorWallet }: CreatorDashboardP
       setVaultBalance(0);
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to withdraw fees");
+      if (typeof loadingId !== 'undefined') {
+          toast.error(err.message || "Failed to withdraw fees", { id: loadingId });
+      } else {
+          toast.error(err.message || "Failed to withdraw fees");
+      }
     } finally {
       setIsWithdrawing(false);
     }
@@ -111,7 +125,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet }: CreatorDashboardP
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-[#0B0E14]/50 rounded-xl p-4 border border-indigo-500/20">
           <div className="text-indigo-200/70 text-sm mb-1">Accumulated Fees</div>
           <div className="text-2xl font-bold text-white">{formattedBalance} SOL</div>
@@ -125,6 +139,48 @@ export const CreatorDashboard = ({ marketPda, creatorWallet }: CreatorDashboardP
           <div className="text-2xl font-bold text-white">{holderCount}</div>
         </div>
       </div>
+
+      {withdrawals.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-lg font-bold text-white mb-4">Withdrawal History</h3>
+          <div className="bg-[#0B0E14]/50 rounded-xl border border-indigo-500/20 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-gray-300">
+                <thead className="bg-indigo-900/20 text-indigo-300 text-xs uppercase font-semibold">
+                  <tr>
+                    <th className="px-6 py-4">Time</th>
+                    <th className="px-6 py-4">Amount (SOL)</th>
+                    <th className="px-6 py-4">Transaction</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-indigo-500/10">
+                  {withdrawals.map((w: any) => (
+                    <tr key={w.id} className="hover:bg-indigo-900/10 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-400">
+                        {new Date(w.timestamp).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 font-medium text-green-400">
+                        +{(w.amount / 1e9).toFixed(4)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <a 
+                          href={`https://solscan.io/tx/${w.signature}?cluster=devnet`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                        >
+                          {w.signature.slice(0, 4)}...{w.signature.slice(-4)}
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
