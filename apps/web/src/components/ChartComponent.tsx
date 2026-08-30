@@ -106,6 +106,13 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
   }, [marketPda, resolution]);
 
   return (
-    <div className="w-full h-[300px] md:h-[400px]" ref={chartContainerRef} />
+    <div className="relative w-full h-[300px] md:h-[400px]">
+      <style dangerouslySetInnerHTML={{__html: `
+        /* Hide the TradingView watermark/logo */
+        #tv-attr-logo { display: none !important; }
+        .tv-lightweight-charts table ~ div > a { display: none !important; }
+      `}} />
+      <div className="w-full h-full" ref={chartContainerRef} />
+    </div>
   );
 };
