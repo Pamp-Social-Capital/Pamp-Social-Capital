@@ -94,4 +94,43 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
       return reply.status(500).send({ success: false, error: "Failed to fetch user trades" });
     }
   });
+
+  fastify.get("/:wallet/withdrawals", async (request, reply) => {
+    const { wallet } = request.params as { wallet: string };
+    
+    if (!wallet) {
+      return reply.status(400).send({ success: false, error: "Wallet address is required" });
+    }
+
+    try {
+      const { feeWithdrawals } = await import("@social-capital/db");
+      
+      const withdrawals = await db.query.feeWithdrawals.findMany({
+        where: eq(feeWithdrawals.creatorWallet, wallet),
+        orderBy: (feeWithdrawals, { desc }) => [desc(feeWithdrawals.timestamp)],
+      });
+      
+      if (withdrawals.length === 0) {
+        return reply.send({ success: true, withdrawals: [] });
+      }
+
+      const marketPdas = [...new Set(withdrawals.map(w => w.marketPda))];
+      const markets = await db.query.creatorMarkets.findMany({
+        where: inArray(creatorMarkets.marketPda, marketPdas)
+      });
+      
+      const marketMap = new Map();
+      markets.forEach(m => marketMap.set(m.marketPda, m));
+      
+      const withdrawalsWithMarket = withdrawals.map(w => ({
+        ...w,
+        marketDetails: marketMap.get(w.marketPda) || null
+      }));
+
+      return reply.send({ success: true, withdrawals: withdrawalsWithMarket });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ success: false, error: "Failed to fetch user withdrawals" });
+    }
+  });
 };

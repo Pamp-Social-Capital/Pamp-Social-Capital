@@ -4,6 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import useSWR from "swr";
 import Link from "next/link";
 import { UserTradeHistoryComponent } from "@/components/UserTradeHistory";
+import { UserWithdrawalHistoryComponent } from "@/components/UserWithdrawalHistory";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -145,6 +146,9 @@ export default function PortfolioPage() {
 
       {/* User Trade History */}
       <UserTradeHistoryComponent />
+      
+      {/* User Withdrawal History */}
+      <UserWithdrawalHistoryComponent />
     </div>
   );
 }
