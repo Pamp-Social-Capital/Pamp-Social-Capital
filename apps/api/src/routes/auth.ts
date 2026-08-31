@@ -141,7 +141,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
           const { AnchorProvider, Wallet } = await import("@coral-xyz/anchor");
           const { PumpSocialCapitalSDK } = await import("@social-capital/sdk");
           
-          const rpcUrl = process.env.RPC_URL as string;
+          const rpcUrl = process.env.SOLANA_RPC_URL as string;
           const connection = new Connection(rpcUrl);
           const dummyWallet = new Wallet(Keypair.generate());
           const provider = new AnchorProvider(connection, dummyWallet, {});
