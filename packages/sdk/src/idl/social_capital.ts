@@ -1,5 +1,5 @@
 export type SocialCapital = {
-  address: "FZUBnWcy7cq3RUbbUffMS61RpAoFHUTHABh8ibGacDQ2";
+  address: "HmFYeVa2bdxEsT7huH8er8KrYrB2fWgM7Kx7hkAyYPZj";
   metadata: {
     name: "socialCapital";
     version: "0.1.0";
@@ -14,13 +14,14 @@ export type SocialCapital = {
       discriminator: [188, 233, 252, 106, 134, 146, 202, 91];
       accounts: [
         { name: "protocolConfig"; writable: true; signer: false },
+        { name: "buybackState"; writable: true; signer: false },
         { name: "authority"; writable: true; signer: true },
         { name: "treasury"; writable: false; signer: false },
         { name: "systemProgram"; writable: false; signer: false }
       ];
       args: [
-        { name: "protocolFeeBps"; type: "u16" },
-        { name: "defaultCreatorFeeBps"; type: "u16" }
+        { name: "pscMint"; type: "pubkey" },
+        { name: "backendSigner"; type: "pubkey" }
       ];
     },
     {
@@ -103,6 +104,10 @@ export type SocialCapital = {
     {
       name: "userPosition";
       discriminator: [251, 248, 209, 245, 83, 234, 17, 27];
+    },
+    {
+      name: "buybackState";
+      discriminator: [111, 206, 114, 25, 41, 108, 110, 31];
     }
   ];
   types: [
@@ -154,6 +159,23 @@ export type SocialCapital = {
       };
     },
     {
+      name: "buybackState";
+      type: {
+        kind: "struct";
+        fields: [
+          { name: "authority"; type: "pubkey" },
+          { name: "pscMint"; type: "pubkey" },
+          { name: "totalSolCollected"; type: "u64" },
+          { name: "totalSolDeployed"; type: "u64" },
+          { name: "totalPscBought"; type: "u64" },
+          { name: "totalPscBurned"; type: "u64" },
+          { name: "lastBuybackAt"; type: "i64" },
+          { name: "paused"; type: "bool" },
+          { name: "bump"; type: "u8" }
+        ];
+      };
+    },
+    {
       name: "CreatorMarketCreated";
       type: { kind: "struct"; fields: [{ name: "creatorMarket"; type: "pubkey" }, { name: "creatorId"; type: { array: ["u8", 32] } }, { name: "creatorWallet"; type: "pubkey" }, { name: "creatorFeeBps"; type: "u16" }, { name: "timestamp"; type: "i64" }] };
     },
@@ -184,7 +206,7 @@ export type SocialCapital = {
 };
 
 export const IDL: SocialCapital = {
-  address: "FZUBnWcy7cq3RUbbUffMS61RpAoFHUTHABh8ibGacDQ2",
+  address: "HmFYeVa2bdxEsT7huH8er8KrYrB2fWgM7Kx7hkAyYPZj",
   metadata: {
     name: "socialCapital",
     version: "0.1.0",
@@ -199,13 +221,14 @@ export const IDL: SocialCapital = {
       discriminator: [188, 233, 252, 106, 134, 146, 202, 91],
       accounts: [
         { name: "protocolConfig", writable: true, signer: false },
+        { name: "buybackState", writable: true, signer: false },
         { name: "authority", writable: true, signer: true },
         { name: "treasury", writable: false, signer: false },
         { name: "systemProgram", writable: false, signer: false }
       ],
       args: [
-        { name: "protocolFeeBps", type: "u16" },
-        { name: "defaultCreatorFeeBps", type: "u16" }
+        { name: "pscMint", type: "pubkey" },
+        { name: "backendSigner", type: "pubkey" }
       ]
     },
     {
@@ -288,6 +311,10 @@ export const IDL: SocialCapital = {
     {
       name: "userPosition",
       discriminator: [251, 248, 209, 245, 83, 234, 17, 27]
+    },
+    {
+      name: "buybackState",
+      discriminator: [111, 206, 114, 25, 41, 108, 110, 31]
     }
   ],
   types: [
@@ -334,6 +361,23 @@ export const IDL: SocialCapital = {
           { name: "keyBalance", type: "u64" },
           { name: "totalBoughtLamports", type: "u128" },
           { name: "totalSoldLamports", type: "u128" },
+          { name: "bump", type: "u8" }
+        ]
+      }
+    },
+    {
+      name: "buybackState",
+      type: {
+        kind: "struct",
+        fields: [
+          { name: "authority", type: "pubkey" },
+          { name: "pscMint", type: "pubkey" },
+          { name: "totalSolCollected", type: "u64" },
+          { name: "totalSolDeployed", type: "u64" },
+          { name: "totalPscBought", type: "u64" },
+          { name: "totalPscBurned", type: "u64" },
+          { name: "lastBuybackAt", type: "i64" },
+          { name: "paused", type: "bool" },
           { name: "bump", type: "u8" }
         ]
       }

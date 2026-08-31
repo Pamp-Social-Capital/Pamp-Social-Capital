@@ -9,7 +9,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("FZUBnWcy7cq3RUbbUffMS61RpAoFHUTHABh8ibGacDQ2");
+declare_id!("HmFYeVa2bdxEsT7huH8er8KrYrB2fWgM7Kx7hkAyYPZj");
 
 #[program]
 pub mod social_capital {

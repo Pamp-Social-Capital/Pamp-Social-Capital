@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { TopNav } from "../../components/TopNav";
 import bs58 from "bs58"; // or similar logic for signatures if needed
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());

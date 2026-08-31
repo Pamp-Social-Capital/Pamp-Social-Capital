@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-social_capital = "FZUBnWcy7cq3RUbbUffMS61RpAoFHUTHABh8ibGacDQ2"
+social_capital = "HmFYeVa2bdxEsT7huH8er8KrYrB2fWgM7Kx7hkAyYPZj"
 
 [programs.localnet]
 social_capital = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
