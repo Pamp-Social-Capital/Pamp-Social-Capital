@@ -201,6 +201,8 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         where: (users, { sql }) => sql`lower(${users.username}) = lower(${twitterHandle})`
       });
 
+      const body = request.body as { ticker?: string, websiteUrl?: string, telegramUrl?: string, description?: string, bannerUrl?: string } | undefined;
+
       await db.insert(creatorMarkets).values({
         marketPda: pda,
         twitterHandle: twitterHandle,
@@ -212,7 +214,25 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         reserveLamports: marketState.reserveLamports.toNumber(),
         totalVolumeLamports: "0",
         claimed: marketState.claimed,
-      }).onConflictDoNothing();
+        ticker: body?.ticker || twitterHandle.toUpperCase(),
+        websiteUrl: body?.websiteUrl || null,
+        telegramUrl: body?.telegramUrl || null,
+        description: body?.description || null,
+        bannerUrl: body?.bannerUrl || null,
+      }).onConflictDoUpdate({
+        target: creatorMarkets.marketPda,
+        set: {
+          claimed: marketState.claimed,
+          supply: marketState.supply.toNumber(),
+          reserveLamports: marketState.reserveLamports.toNumber(),
+          // Only update metadata if provided in the body
+          ...(body?.ticker ? { ticker: body.ticker } : {}),
+          ...(body?.websiteUrl ? { websiteUrl: body.websiteUrl } : {}),
+          ...(body?.telegramUrl ? { telegramUrl: body.telegramUrl } : {}),
+          ...(body?.description ? { description: body.description } : {}),
+          ...(body?.bannerUrl ? { bannerUrl: body.bannerUrl } : {}),
+        }
+      });
       
       return reply.send({ success: true, message: "Market synced" });
     } catch (err) {

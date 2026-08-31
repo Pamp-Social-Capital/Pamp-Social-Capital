@@ -18,6 +18,11 @@ export const creatorMarkets = pgTable("creator_markets", {
   creatorIdHex: text("creator_id_hex").unique().notNull(), // The 32-byte zero-padded hex representation
   creatorWallet: text("creator_wallet").notNull(),
   marketPda: text("market_pda").unique().notNull(),
+  ticker: text("ticker").notNull().default(""), // Ticker symbol
+  websiteUrl: text("website_url"),
+  telegramUrl: text("telegram_url"),
+  description: text("description"),
+  bannerUrl: text("banner_url"),
   avatarUrl: text("avatar_url"), // Cached avatar from Twitter
   supply: bigint("supply", { mode: "number" }).default(0).notNull(),
   reserveLamports: bigint("reserve_lamports", { mode: "number" }).default(0).notNull(),

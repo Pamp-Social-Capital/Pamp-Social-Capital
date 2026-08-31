@@ -8,7 +8,7 @@ import bs58 from "bs58";
 import { db, activityLogs } from "@social-capital/db";
 import * as anchor from "@coral-xyz/anchor";
 
-const THRESHOLD_LAMPORTS = 0.1 * 1e9; // 0.1 SOL
+const THRESHOLD_LAMPORTS = 0.001 * 1e9; // 0.001 SOL
 
 async function main() {
   console.log("Starting Keeper Execution...");

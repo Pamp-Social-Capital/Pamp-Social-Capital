@@ -74,9 +74,9 @@ export class PumpSocialCapitalSDK {
   }
 
   // Instructions
-  public async createCreatorMarket(
+  public async createCreatorMarketInstruction(
     creatorId: number[] // 32-byte array
-  ): Promise<string> {
+  ): Promise<anchor.web3.TransactionInstruction> {
     const configPda = this.getProtocolConfigPda();
     const marketPda = this.getCreatorMarketPda(new Uint8Array(creatorId));
     
@@ -88,14 +88,22 @@ export class PumpSocialCapitalSDK {
         payer: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       } as any)
-      .rpc();
+      .instruction();
   }
 
-  public async buyKeys(
+  public async createCreatorMarket(
+    creatorId: number[] // 32-byte array
+  ): Promise<string> {
+    const ix = await this.createCreatorMarketInstruction(creatorId);
+    const tx = new anchor.web3.Transaction().add(ix);
+    return await this.program.provider.sendAndConfirm!(tx);
+  }
+
+  public async buyKeysInstruction(
     creatorId: Uint8Array,
     amount: anchor.BN,
     maxSolCost: anchor.BN
-  ): Promise<string> {
+  ): Promise<anchor.web3.TransactionInstruction> {
     const marketPda = this.getCreatorMarketPda(creatorId);
     const positionPda = this.getUserPositionPda(marketPda, this.wallet.publicKey);
     const feeVault = this.getCreatorFeeVaultPda(marketPda);
@@ -113,7 +121,17 @@ export class PumpSocialCapitalSDK {
         buyer: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       } as any)
-      .rpc();
+      .instruction();
+  }
+
+  public async buyKeys(
+    creatorId: Uint8Array,
+    amount: anchor.BN,
+    maxSolCost: anchor.BN
+  ): Promise<string> {
+    const ix = await this.buyKeysInstruction(creatorId, amount, maxSolCost);
+    const tx = new anchor.web3.Transaction().add(ix);
+    return await this.program.provider.sendAndConfirm!(tx);
   }
 
   public async sellKeys(

@@ -23,6 +23,11 @@ export default function ClaimPage() {
   const [oauthToken, setOauthToken] = useState("");
   const [isXLinked, setIsXLinked] = useState(false);
   const [createdMarketPda, setCreatedMarketPda] = useState("");
+  const [ticker, setTicker] = useState("");
+  const [description, setDescription] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [telegramUrl, setTelegramUrl] = useState("");
+  const [initialBuyAmount, setInitialBuyAmount] = useState("");
 
   const handleClaim = async () => {
     if (!publicKey || !signMessage) {
@@ -213,6 +218,26 @@ export default function ClaimPage() {
       return;
     }
 
+    // URL Validation
+    const isValidUrl = (urlString: string) => {
+      try {
+        new URL(urlString);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    if (websiteUrl && !isValidUrl(websiteUrl)) {
+      toast.error("Please enter a valid Website URL (e.g., https://example.com)");
+      return;
+    }
+
+    if (telegramUrl && !isValidUrl(telegramUrl)) {
+      toast.error("Please enter a valid Telegram URL (e.g., https://t.me/example)");
+      return;
+    }
+
     let loadingId: string | undefined;
 
     try {
@@ -297,6 +322,23 @@ export default function ClaimPage() {
         const claimIx = await sdk.claimCreatorInstruction(new Uint8Array(creatorIdArray));
         tx.add(claimIx);
 
+        // 3. Add Initial Buy instruction if requested
+        const buyAmountNum = Number(initialBuyAmount);
+        if (buyAmountNum > 0) {
+          const { BN } = await import("@coral-xyz/anchor");
+          // Assuming 1 key = 1 token unit for this example. Adjust decimals if needed.
+          const amountBn = new BN(buyAmountNum);
+          // Set maxSolCost to a high value for the initial buy to ensure it goes through
+          const maxSolCostBn = new BN(100 * 1e9); // 100 SOL max
+          
+          const buyIx = await sdk.buyKeysInstruction(
+            new Uint8Array(creatorIdArray),
+            amountBn,
+            maxSolCostBn
+          );
+          tx.add(buyIx);
+        }
+
         toast.loading("Approve claim transaction...", { id: loadingId });
 
         const provider = sdk.program.provider as any;
@@ -304,7 +346,16 @@ export default function ClaimPage() {
 
         // Sync market immediately to avoid webhook delays
         try {
-          await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { method: "POST" });
+          await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { 
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ticker,
+              description,
+              websiteUrl,
+              telegramUrl
+            })
+          });
         } catch (e) {
           console.error("Failed to sync market:", e);
         }
@@ -316,7 +367,16 @@ export default function ClaimPage() {
         // Even if it's already claimed, sync it just in case
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         try {
-          await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { method: "POST" });
+          await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { 
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ticker,
+              description,
+              websiteUrl,
+              telegramUrl
+            })
+          });
         } catch (e) {
           console.error("Failed to sync market:", e);
         }
@@ -392,9 +452,9 @@ export default function ClaimPage() {
         ) : status === "AUTHENTICATED" || (status === "LOADING" && (twitterHandle || isXLinked)) ? (
           <div className="flex flex-col items-center gap-6 w-full mt-4">
             <div className="text-center w-full">
-              <p className="text-white font-semibold text-lg mb-1">Step 3: Link X Identity</p>
+              <p className="text-white font-semibold text-lg mb-1">Step 3: Market Details</p>
               <p className="text-color-muted text-sm mb-4">
-                {isXLinked ? "Identity verified via X." : "Click below to authenticate your X (Twitter) account."}
+                {isXLinked ? "Identity verified. Configure your market." : "Click below to authenticate your X (Twitter) account."}
               </p>
 
               {isXLinked && (
@@ -415,13 +475,39 @@ export default function ClaimPage() {
                 {status === "LOADING" ? "Connecting..." : "Connect X"}
               </button>
             ) : (
-              <button
-                onClick={handleCreateMarket}
-                disabled={status === "LOADING"}
-                className="w-full bg-[#1DA1F2] text-white font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1DA1F2]/20"
-              >
-                {status === "LOADING" ? "Creating Market..." : "Launch Market"}
-              </button>
+              <div className="w-full flex flex-col gap-4 text-left">
+                <div>
+                  <label className="text-white text-sm font-semibold mb-1 block">Ticker *</label>
+                  <input type="text" value={ticker} onChange={e => setTicker(e.target.value)} placeholder={`e.g. $${twitterHandle?.toUpperCase()}`} className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                </div>
+                <div>
+                  <label className="text-white text-sm font-semibold mb-1 block">Description</label>
+                  <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="About your community..." className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors resize-none h-20" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white text-sm font-semibold mb-1 block">Website</label>
+                    <input type="text" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://..." className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
+                  </div>
+                  <div>
+                    <label className="text-white text-sm font-semibold mb-1 block">Telegram</label>
+                    <input type="text" value={telegramUrl} onChange={e => setTelegramUrl(e.target.value)} placeholder="https://t.me/..." className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-white text-sm font-semibold mb-1 block">Initial Buy (Keys)</label>
+                  <input type="number" min="0" value={initialBuyAmount} onChange={e => setInitialBuyAmount(e.target.value)} placeholder="0" className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                  <p className="text-color-muted text-xs mt-1">Optional. Buy keys in the same transaction to prevent snipers.</p>
+                </div>
+                
+                <button
+                  onClick={handleCreateMarket}
+                  disabled={status === "LOADING" || !ticker.trim()}
+                  className="w-full bg-[#1DA1F2] text-white font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1DA1F2]/20 mt-2"
+                >
+                  {status === "LOADING" ? "Creating Market..." : "Launch Market"}
+                </button>
+              </div>
             )}
           </div>
         ) : (

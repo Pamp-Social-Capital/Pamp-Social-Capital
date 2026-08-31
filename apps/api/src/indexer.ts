@@ -177,6 +177,13 @@ export async function processHeliusPayload(transactions: any[]) {
             feeLamports: feeLamports,
           }).onConflictDoNothing();
 
+          if (protocolFee > 0) {
+            await db.insert(protocolFees).values({
+              signature: tx.signature,
+              amount: protocolFee,
+            }).onConflictDoNothing();
+          }
+
           const [positionPda] = PublicKey.findProgramAddressSync(
             [Buffer.from("position"), data.creatorMarket.toBuffer(), new PublicKey(userWallet).toBuffer()],
             PROGRAM_ID
