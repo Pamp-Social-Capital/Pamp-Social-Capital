@@ -138,9 +138,25 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
 
     try {
       setIsClaiming(true);
-      loadingId = toast.loading("Authenticating wallet...");
+      loadingId = toast.loading("Checking on-chain status...");
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
+
+      // Pre-check: verify on-chain if market is already claimed
+      const onChainState = await sdk.program.account.creatorMarket.fetch(new PublicKey(marketPda));
+      if (onChainState.claimed) {
+        toast.loading("Market already claimed on-chain! Syncing database...", { id: loadingId });
+        try {
+          await fetch(`${apiUrl}/api/markets/${marketPda}/sync`, { method: "POST" });
+        } catch (e) {
+          console.error("Sync failed:", e);
+        }
+        toast.success("Database synced! Reloading...", { id: loadingId });
+        setTimeout(() => window.location.reload(), 1500);
+        return;
+      }
+
+      toast.loading("Authenticating wallet...", { id: loadingId });
 
       // Step 1: Get or reuse wallet token
       let walletToken = localStorage.getItem("walletToken");
