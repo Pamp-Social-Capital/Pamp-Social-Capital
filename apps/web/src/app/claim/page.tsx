@@ -27,6 +27,7 @@ export default function ClaimPage() {
   const [description, setDescription] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [telegramUrl, setTelegramUrl] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
   const [initialBuyAmount, setInitialBuyAmount] = useState("");
 
   const handleClaim = async () => {
@@ -357,7 +358,8 @@ export default function ClaimPage() {
               ticker,
               description,
               websiteUrl,
-              telegramUrl
+              telegramUrl,
+              bannerUrl
             })
           });
         } catch (e) {
@@ -378,7 +380,8 @@ export default function ClaimPage() {
               ticker,
               description,
               websiteUrl,
-              telegramUrl
+              telegramUrl,
+              bannerUrl
             })
           });
         } catch (e) {
@@ -497,6 +500,10 @@ export default function ClaimPage() {
                     <label className="text-white text-sm font-semibold mb-1 block">Telegram</label>
                     <input type="text" value={telegramUrl} onChange={e => setTelegramUrl(e.target.value)} placeholder="https://t.me/..." className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
                   </div>
+                </div>
+                <div>
+                  <label className="text-white text-sm font-semibold mb-1 block">Banner Image URL</label>
+                  <input type="text" value={bannerUrl} onChange={e => setBannerUrl(e.target.value)} placeholder="https://... (direct image link)" className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
                 </div>
                 <div>
                   <label className="text-white text-sm font-semibold mb-1 block">Initial Buy (Keys)</label>
