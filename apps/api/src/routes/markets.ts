@@ -174,4 +174,57 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       return reply.status(500).send({ success: false, error: "Failed to fetch analytics" });
     }
   });
+
+  fastify.post("/:pda/sync", async (request, reply) => {
+    try {
+      const { pda } = request.params as { pda: string };
+      
+      const { Connection, PublicKey, Keypair } = await import("@solana/web3.js");
+      const { Wallet } = await import("@coral-xyz/anchor");
+      const { PumpSocialCapitalSDK } = await import("@social-capital/sdk");
+      
+      const rpcUrl = process.env.SOLANA_RPC_URL as string;
+      const connection = new Connection(rpcUrl);
+      const dummyWallet = new Wallet(Keypair.generate());
+      const sdk = new PumpSocialCapitalSDK(connection, dummyWallet);
+      
+      const marketState = await sdk.program.account.creatorMarket.fetch(new PublicKey(pda));
+      if (!marketState) return reply.status(404).send({ error: "Not found on chain" });
+
+      const handleBytes = Buffer.from(marketState.creatorId).filter((b: number) => b !== 0);
+      const twitterHandle = Buffer.from(handleBytes).toString('utf-8');
+      
+      const creatorWalletStr = marketState.creatorWallet.toString();
+      
+      // Try to find the user in DB by twitterHandle (case-insensitive)
+      const userRecord = await db.query.users.findFirst({
+        where: (users, { sql }) => sql`lower(${users.username}) = lower(${twitterHandle})`
+      });
+
+      await db.insert(creatorMarkets).values({
+        marketPda: pda,
+        twitterHandle: twitterHandle,
+        creatorIdHex: Buffer.from(marketState.creatorId).toString('hex'),
+        creatorWallet: creatorWalletStr,
+        avatarUrl: userRecord?.avatarUrl || null,
+        supply: marketState.supply.toNumber(),
+        reserveLamports: marketState.reserveLamports.toNumber(),
+        totalVolumeLamports: "0",
+        claimed: marketState.claimed,
+      }).onConflictDoUpdate({
+        target: creatorMarkets.marketPda,
+        set: {
+          claimed: marketState.claimed,
+          avatarUrl: userRecord?.avatarUrl || null, // ensure avatar is set
+          supply: marketState.supply.toNumber(),
+          reserveLamports: marketState.reserveLamports.toNumber(),
+        }
+      });
+      
+      return reply.send({ success: true, message: "Market synced" });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ success: false, error: "Failed to sync market" });
+    }
+  });
 };

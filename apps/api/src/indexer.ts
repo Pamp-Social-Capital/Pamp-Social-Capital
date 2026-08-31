@@ -105,12 +105,10 @@ export async function processHeliusPayload(transactions: any[]) {
           const creatorWalletStr = creatorWallet.toString();
           const marketPdaStr = creatorMarket.toString();
           
-          // The creatorWallet in the event is 11111111111111111111111111111111 before it is claimed.
-          // The actual user who created it is the transaction fee payer.
-          const payerWalletStr = txInfo.transaction.message.getAccountKeys().get(0)?.toString() || creatorWalletStr;
-          
+          // Lookup user by twitterHandle instead of fee payer for accurate avatar resolution
+          // The twitterHandle on-chain is cryptographically verified by our backend signature.
           const userRecord = await db.query.users.findFirst({
-            where: eq(users.walletAddress, payerWalletStr)
+            where: (users, { sql }) => sql`lower(${users.username}) = lower(${twitterHandle})`
           });
           
           // Check for duplicate processing

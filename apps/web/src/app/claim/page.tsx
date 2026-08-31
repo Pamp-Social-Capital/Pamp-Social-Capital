@@ -271,10 +271,25 @@ export default function ClaimPage() {
         const provider = sdk.program.provider as any;
         const txSig = await provider.sendAndConfirm(tx);
         
+        // Sync market immediately to avoid webhook delays
+        try {
+          await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { method: "POST" });
+        } catch (e) {
+          console.error("Failed to sync market:", e);
+        }
+
         setStatus("SUCCESS");
         toast.success(`Market Claimed Successfully!`, { id: loadingId });
         setCreatedMarketPda(marketPda.toBase58());
       } else {
+        // Even if it's already claimed, sync it just in case
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        try {
+          await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { method: "POST" });
+        } catch (e) {
+          console.error("Failed to sync market:", e);
+        }
+
         setStatus("SUCCESS");
         toast.success(`Market is already fully set up and claimed!`, { id: loadingId });
         setCreatedMarketPda(marketPda.toBase58());
