@@ -254,23 +254,28 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
           </div>
         </div>
 
-        {/* Itemized Receipt */}
-        <div className="mb-6 p-4 bg-[#0B0E14] rounded-xl border border-color-border text-sm flex flex-col gap-3">
-          <div className="flex justify-between">
-            <span className="text-color-muted">Base Cost/Return</span>
-            <span className="font-semibold text-white">{parsedAmount > 0 ? solValue.toFixed(4) : "--"} SOL</span>
+        <div className="mb-6">
+          <div className="p-4 bg-[#0B0E14] rounded-xl border border-color-border text-sm flex flex-col gap-3">
+            <div className="flex justify-between">
+              <span className="text-color-muted">Base Cost/Return</span>
+              <span className="font-semibold text-white">{parsedAmount > 0 ? solValue.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 9 }) : "--"} SOL</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-color-muted">Creator Reward (95% of Fee)</span>
+              <span className="text-color-foreground">{parsedAmount > 0 ? creatorFee.toLocaleString('en-US', { minimumFractionDigits: 5, maximumFractionDigits: 9 }) : "--"} SOL</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-color-muted">Protocol Buyback (5% of Fee)</span>
+              <span className="text-color-foreground">{parsedAmount > 0 ? protocolFee.toLocaleString('en-US', { minimumFractionDigits: 5, maximumFractionDigits: 9 }) : "--"} SOL</span>
+            </div>
+            <div className="border-t border-color-border pt-3 mt-1 flex justify-between font-semibold">
+              <span className="text-white">Total {tradeType === "buy" ? "Cost" : "Return"}</span>
+              <span className="text-white">{parsedAmount > 0 ? totalSol.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 9 }) : "--"} SOL</span>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-color-muted">Creator Reward (95% of Fee)</span>
-            <span className="text-color-foreground">{parsedAmount > 0 ? creatorFee.toFixed(5) : "--"} SOL</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-color-muted">Protocol Buyback (5% of Fee)</span>
-            <span className="text-color-foreground">{parsedAmount > 0 ? protocolFee.toFixed(5) : "--"} SOL</span>
-          </div>
-          <div className="border-t border-color-border pt-3 mt-1 flex justify-between font-semibold">
-            <span className="text-white">Total {tradeType === "buy" ? "Cost" : "Return"}</span>
-            <span className="text-white">{parsedAmount > 0 ? totalSol.toFixed(4) : "--"} SOL</span>
+          <div className="mt-2 text-[10px] text-color-muted text-center px-2 flex items-center justify-center gap-1.5 opacity-80">
+            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>All fees are precisely calculated in Lamports (9 decimals) on the blockchain.</span>
           </div>
         </div>
 
