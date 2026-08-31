@@ -130,7 +130,16 @@ export async function processHeliusPayload(transactions: any[]) {
             reserveLamports: 0,
             totalVolumeLamports: "0",
             txSignature: tx.signature
-          }).onConflictDoNothing();
+          }).onConflictDoUpdate({
+            target: creatorMarkets.twitterHandle,
+            set: {
+              marketPda: marketPdaStr,
+              creatorIdHex: creatorIdHex,
+              creatorWallet: creatorWalletStr,
+              avatarUrl: userRecord?.avatarUrl || null,
+              txSignature: tx.signature
+            }
+          });
           
           await db.insert(activityLogs).values({
             action: 'MARKET_CREATED',

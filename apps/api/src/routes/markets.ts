@@ -212,8 +212,11 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         totalVolumeLamports: "0",
         claimed: marketState.claimed,
       }).onConflictDoUpdate({
-        target: creatorMarkets.marketPda,
+        target: creatorMarkets.twitterHandle,
         set: {
+          marketPda: pda, // update PDA in case program ID changed
+          creatorIdHex: Buffer.from(marketState.creatorId).toString('hex'),
+          creatorWallet: creatorWalletStr,
           claimed: marketState.claimed,
           avatarUrl: userRecord?.avatarUrl || null, // ensure avatar is set
           supply: marketState.supply.toNumber(),
