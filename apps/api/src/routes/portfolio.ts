@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { db, userPositions, creatorMarkets, tradeHistory } from "@social-capital/db";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
+const network = process.env.SOLANA_NETWORK || "devnet";
 
 const K_CONSTANT = 100_000n; // 0.0001 SOL in lamports
 
@@ -14,7 +15,7 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
 
     try {
       const positions = await db.query.userPositions.findMany({
-        where: eq(userPositions.walletAddress, wallet),
+        where: and(eq(userPositions.network, network), eq(userPositions.walletAddress, wallet)),
       });
 
       if (positions.length === 0) {
@@ -23,7 +24,7 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
 
       const marketPdas = positions.map(p => p.marketPda);
       const markets = await db.query.creatorMarkets.findMany({
-        where: inArray(creatorMarkets.marketPda, marketPdas)
+        where: and(eq(creatorMarkets.network, network), inArray(creatorMarkets.marketPda, marketPdas))
       });
 
       const marketMap = new Map();
@@ -53,7 +54,7 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
       
       const { feeWithdrawals } = await import("@social-capital/db");
       const withdrawals = await db.query.feeWithdrawals.findMany({
-        where: eq(feeWithdrawals.creatorWallet, wallet),
+        where: and(eq(feeWithdrawals.network, network), eq(feeWithdrawals.creatorWallet, wallet)),
       });
       const totalFeesLamports = withdrawals.reduce((acc, w) => acc + BigInt(w.amount), BigInt(0));
       
@@ -77,7 +78,7 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
 
     try {
       const trades = await db.query.tradeHistory.findMany({
-        where: eq(tradeHistory.traderWallet, wallet),
+        where: and(eq(tradeHistory.network, network), eq(tradeHistory.traderWallet, wallet)),
         orderBy: (tradeHistory, { desc }) => [desc(tradeHistory.timestamp)],
       });
       
@@ -87,7 +88,7 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
 
       const marketPdas = [...new Set(trades.map(t => t.marketPda))];
       const markets = await db.query.creatorMarkets.findMany({
-        where: inArray(creatorMarkets.marketPda, marketPdas)
+        where: and(eq(creatorMarkets.network, network), inArray(creatorMarkets.marketPda, marketPdas))
       });
       
       const marketMap = new Map();
@@ -116,7 +117,7 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
       const { feeWithdrawals } = await import("@social-capital/db");
       
       const withdrawals = await db.query.feeWithdrawals.findMany({
-        where: eq(feeWithdrawals.creatorWallet, wallet),
+        where: and(eq(feeWithdrawals.network, network), eq(feeWithdrawals.creatorWallet, wallet)),
         orderBy: (feeWithdrawals, { desc }) => [desc(feeWithdrawals.timestamp)],
       });
       
@@ -126,7 +127,7 @@ export const portfolioRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
 
       const marketPdas = [...new Set(withdrawals.map(w => w.marketPda))];
       const markets = await db.query.creatorMarkets.findMany({
-        where: inArray(creatorMarkets.marketPda, marketPdas)
+        where: and(eq(creatorMarkets.network, network), inArray(creatorMarkets.marketPda, marketPdas))
       });
       
       const marketMap = new Map();

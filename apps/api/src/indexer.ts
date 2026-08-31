@@ -2,7 +2,9 @@ import { BorshCoder, Program, BN, EventParser } from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { IDL } from "@social-capital/sdk/dist/idl/social_capital";
 import { db, tradeHistory, creatorMarkets, userPositions, priceCandles, activityLogs, users, feeWithdrawals, protocolFees, pscBuybacks, pscBurns } from "@social-capital/db";
-import { eq, sql } from "drizzle-orm";
+
+const network = process.env.SOLANA_NETWORK || 'devnet';
+import { eq, sql, and } from "drizzle-orm";
 import { createHash } from "crypto";
 import bs58 from "bs58";
 import { realtimeEmitter } from "./services/emitter";
@@ -32,7 +34,7 @@ async function processTradeForCandles(marketPda: string, price: number, volume: 
   for (const res of resolutions) {
     const roundedTimestamp = new Date(now - (now % res.ms));
     
-    const [updatedCandle] = await db.insert(priceCandles).values({
+    const [updatedCandle] = await db.insert(priceCandles).values({ network,
       marketPda,
       resolution: res.name,
       timestamp: roundedTimestamp,
@@ -113,14 +115,14 @@ export async function processHeliusPayload(transactions: any[]) {
           
           // Check for duplicate processing
           const existingMarket = await db.query.creatorMarkets.findFirst({
-            where: eq(creatorMarkets.marketPda, marketPdaStr)
+            where: and(eq(creatorMarkets.network, network), eq(creatorMarkets.marketPda, marketPdaStr))
           });
           if (existingMarket) {
             console.log(`[Idempotency] Skipping duplicate market creation event for ${marketPdaStr}`);
             continue;
           }
 
-          await db.insert(creatorMarkets).values({
+          await db.insert(creatorMarkets).values({ network,
             marketPda: marketPdaStr,
             twitterHandle: twitterHandle,
             twitterName: userRecord?.twitterName || null,
@@ -133,7 +135,7 @@ export async function processHeliusPayload(transactions: any[]) {
             txSignature: tx.signature
           }).onConflictDoNothing();
           
-          await db.insert(activityLogs).values({
+          await db.insert(activityLogs).values({ network,
             action: 'MARKET_CREATED',
             walletAddress: creatorWalletStr,
             details: JSON.stringify({ marketPda: marketPdaStr, twitterHandle }),
@@ -157,7 +159,7 @@ export async function processHeliusPayload(transactions: any[]) {
           // Check for duplicate processing (Helius often sends duplicate webhooks or retries)
           const existingTrade = await db.query.tradeHistory.findFirst({
             where: (tradeHistory, { eq, and }) => and(
-              eq(tradeHistory.signature, tx.signature),
+              and(eq(tradeHistory.network, network), eq(tradeHistory.signature, tx.signature)),
               eq(tradeHistory.marketPda, marketPda)
             )
           });
@@ -167,7 +169,7 @@ export async function processHeliusPayload(transactions: any[]) {
             continue;
           }
 
-          await db.insert(tradeHistory).values({
+          await db.insert(tradeHistory).values({ network,
             signature: tx.signature,
             marketPda: marketPda,
             traderWallet: userWallet,
@@ -178,7 +180,7 @@ export async function processHeliusPayload(transactions: any[]) {
           }).onConflictDoNothing();
 
           if (protocolFee > 0) {
-            await db.insert(protocolFees).values({
+            await db.insert(protocolFees).values({ network,
               signature: tx.signature,
               amount: protocolFee,
             }).onConflictDoNothing();
@@ -190,7 +192,7 @@ export async function processHeliusPayload(transactions: any[]) {
           );
 
           if (tradeType === "buy") {
-            await db.insert(userPositions).values({
+            await db.insert(userPositions).values({ network,
               walletAddress: userWallet,
               marketPda: marketPda,
               positionPda: positionPda.toString(),
@@ -211,9 +213,9 @@ export async function processHeliusPayload(transactions: any[]) {
                 reserveLamports: sql`${creatorMarkets.reserveLamports} + ${curveCost}`,
                 totalVolumeLamports: sql`CAST(CAST(${creatorMarkets.totalVolumeLamports} AS NUMERIC) + ${lamports} AS TEXT)`
               })
-              .where(eq(creatorMarkets.marketPda, marketPda));
+              .where(and(eq(creatorMarkets.network, network), eq(creatorMarkets.marketPda, marketPda)));
           } else {
-            await db.insert(userPositions).values({
+            await db.insert(userPositions).values({ network,
               walletAddress: userWallet,
               marketPda: marketPda,
               positionPda: positionPda.toString(),
@@ -234,13 +236,13 @@ export async function processHeliusPayload(transactions: any[]) {
                 reserveLamports: sql`${creatorMarkets.reserveLamports} - ${grossReturn}`,
                 totalVolumeLamports: sql`CAST(CAST(${creatorMarkets.totalVolumeLamports} AS NUMERIC) + ${lamports} AS TEXT)`
               })
-              .where(eq(creatorMarkets.marketPda, marketPda));
+              .where(and(eq(creatorMarkets.network, network), eq(creatorMarkets.marketPda, marketPda)));
           }
 
           const price = amount > 0 ? Math.floor(lamports / amount) : 0;
           await processTradeForCandles(marketPda, price, lamports);
           
-          await db.insert(activityLogs).values({
+          await db.insert(activityLogs).values({ network,
             action: tradeType === 'buy' ? 'TRADE_BUY' : 'TRADE_SELL',
             walletAddress: userWallet,
             details: JSON.stringify({ marketPda, amount, lamports, signature: tx.signature }),
@@ -265,7 +267,7 @@ export async function processHeliusPayload(transactions: any[]) {
           const amount = (data.amount as BN).toNumber();
 
           const existingWithdrawal = await db.query.feeWithdrawals.findFirst({
-            where: eq(feeWithdrawals.signature, tx.signature)
+            where: and(eq(feeWithdrawals.network, network), eq(feeWithdrawals.signature, tx.signature))
           });
 
           if (existingWithdrawal) {
@@ -273,14 +275,14 @@ export async function processHeliusPayload(transactions: any[]) {
             continue;
           }
 
-          await db.insert(feeWithdrawals).values({
+          await db.insert(feeWithdrawals).values({ network,
             signature: tx.signature,
             marketPda,
             creatorWallet,
             amount
           }).onConflictDoNothing();
 
-          await db.insert(activityLogs).values({
+          await db.insert(activityLogs).values({ network,
             action: 'FEE_WITHDRAWAL',
             walletAddress: creatorWallet,
             details: JSON.stringify({ marketPda, amount, signature: tx.signature }),
@@ -293,11 +295,11 @@ export async function processHeliusPayload(transactions: any[]) {
           const amount = (data.amount as BN).toNumber();
 
           const existingFee = await db.query.protocolFees.findFirst({
-            where: eq(protocolFees.signature, tx.signature)
+            where: and(eq(protocolFees.network, network), eq(protocolFees.signature, tx.signature))
           });
           if (existingFee) continue;
 
-          await db.insert(protocolFees).values({
+          await db.insert(protocolFees).values({ network,
             signature: tx.signature,
             amount
           }).onConflictDoNothing();
@@ -310,11 +312,11 @@ export async function processHeliusPayload(transactions: any[]) {
           const pscReceived = (data.pscReceived as BN).toNumber();
 
           const existingBuyback = await db.query.pscBuybacks.findFirst({
-            where: eq(pscBuybacks.signature, tx.signature)
+            where: and(eq(pscBuybacks.network, network), eq(pscBuybacks.signature, tx.signature))
           });
           if (existingBuyback) continue;
 
-          await db.insert(pscBuybacks).values({
+          await db.insert(pscBuybacks).values({ network,
             signature: tx.signature,
             caller,
             solSpent,
@@ -327,11 +329,11 @@ export async function processHeliusPayload(transactions: any[]) {
           const amount = (data.amount as BN).toNumber();
 
           const existingBurn = await db.query.pscBurns.findFirst({
-            where: eq(pscBurns.signature, tx.signature)
+            where: and(eq(pscBurns.network, network), eq(pscBurns.signature, tx.signature))
           });
           if (existingBurn) continue;
 
-          await db.insert(pscBurns).values({
+          await db.insert(pscBurns).values({ network,
             signature: tx.signature,
             amount
           }).onConflictDoNothing();

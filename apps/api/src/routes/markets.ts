@@ -1,12 +1,14 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { db, creatorMarkets } from "@social-capital/db";
-import { sql, desc, eq } from "drizzle-orm";
+import { sql, desc, eq, and } from "drizzle-orm";
+
+const network = process.env.SOLANA_NETWORK || "devnet";
 
 export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.get("/", async (request, reply) => {
     try {
       const markets = await db.query.creatorMarkets.findMany({
-        where: eq(creatorMarkets.isActive, true),
+        where: and(eq(creatorMarkets.network, network), eq(creatorMarkets.isActive, true)),
         orderBy: [desc(creatorMarkets.createdAt)],
         limit: 50,
       });
@@ -92,6 +94,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       
       const candles = await db.query.priceCandles.findMany({
         where: (priceCandles, { eq, and }) => and(
+          eq(priceCandles.network, network),
           eq(priceCandles.marketPda, pda),
           eq(priceCandles.resolution, resolution)
         ),
@@ -115,7 +118,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       
       // Fetch all trades for the market
       const trades = await db.query.tradeHistory.findMany({
-        where: (tradeHistory, { eq }) => eq(tradeHistory.marketPda, pda),
+        where: (tradeHistory, { eq, and }) => and(eq(tradeHistory.network, network), eq(tradeHistory.marketPda, pda)),
         orderBy: (tradeHistory, { desc }) => [desc(tradeHistory.timestamp)],
       });
       
@@ -131,7 +134,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       const { pda } = request.params as { pda: string };
       
       const withdrawals = await db.query.feeWithdrawals.findMany({
-        where: (feeWithdrawals, { eq }) => eq(feeWithdrawals.marketPda, pda),
+        where: (feeWithdrawals, { eq, and }) => and(eq(feeWithdrawals.network, network), eq(feeWithdrawals.marketPda, pda)),
         orderBy: (feeWithdrawals, { desc }) => [desc(feeWithdrawals.timestamp)],
       });
       
@@ -147,7 +150,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       const { pda } = request.params as { pda: string };
       
       const market = await db.query.creatorMarkets.findFirst({
-        where: (creatorMarkets, { eq }) => eq(creatorMarkets.marketPda, pda),
+        where: (creatorMarkets, { eq, and }) => and(eq(creatorMarkets.network, network), eq(creatorMarkets.marketPda, pda)),
       });
 
       if (!market) {
@@ -245,7 +248,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
     try {
       const { handle } = request.params as { handle: string };
       const market = await db.query.creatorMarkets.findFirst({
-        where: (creatorMarkets, { sql }) => sql`lower(${creatorMarkets.twitterHandle}) = lower(${handle})`
+        where: (creatorMarkets, { sql, eq, and }) => and(eq(creatorMarkets.network, network), sql`lower(${creatorMarkets.twitterHandle}) = lower(${handle})`)
       });
       return reply.send({ exists: !!market });
     } catch (err) {

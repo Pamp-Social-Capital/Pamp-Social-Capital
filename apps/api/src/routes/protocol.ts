@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { db, protocolFees, pscBuybacks, pscBurns, activityLogs } from "@social-capital/db";
-import { sum, desc, eq } from "drizzle-orm";
+import { sum, desc, eq, and } from "drizzle-orm";
+const network = process.env.SOLANA_NETWORK || "devnet";
 
 export const protocolRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.get("/stats", async (request, reply) => {
@@ -8,18 +9,18 @@ export const protocolRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
       // Aggregate Protocol Fees
       const feeResult = await db.select({
         totalFees: sum(protocolFees.amount)
-      }).from(protocolFees);
+      }).from(protocolFees).where(eq(protocolFees.network, network));
 
       // Aggregate Buybacks
       const buybackResult = await db.select({
         totalSolSpent: sum(pscBuybacks.solSpent),
         totalPscReceived: sum(pscBuybacks.pscReceived)
-      }).from(pscBuybacks);
+      }).from(pscBuybacks).where(eq(pscBuybacks.network, network));
 
       // Aggregate Burns
       const burnResult = await db.select({
         totalPscBurned: sum(pscBurns.amount)
-      }).from(pscBurns);
+      }).from(pscBurns).where(eq(pscBurns.network, network));
 
       return reply.send({
         success: true,
@@ -40,13 +41,14 @@ export const protocolRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
     try {
       // Get last 50 fee collections
       const recentFees = await db.query.protocolFees.findMany({
+        where: eq(protocolFees.network, network),
         orderBy: [desc(protocolFees.timestamp)],
         limit: 50
       });
 
       // Get last 50 keeper logs
       const keeperLogs = await db.query.activityLogs.findMany({
-        where: eq(activityLogs.action, "KEEPER_EXECUTION"),
+        where: and(eq(activityLogs.network, network), eq(activityLogs.action, "KEEPER_EXECUTION")),
         orderBy: [desc(activityLogs.createdAt)],
         limit: 50
       });

@@ -19,8 +19,8 @@ export default function ProtocolDashboard() {
     totalPscBurned: 0,
   };
 
-  const feesSol = (Number(stats.totalProtocolFeesLamports) / 1e9).toFixed(4);
-  const buybackSol = (Number(stats.totalBuybackSolSpentLamports) / 1e9).toFixed(4);
+  const feesSol = (Number(stats.totalProtocolFeesLamports) / 1e9).toFixed(6);
+  const buybackSol = (Number(stats.totalBuybackSolSpentLamports) / 1e9).toFixed(6);
   const pscBought = (Number(stats.totalPscBought) / 1e6).toFixed(2); // Assuming 6 decimals for PSC
   const pscBurned = (Number(stats.totalPscBurned) / 1e6).toFixed(2);
 
@@ -109,7 +109,7 @@ export default function ProtocolDashboard() {
                     recentFees.map((fee: any) => (
                       <div key={fee.id} className="bg-[#161A22] border border-color-border rounded-xl p-3 flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-white font-mono text-sm">+{(Number(fee.amount) / 1e9).toFixed(4)} SOL</span>
+                          <span className="text-white font-mono text-sm">+{(Number(fee.amount) / 1e9).toFixed(6)} SOL</span>
                           <a href={`https://solscan.io/tx/${fee.signature}?cluster=devnet`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline text-xs mt-1">
                             {fee.signature.substring(0, 4)}...{fee.signature.substring(fee.signature.length - 4)}
                           </a>

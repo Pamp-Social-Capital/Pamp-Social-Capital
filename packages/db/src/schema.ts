@@ -13,6 +13,7 @@ export const users = pgTable("users", {
 
 export const creatorMarkets = pgTable("creator_markets", {
   id: uuid("id").primaryKey().defaultRandom(),
+  network: text("network").notNull().default("devnet"),
   twitterHandle: text("twitter_handle").unique().notNull(), // The raw Twitter handle string
   twitterName: text("twitter_name"), // Display name from Twitter
   creatorIdHex: text("creator_id_hex").unique().notNull(), // The 32-byte zero-padded hex representation
@@ -37,6 +38,7 @@ export const creatorMarkets = pgTable("creator_markets", {
 
 export const userPositions = pgTable("user_positions", {
   id: uuid("id").primaryKey().defaultRandom(),
+  network: text("network").notNull().default("devnet"),
   walletAddress: text("wallet_address").notNull(),
   marketPda: text("market_pda").notNull(),
   positionPda: text("position_pda").unique().notNull(),
@@ -49,6 +51,7 @@ export const userPositions = pgTable("user_positions", {
 
 export const tradeHistory = pgTable("trade_history", {
   id: uuid("id").primaryKey().defaultRandom(),
+  network: text("network").notNull().default("devnet"),
   signature: text("signature").unique().notNull(),
   marketPda: text("market_pda").notNull(),
   traderWallet: text("trader_wallet").notNull(),
@@ -61,6 +64,7 @@ export const tradeHistory = pgTable("trade_history", {
 
 export const priceCandles = pgTable("price_candles", {
   id: uuid("id").primaryKey().defaultRandom(),
+  network: text("network").notNull().default("devnet"),
   marketPda: text("market_pda").notNull(),
   timestamp: timestamp("timestamp").notNull(),
   resolution: text("resolution").notNull(), // "1m", "5m", "15m", "1h", "1d"
@@ -70,11 +74,12 @@ export const priceCandles = pgTable("price_candles", {
   close: bigint("close", { mode: "number" }).notNull(),
   volumeLamports: bigint("volume_lamports", { mode: "number" }).default(0).notNull(),
 }, (t) => ({
-  unq: unique().on(t.marketPda, t.resolution, t.timestamp)
+  unq: unique().on(t.marketPda, t.resolution, t.timestamp, t.network)
 }));
 
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
+  network: text("network").notNull().default("devnet"),
   action: text("action").notNull(), // 'WALLET_LOGIN', 'TWITTER_LINK', 'WEBHOOK_RECEIVED', 'MARKET_CREATED', 'TRADE_BUY', 'TRADE_SELL'
   walletAddress: text("wallet_address"), // The user associated with the action, if any
   details: text("details"), // JSON string of extra context (payload, errors, etc)
@@ -85,6 +90,7 @@ export const activityLogs = pgTable("activity_logs", {
 
 export const feeWithdrawals = pgTable("fee_withdrawals", {
   id: uuid("id").primaryKey().defaultRandom(),
+  network: text("network").notNull().default("devnet"),
   signature: text("signature").unique().notNull(),
   marketPda: text("market_pda").notNull(),
   creatorWallet: text("creator_wallet").notNull(),
@@ -94,6 +100,7 @@ export const feeWithdrawals = pgTable("fee_withdrawals", {
 
 export const protocolFees = pgTable("protocol_fees", {
   id: uuid("id").primaryKey().defaultRandom(),
+  network: text("network").notNull().default("devnet"),
   signature: text("signature").unique().notNull(),
   amount: bigint("amount", { mode: "number" }).notNull(), // lamports collected
   timestamp: timestamp("timestamp").defaultNow().notNull(),
@@ -101,6 +108,7 @@ export const protocolFees = pgTable("protocol_fees", {
 
 export const pscBuybacks = pgTable("psc_buybacks", {
   id: uuid("id").primaryKey().defaultRandom(),
+  network: text("network").notNull().default("devnet"),
   signature: text("signature").unique().notNull(),
   caller: text("caller").notNull(),
   solSpent: bigint("sol_spent", { mode: "number" }).notNull(),
@@ -110,6 +118,7 @@ export const pscBuybacks = pgTable("psc_buybacks", {
 
 export const pscBurns = pgTable("psc_burns", {
   id: uuid("id").primaryKey().defaultRandom(),
+  network: text("network").notNull().default("devnet"),
   signature: text("signature").unique().notNull(),
   amount: bigint("amount", { mode: "number" }).notNull(), // PSC tokens burned
   timestamp: timestamp("timestamp").defaultNow().notNull(),

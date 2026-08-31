@@ -2,10 +2,10 @@ import * as dotenv from "dotenv";
 import { resolve } from "path";
 dotenv.config({ path: resolve(__dirname, "../../../../.env") });
 
-import { Connection, Keypair, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Keypair, VersionedTransaction, PublicKey } from "@solana/web3.js";
 import { PumpSocialCapitalSDK } from "@social-capital/sdk";
 import bs58 from "bs58";
-import { db, activityLogs } from "@social-capital/db";
+import { db, activityLogs, pscBuybacks, pscBurns } from "@social-capital/db";
 import * as anchor from "@coral-xyz/anchor";
 
 const THRESHOLD_LAMPORTS = 0.001 * 1e9; // 0.001 SOL
@@ -97,9 +97,11 @@ async function main() {
         // Devnet Mock: Assume we get some PSC
         pscReceived = 1000 * 1e6; 
     }
+    // Execute the real swap on mainnet or attempt buyback on devnet (which will fail without $PSC)
+    await sdk.executeBuyback(new anchor.BN(solSpent), new anchor.BN(pscReceived), keeperKeypair.publicKey, new PublicKey(process.env.PSC_MINT_ADDRESS!));
     
-    // For this MVP version, since we can't easily test Jupiter on Devnet, we will just record the attempt
-    // await sdk.executeBuyback(new anchor.BN(solSpent), new anchor.BN(pscReceived));
+    // Note: The real executeBuyback transaction will trigger a webhook 
+    // which then inserts the REAL records into psc_buybacks and psc_burns.
     
     await db.insert(activityLogs).values({
       action: "KEEPER_EXECUTION",
