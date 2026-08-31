@@ -97,11 +97,12 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       // Fetch user profile info
       const user = await loggedClient.v2.me({ 'user.fields': ['profile_image_url'] });
       const twitterHandle = user.data.username;
+      const twitterName = user.data.name;
       const avatarUrl = user.data.profile_image_url;
       
       // Create OAuth token for our frontend to use
       const oauthToken = jwt.sign(
-        { twitterHandle, avatarUrl, isOAuth: true }, 
+        { twitterHandle, twitterName, avatarUrl, isOAuth: true }, 
         config.jwtSecret, 
         { expiresIn: '15m' }
       );
@@ -110,6 +111,7 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       const redirectUrlObj = new URL(session.redirectUrl);
       redirectUrlObj.searchParams.append("oauth_token", oauthToken);
       redirectUrlObj.searchParams.append("handle", twitterHandle);
+      redirectUrlObj.searchParams.append("name", twitterName);
       return reply.redirect(redirectUrlObj.toString());
       
     } catch (e) {
@@ -133,7 +135,7 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       const decodedWallet = jwt.verify(walletToken, config.jwtSecret) as { wallet: string };
       
       // Verify OAuth token
-      const decodedOAuth = jwt.verify(oauthToken, config.jwtSecret) as { twitterHandle: string, avatarUrl?: string, isOAuth: boolean };
+      const decodedOAuth = jwt.verify(oauthToken, config.jwtSecret) as { twitterHandle: string, twitterName?: string, avatarUrl?: string, isOAuth: boolean };
       
       if (!decodedOAuth.isOAuth) {
         return reply.status(400).send({ success: false, error: "Invalid OAuth token type" });
@@ -143,16 +145,18 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       await db.update(users)
         .set({ 
           username: decodedOAuth.twitterHandle,
+          twitterName: decodedOAuth.twitterName,
           avatarUrl: decodedOAuth.avatarUrl
         })
         .where(eq(users.walletAddress, decodedWallet.wallet));
 
       // Also update the cached avatar in creator_markets if it exists
-      if (decodedOAuth.avatarUrl) {
-        await db.update(creatorMarkets)
-          .set({ avatarUrl: decodedOAuth.avatarUrl })
-          .where(eq(creatorMarkets.twitterHandle, decodedOAuth.twitterHandle));
-      }
+      await db.update(creatorMarkets)
+        .set({ 
+          avatarUrl: decodedOAuth.avatarUrl,
+          twitterName: decodedOAuth.twitterName
+        })
+        .where(eq(creatorMarkets.twitterHandle, decodedOAuth.twitterHandle));
       
       await db.insert(activityLogs).values({
         action: 'TWITTER_LINK',

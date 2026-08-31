@@ -5,6 +5,7 @@ export const users = pgTable("users", {
   walletAddress: text("wallet_address").unique().notNull(),
   nonce: text("nonce"),
   username: text("username"),
+  twitterName: text("twitter_name"),
   avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -13,6 +14,7 @@ export const users = pgTable("users", {
 export const creatorMarkets = pgTable("creator_markets", {
   id: uuid("id").primaryKey().defaultRandom(),
   twitterHandle: text("twitter_handle").unique().notNull(), // The raw Twitter handle string
+  twitterName: text("twitter_name"), // Display name from Twitter
   creatorIdHex: text("creator_id_hex").unique().notNull(), // The 32-byte zero-padded hex representation
   creatorWallet: text("creator_wallet").notNull(),
   marketPda: text("market_pda").unique().notNull(),

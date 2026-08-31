@@ -123,6 +123,7 @@ export async function processHeliusPayload(transactions: any[]) {
           await db.insert(creatorMarkets).values({
             marketPda: marketPdaStr,
             twitterHandle: twitterHandle,
+            twitterName: userRecord?.twitterName || null,
             creatorIdHex: creatorIdHex,
             creatorWallet: creatorWalletStr,
             avatarUrl: userRecord?.avatarUrl || null,

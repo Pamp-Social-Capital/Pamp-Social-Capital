@@ -204,6 +204,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       await db.insert(creatorMarkets).values({
         marketPda: pda,
         twitterHandle: twitterHandle,
+        twitterName: userRecord?.twitterName || null,
         creatorIdHex: Buffer.from(marketState.creatorId).toString('hex'),
         creatorWallet: creatorWalletStr,
         avatarUrl: userRecord?.avatarUrl || null,
