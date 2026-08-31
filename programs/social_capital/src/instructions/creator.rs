@@ -1,7 +1,8 @@
 use crate::errors::SocialCapitalError;
 use crate::events::{CreatorClaimed, CreatorFeesWithdrawn};
-use crate::state::CreatorMarket;
+use crate::state::{CreatorMarket, ProtocolConfig};
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::sysvar::instructions::load_instruction_at_checked;
 
 #[derive(Accounts)]
 pub struct ClaimCreator<'info> {
@@ -11,17 +12,78 @@ pub struct ClaimCreator<'info> {
         bump = creator_market.bump
     )]
     pub creator_market: Account<'info, CreatorMarket>,
+    #[account(
+        seeds = [b"protocol"],
+        bump = protocol_config.bump
+    )]
+    pub protocol_config: Account<'info, ProtocolConfig>,
     #[account(mut)]
     pub creator_wallet: Signer<'info>,
-    // In a real app, you would verify an Ed25519 signature here 
-    // to prove the user actually owns the X account associated with creator_id.
-    // For MVP, we assume the backend acts as an oracle or we just claim it.
+    /// CHECK: Instructions sysvar
+    #[account(address = anchor_lang::solana_program::sysvar::instructions::ID)]
+    pub instructions: AccountInfo<'info>,
 }
 
 pub fn claim_creator(ctx: Context<ClaimCreator>) -> Result<()> {
     let market = &mut ctx.accounts.creator_market;
     
     require!(!market.claimed, SocialCapitalError::MarketAlreadyClaimed);
+
+    // Verify Ed25519 signature
+    let ixs = &ctx.accounts.instructions;
+    let ed25519_ix = load_instruction_at_checked(0, ixs)
+        .map_err(|_| SocialCapitalError::Unauthorized)?;
+    
+    require!(
+        ed25519_ix.program_id == anchor_lang::solana_program::ed25519_program::ID,
+        SocialCapitalError::Unauthorized
+    );
+
+    // The backend signer must be the one who signed this
+    let backend_signer = ctx.accounts.protocol_config.backend_signer;
+
+    // Build the expected message: claim_creator:<market_pubkey>:<wallet_pubkey>
+    let mut expected_msg = b"claim_creator:".to_vec();
+    expected_msg.extend_from_slice(market.key().to_string().as_bytes());
+    expected_msg.extend_from_slice(b":");
+    expected_msg.extend_from_slice(ctx.accounts.creator_wallet.key().to_string().as_bytes());
+
+    // Ed25519 instruction data format:
+    // 0: num_signatures
+    // 1: padding
+    // 2-3: signature_offset
+    // 4-5: signature_instruction_index
+    // 6-7: public_key_offset
+    // 8-9: public_key_instruction_index
+    // 10-11: message_data_offset
+    // 12-13: message_data_size
+    // 14-15: message_instruction_index
+    
+    require!(ed25519_ix.data.len() >= 16, SocialCapitalError::Unauthorized);
+
+    let pubkey_offset = u16::from_le_bytes([ed25519_ix.data[6], ed25519_ix.data[7]]) as usize;
+    let msg_offset = u16::from_le_bytes([ed25519_ix.data[10], ed25519_ix.data[11]]) as usize;
+    let msg_size = u16::from_le_bytes([ed25519_ix.data[12], ed25519_ix.data[13]]) as usize;
+
+    require!(
+        ed25519_ix.data.len() >= pubkey_offset + 32,
+        SocialCapitalError::Unauthorized
+    );
+    let recovered_pubkey = &ed25519_ix.data[pubkey_offset..pubkey_offset + 32];
+    require!(
+        recovered_pubkey == backend_signer.as_ref(),
+        SocialCapitalError::Unauthorized
+    );
+
+    require!(
+        ed25519_ix.data.len() >= msg_offset + msg_size,
+        SocialCapitalError::Unauthorized
+    );
+    let recovered_msg = &ed25519_ix.data[msg_offset..msg_offset + msg_size];
+    require!(
+        recovered_msg == expected_msg.as_slice(),
+        SocialCapitalError::Unauthorized
+    );
 
     market.creator_wallet = ctx.accounts.creator_wallet.key();
     market.claimed = true;

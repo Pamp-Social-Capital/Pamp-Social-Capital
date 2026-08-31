@@ -84,3 +84,26 @@ export const feeWithdrawals = pgTable("fee_withdrawals", {
   amount: bigint("amount", { mode: "number" }).notNull(), // lamports withdrawn
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
+
+export const protocolFees = pgTable("protocol_fees", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  signature: text("signature").unique().notNull(),
+  amount: bigint("amount", { mode: "number" }).notNull(), // lamports collected
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const pscBuybacks = pgTable("psc_buybacks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  signature: text("signature").unique().notNull(),
+  caller: text("caller").notNull(),
+  solSpent: bigint("sol_spent", { mode: "number" }).notNull(),
+  pscReceived: bigint("psc_received", { mode: "number" }).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const pscBurns = pgTable("psc_burns", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  signature: text("signature").unique().notNull(),
+  amount: bigint("amount", { mode: "number" }).notNull(), // PSC tokens burned
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});

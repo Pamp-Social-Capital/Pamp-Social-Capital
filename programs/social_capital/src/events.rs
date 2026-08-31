@@ -5,7 +5,6 @@ pub struct CreatorMarketCreated {
     pub creator_market: Pubkey,
     pub creator_id: [u8; 32],
     pub creator_wallet: Pubkey,
-    pub creator_fee_bps: u16,
     pub timestamp: i64,
 }
 
@@ -48,6 +47,33 @@ pub struct CreatorClaimed {
 pub struct CreatorFeesWithdrawn {
     pub creator_market: Pubkey,
     pub creator_wallet: Pubkey,
+    pub amount: u64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct CreatorFeeAccrued {
+    pub creator_market: Pubkey,
+    pub amount: u64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct ProtocolFeeCollected {
+    pub amount: u64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct PscBuybackExecuted {
+    pub caller: Pubkey,
+    pub sol_spent: u64,
+    pub psc_received: u64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct PscBurnExecuted {
     pub amount: u64,
     pub timestamp: i64,
 }

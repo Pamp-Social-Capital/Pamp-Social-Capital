@@ -16,18 +16,18 @@ pub struct AdminAction<'info> {
 
 pub fn update_protocol_config(
     ctx: Context<AdminAction>,
-    protocol_fee_bps: Option<u16>,
-    default_creator_fee_bps: Option<u16>,
+    psc_mint: Option<Pubkey>,
+    backend_signer: Option<Pubkey>,
     new_authority: Option<Pubkey>,
     new_treasury: Option<Pubkey>,
 ) -> Result<()> {
     let config = &mut ctx.accounts.protocol_config;
 
-    if let Some(fee) = protocol_fee_bps {
-        config.protocol_fee_bps = fee;
+    if let Some(mint) = psc_mint {
+        config.psc_mint = mint;
     }
-    if let Some(fee) = default_creator_fee_bps {
-        config.default_creator_fee_bps = fee;
+    if let Some(signer) = backend_signer {
+        config.backend_signer = signer;
     }
     if let Some(auth) = new_authority {
         config.authority = auth;

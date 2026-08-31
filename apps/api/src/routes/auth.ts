@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
 import crypto from "crypto";
-import { db, users, activityLogs } from "@social-capital/db";
+import { db, users, activityLogs, creatorMarkets } from "@social-capital/db";
 import { eq } from "drizzle-orm";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
@@ -86,6 +86,84 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send({ success: false, error: "Failed to verify signature" });
+    }
+  });
+
+  fastify.post("/claim-signature", async (request, reply) => {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return reply.status(401).send({ error: "Missing or invalid authorization header" });
+    }
+    
+    const token = authHeader.split(" ")[1];
+    const jwtSecret = process.env.JWT_SECRET || "super_secret_dev_key";
+    
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, jwtSecret);
+    } catch (e) {
+      return reply.status(401).send({ error: "Invalid token" });
+    }
+    
+    const wallet = decoded.wallet;
+    
+    const { marketPda } = request.body as { marketPda: string };
+    if (!marketPda) {
+      return reply.status(400).send({ error: "marketPda is required" });
+    }
+
+    try {
+      // 1. Fetch user to get their linked X handle
+      const user = await db.query.users.findFirst({
+        where: eq(users.walletAddress, wallet)
+      });
+      
+      if (!user || !user.username) {
+        return reply.status(403).send({ error: "User has not linked their X account" });
+      }
+
+      // 2. Fetch market to verify ownership
+      const market = await db.query.creatorMarkets.findFirst({
+        where: eq(creatorMarkets.marketPda, marketPda)
+      });
+
+      if (!market) {
+        return reply.status(404).send({ error: "Market not found" });
+      }
+
+      if (market.twitterHandle.toLowerCase() !== user.username.toLowerCase()) {
+        return reply.status(403).send({ error: "X account does not match market creator" });
+      }
+
+      // 3. Generate Ed25519 signature
+      // The payload format from the smart contract: claim_creator:<market_pubkey>:<wallet_pubkey>
+      const expectedMsg = `claim_creator:${marketPda}:${wallet}`;
+      const messageUint8 = new TextEncoder().encode(expectedMsg);
+      
+      // Need a backend keypair
+      // In production, load from env var. For this, we'll generate a dummy one if not present,
+      // but the program expects a specific pubkey.
+      const backendSecretKeyString = process.env.BACKEND_SIGNER_SECRET;
+      if (!backendSecretKeyString) {
+        return reply.status(500).send({ error: "BACKEND_SIGNER_SECRET not configured" });
+      }
+      
+      const secretKey = bs58.decode(backendSecretKeyString);
+      // Keypair generated via nacl.sign.keyPair.fromSecretKey(secretKey)
+      // Note: secretKey here is expected to be 64 bytes (secret + public).
+      const keyPair = nacl.sign.keyPair.fromSecretKey(secretKey);
+
+      const signature = nacl.sign.detached(messageUint8, keyPair.secretKey);
+
+      return reply.send({
+        success: true,
+        signature: bs58.encode(signature),
+        message: expectedMsg,
+        pubkey: bs58.encode(keyPair.publicKey)
+      });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ error: "Failed to generate signature" });
     }
   });
 };

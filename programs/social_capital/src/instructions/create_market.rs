@@ -37,7 +37,6 @@ pub fn create_creator_market(ctx: Context<CreateCreatorMarket>, creator_id: [u8;
     market.supply = 0;
     market.reserve_lamports = 0;
     market.total_volume_lamports = 0;
-    market.creator_fee_bps = config.default_creator_fee_bps;
     market.paused = false;
     market.bump = ctx.bumps.creator_market;
 
@@ -45,7 +44,6 @@ pub fn create_creator_market(ctx: Context<CreateCreatorMarket>, creator_id: [u8;
         creator_market: market.key(),
         creator_id,
         creator_wallet: market.creator_wallet,
-        creator_fee_bps: market.creator_fee_bps,
         timestamp: Clock::get()?.unix_timestamp,
     });
 

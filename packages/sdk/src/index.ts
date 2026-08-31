@@ -33,6 +33,22 @@ export class PumpSocialCapitalSDK {
     return pda;
   }
 
+  public getBuybackStatePda(): PublicKey {
+    const [pda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("buyback_state")],
+      this.program.programId
+    );
+    return pda;
+  }
+
+  public getPscBuybackVaultPda(): PublicKey {
+    const [pda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("psc_buyback_vault")],
+      this.program.programId
+    );
+    return pda;
+  }
+
   public getCreatorMarketPda(creatorId: Uint8Array): PublicKey {
     const [pda] = PublicKey.findProgramAddressSync(
       [Buffer.from("creator_market"), creatorId],
@@ -84,9 +100,7 @@ export class PumpSocialCapitalSDK {
     const positionPda = this.getUserPositionPda(marketPda, this.wallet.publicKey);
     const feeVault = this.getCreatorFeeVaultPda(marketPda);
     const configPda = this.getProtocolConfigPda();
-
-    // Fetch config to get treasury
-    const config = await this.program.account.protocolConfig.fetch(configPda);
+    const buybackVault = this.getPscBuybackVaultPda();
 
     return await this.program.methods
       .buyKeys(amount, maxSolCost)
@@ -94,7 +108,7 @@ export class PumpSocialCapitalSDK {
         creatorMarket: marketPda,
         userPosition: positionPda,
         protocolConfig: configPda,
-        treasury: config.treasury,
+        pscBuybackVault: buybackVault,
         creatorFeeVault: feeVault,
         buyer: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
@@ -111,9 +125,7 @@ export class PumpSocialCapitalSDK {
     const positionPda = this.getUserPositionPda(marketPda, this.wallet.publicKey);
     const feeVault = this.getCreatorFeeVaultPda(marketPda);
     const configPda = this.getProtocolConfigPda();
-
-    // Fetch config to get treasury
-    const config = await this.program.account.protocolConfig.fetch(configPda);
+    const buybackVault = this.getPscBuybackVaultPda();
 
     return await this.program.methods
       .sellKeys(amount, minSolOutput)
@@ -121,7 +133,7 @@ export class PumpSocialCapitalSDK {
         creatorMarket: marketPda,
         userPosition: positionPda,
         protocolConfig: configPda,
-        treasury: config.treasury,
+        pscBuybackVault: buybackVault,
         creatorFeeVault: feeVault,
         seller: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
@@ -129,16 +141,19 @@ export class PumpSocialCapitalSDK {
       .rpc();
   }
 
-  public async claimCreator(creatorId: Uint8Array): Promise<string> {
+  public async claimCreatorInstruction(creatorId: Uint8Array): Promise<TransactionInstruction> {
     const marketPda = this.getCreatorMarketPda(creatorId);
+    const configPda = this.getProtocolConfigPda();
     
     return await this.program.methods
       .claimCreator()
       .accounts({
         creatorMarket: marketPda,
+        protocolConfig: configPda,
         creatorWallet: this.wallet.publicKey,
+        instructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
       } as any)
-      .rpc();
+      .instruction();
   }
 
   public async claimCreatorFees(creatorId: Uint8Array): Promise<string> {
@@ -151,6 +166,31 @@ export class PumpSocialCapitalSDK {
         creatorMarket: marketPda,
         creatorWallet: this.wallet.publicKey,
         creatorFeeVault: feeVault,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+  }
+
+  public async executeBuyback(
+    solAmount: anchor.BN,
+    pscAmount: anchor.BN,
+    keeperTokenAccount: PublicKey,
+    pscMint: PublicKey
+  ): Promise<string> {
+    const buybackStatePda = this.getBuybackStatePda();
+    const configPda = this.getProtocolConfigPda();
+    const pscBuybackVault = this.getPscBuybackVaultPda();
+
+    return await this.program.methods
+      .executeBuyback(solAmount, pscAmount)
+      .accounts({
+        buybackState: buybackStatePda,
+        protocolConfig: configPda,
+        pscBuybackVault: pscBuybackVault,
+        authority: this.wallet.publicKey,
+        keeperTokenAccount: keeperTokenAccount,
+        pscMint: pscMint,
+        tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
       } as any)
       .rpc();

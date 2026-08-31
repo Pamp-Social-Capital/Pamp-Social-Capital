@@ -1,5 +1,6 @@
+use crate::constants::{BPS_DENOMINATOR, CREATOR_FEE_SHARE_BPS, PROTOCOL_FEE_SHARE_BPS, TOTAL_TRADING_FEE_BPS};
 use crate::errors::SocialCapitalError;
-use crate::events::KeysPurchased;
+use crate::events::{CreatorFeeAccrued, KeysPurchased, ProtocolFeeCollected};
 use crate::math::{calculate_buy_cost, calculate_spot_price};
 use crate::state::{CreatorMarket, ProtocolConfig, UserPosition};
 use anchor_lang::prelude::*;
@@ -29,9 +30,13 @@ pub struct BuyKeys<'info> {
     )]
     pub protocol_config: Account<'info, ProtocolConfig>,
     
-    /// CHECK: Validated against protocol_config.treasury
-    #[account(mut, address = protocol_config.treasury)]
-    pub treasury: AccountInfo<'info>,
+    /// CHECK: PSC Buyback vault PDA
+    #[account(
+        mut,
+        seeds = [b"psc_buyback_vault"],
+        bump
+    )]
+    pub psc_buyback_vault: AccountInfo<'info>,
     
     /// CHECK: Creator fee vault PDA
     #[account(
@@ -51,22 +56,25 @@ pub fn buy_keys(ctx: Context<BuyKeys>, amount: u64, max_sol_cost: u64) -> Result
     require!(!ctx.accounts.creator_market.paused, SocialCapitalError::MarketPaused);
 
     let market = &mut ctx.accounts.creator_market;
-    let config = &ctx.accounts.protocol_config;
 
     // 1. Calculate curve cost
     let curve_cost = calculate_buy_cost(market.supply, amount)?;
 
-    // 2. Calculate fees
-    let protocol_fee = (curve_cost as u128)
-        .checked_mul(config.protocol_fee_bps as u128)
+    // 2. Calculate fees (1.25% total, 95% of that to creator, 5% to protocol)
+    let total_fee = (curve_cost as u128)
+        .checked_mul(TOTAL_TRADING_FEE_BPS as u128)
         .ok_or(SocialCapitalError::MathOverflow)?
-        .checked_div(10_000)
+        .checked_div(BPS_DENOMINATOR as u128)
+        .ok_or(SocialCapitalError::MathOverflow)?;
+
+    let creator_fee = total_fee
+        .checked_mul(CREATOR_FEE_SHARE_BPS as u128)
+        .ok_or(SocialCapitalError::MathOverflow)?
+        .checked_div(BPS_DENOMINATOR as u128)
         .ok_or(SocialCapitalError::MathOverflow)? as u64;
 
-    let creator_fee = (curve_cost as u128)
-        .checked_mul(market.creator_fee_bps as u128)
-        .ok_or(SocialCapitalError::MathOverflow)?
-        .checked_div(10_000)
+    let protocol_fee = total_fee
+        .checked_sub(creator_fee as u128)
         .ok_or(SocialCapitalError::MathOverflow)? as u64;
 
     // 3. Validate max cost (slippage)
@@ -93,14 +101,14 @@ pub fn buy_keys(ctx: Context<BuyKeys>, amount: u64, max_sol_cost: u64) -> Result
         market.reserve_lamports = market.reserve_lamports.checked_add(curve_cost).unwrap();
     }
 
-    // 5. Transfer Protocol Fee
+    // 5. Transfer Protocol Fee to Buyback Vault
     if protocol_fee > 0 {
         system_program::transfer(
             CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
                 system_program::Transfer {
                     from: ctx.accounts.buyer.to_account_info(),
-                    to: ctx.accounts.treasury.to_account_info(),
+                    to: ctx.accounts.psc_buyback_vault.to_account_info(),
                 },
             ),
             protocol_fee,
@@ -134,7 +142,7 @@ pub fn buy_keys(ctx: Context<BuyKeys>, amount: u64, max_sol_cost: u64) -> Result
     position.key_balance = position.key_balance.checked_add(amount).unwrap();
     position.total_bought_lamports = position.total_bought_lamports.checked_add(total_cost as u128).unwrap();
 
-    // 8. Emit Event
+    // 8. Emit Events
     let spot_price = calculate_spot_price(market.supply)?;
     
     emit!(KeysPurchased {
@@ -149,6 +157,21 @@ pub fn buy_keys(ctx: Context<BuyKeys>, amount: u64, max_sol_cost: u64) -> Result
         spot_price,
         timestamp: Clock::get()?.unix_timestamp,
     });
+    
+    if protocol_fee > 0 {
+        emit!(ProtocolFeeCollected {
+            amount: protocol_fee,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+    }
+
+    if creator_fee > 0 {
+        emit!(CreatorFeeAccrued {
+            creator_market: market.key(),
+            amount: creator_fee,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+    }
 
     Ok(())
 }

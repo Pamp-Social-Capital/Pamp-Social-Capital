@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+pub mod constants;
 pub mod errors;
 pub mod events;
 pub mod instructions;
@@ -16,10 +17,10 @@ pub mod social_capital {
 
     pub fn initialize_protocol(
         ctx: Context<InitializeProtocol>,
-        protocol_fee_bps: u16,
-        default_creator_fee_bps: u16,
+        psc_mint: Pubkey,
+        backend_signer: Pubkey,
     ) -> Result<()> {
-        instructions::initialize_protocol(ctx, protocol_fee_bps, default_creator_fee_bps)
+        instructions::initialize_protocol(ctx, psc_mint, backend_signer)
     }
 
     pub fn create_creator_market(
@@ -39,15 +40,15 @@ pub mod social_capital {
 
     pub fn update_protocol_config(
         ctx: Context<AdminAction>,
-        protocol_fee_bps: Option<u16>,
-        default_creator_fee_bps: Option<u16>,
+        psc_mint: Option<Pubkey>,
+        backend_signer: Option<Pubkey>,
         new_authority: Option<Pubkey>,
         new_treasury: Option<Pubkey>,
     ) -> Result<()> {
         instructions::update_protocol_config(
             ctx,
-            protocol_fee_bps,
-            default_creator_fee_bps,
+            psc_mint,
+            backend_signer,
             new_authority,
             new_treasury,
         )
@@ -71,6 +72,14 @@ pub mod social_capital {
 
     pub fn withdraw_creator_fees(ctx: Context<WithdrawCreatorFees>) -> Result<()> {
         instructions::withdraw_creator_fees(ctx)
+    }
+
+    pub fn execute_buyback(
+        ctx: Context<ExecuteBuyback>,
+        sol_amount: u64,
+        psc_amount: u64,
+    ) -> Result<()> {
+        instructions::execute_buyback(ctx, sol_amount, psc_amount)
     }
 }
 
