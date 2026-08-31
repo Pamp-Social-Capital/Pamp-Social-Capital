@@ -74,13 +74,17 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
         const msg = JSON.parse(event.data);
         if (msg.type === "candle_update" && msg.data) {
           const c = msg.data;
-          candlestickSeries.update({
-            time: Math.floor(new Date(c.timestamp).getTime() / 1000) as Time,
-            open: Number(c.open) / 1e9,
-            high: Number(c.high) / 1e9,
-            low: Number(c.low) / 1e9,
-            close: Number(c.close) / 1e9,
-          });
+          try {
+            candlestickSeries.update({
+              time: Math.floor(new Date(c.timestamp).getTime() / 1000) as Time,
+              open: Number(c.open) / 1e9,
+              high: Number(c.high) / 1e9,
+              low: Number(c.low) / 1e9,
+              close: Number(c.close) / 1e9,
+            });
+          } catch (updateErr) {
+            console.warn("Skipping outdated candle update");
+          }
         }
       } catch (e) {
         console.error("Failed to process websocket message", e);

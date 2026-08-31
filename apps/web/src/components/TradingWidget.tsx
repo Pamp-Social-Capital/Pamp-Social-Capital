@@ -162,6 +162,9 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
       }
       
       toast.success("Order Success!", { id: loadingToastId });
+      setModalSignature(sig);
+      setModalMessage(`Successfully ${tradeType === "buy" ? "bought" : "sold"} ${parsedAmount} keys!`);
+      setShowModal(true);
       setAmount("");
       
       // The websocket should pick up the trade and update state automatically
