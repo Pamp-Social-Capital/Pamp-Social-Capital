@@ -126,16 +126,47 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
         return reply.status(403).send({ error: "User has not linked their X account" });
       }
 
-      // 2. Fetch market to verify ownership
+      // 2. Fetch market to verify ownership (Check DB first, then fallback to RPC)
+      let isOwner = false;
       const market = await db.query.creatorMarkets.findFirst({
         where: eq(creatorMarkets.marketPda, marketPda)
       });
 
-      if (!market) {
-        return reply.status(404).send({ error: "Market not found" });
+      if (market) {
+        isOwner = (market.twitterHandle.toLowerCase() === user.username.toLowerCase());
+      } else {
+        // Fallback to Solana RPC due to webhook delay or unindexed market
+        try {
+          const { Connection, PublicKey, Keypair } = await import("@solana/web3.js");
+          const { AnchorProvider, Wallet } = await import("@coral-xyz/anchor");
+          const { PumpSocialCapitalSDK } = await import("@social-capital/sdk");
+          
+          const rpcUrl = process.env.RPC_URL as string;
+          const connection = new Connection(rpcUrl);
+          const dummyWallet = new Wallet(Keypair.generate());
+          const provider = new AnchorProvider(connection, dummyWallet, {});
+          const sdk = new PumpSocialCapitalSDK(connection, dummyWallet);
+          
+          const marketState = await sdk.program.account.creatorMarket.fetch(new PublicKey(marketPda));
+          
+          // Decode creator_id (32 bytes padded with zeros)
+          let twitterHandleFromChain = "";
+          for (let i = 0; i < marketState.creatorId.length; i++) {
+            if (marketState.creatorId[i] !== 0) {
+              twitterHandleFromChain += String.fromCharCode(marketState.creatorId[i]);
+            } else {
+              break;
+            }
+          }
+          
+          isOwner = (twitterHandleFromChain.toLowerCase() === user.username.toLowerCase());
+        } catch (rpcErr) {
+          fastify.log.error(rpcErr);
+          return reply.status(404).send({ error: "Market not found in DB or on-chain" });
+        }
       }
 
-      if (market.twitterHandle.toLowerCase() !== user.username.toLowerCase()) {
+      if (!isOwner) {
         return reply.status(403).send({ error: "X account does not match market creator" });
       }
 
