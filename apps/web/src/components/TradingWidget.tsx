@@ -273,8 +273,8 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
               <span className="text-white">{parsedAmount > 0 ? totalSol.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 9 }) : "--"} SOL</span>
             </div>
           </div>
-          <div className="mt-2 text-[10px] text-color-muted text-center px-2 flex items-center justify-center gap-1.5 opacity-80">
-            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <div className="mt-2 text-[10px] text-color-muted text-left px-2 flex items-start gap-1.5 opacity-80">
+            <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>All fees are precisely calculated in Lamports (9 decimals) on the blockchain.</span>
           </div>
         </div>

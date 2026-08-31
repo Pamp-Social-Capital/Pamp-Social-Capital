@@ -101,32 +101,38 @@ pub fn buy_keys(ctx: Context<BuyKeys>, amount: u64, max_sol_cost: u64) -> Result
         market.reserve_lamports = market.reserve_lamports.checked_add(curve_cost).unwrap();
     }
 
+    let rent_exempt = 890_880;
+
     // 5. Transfer Protocol Fee to Buyback Vault
     if protocol_fee > 0 {
-        system_program::transfer(
-            CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
-                system_program::Transfer {
-                    from: ctx.accounts.buyer.to_account_info(),
-                    to: ctx.accounts.psc_buyback_vault.to_account_info(),
-                },
-            ),
-            protocol_fee,
-        )?;
+        if ctx.accounts.psc_buyback_vault.lamports() > 0 || protocol_fee >= rent_exempt {
+            system_program::transfer(
+                CpiContext::new(
+                    ctx.accounts.system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: ctx.accounts.buyer.to_account_info(),
+                        to: ctx.accounts.psc_buyback_vault.to_account_info(),
+                    },
+                ),
+                protocol_fee,
+            )?;
+        }
     }
 
     // 6. Transfer Creator Fee to Vault
     if creator_fee > 0 {
-        system_program::transfer(
-            CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
-                system_program::Transfer {
-                    from: ctx.accounts.buyer.to_account_info(),
-                    to: ctx.accounts.creator_fee_vault.to_account_info(),
-                },
-            ),
-            creator_fee,
-        )?;
+        if ctx.accounts.creator_fee_vault.lamports() > 0 || creator_fee >= rent_exempt {
+            system_program::transfer(
+                CpiContext::new(
+                    ctx.accounts.system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: ctx.accounts.buyer.to_account_info(),
+                        to: ctx.accounts.creator_fee_vault.to_account_info(),
+                    },
+                ),
+                creator_fee,
+            )?;
+        }
     }
 
     // 7. Update State

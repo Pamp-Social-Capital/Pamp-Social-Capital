@@ -97,16 +97,22 @@ pub fn sell_keys(ctx: Context<SellKeys>, amount: u64, min_sol_received: u64) -> 
         ctx.accounts.seller.add_lamports(net_return)?;
     }
 
+    let rent_exempt = 890_880;
+
     // 4b. To Protocol (psc_buyback_vault)
     if protocol_fee > 0 {
-        market.sub_lamports(protocol_fee)?;
-        ctx.accounts.psc_buyback_vault.add_lamports(protocol_fee)?;
+        if ctx.accounts.psc_buyback_vault.lamports() > 0 || protocol_fee >= rent_exempt {
+            market.sub_lamports(protocol_fee)?;
+            ctx.accounts.psc_buyback_vault.add_lamports(protocol_fee)?;
+        }
     }
 
     // 4c. To Creator (creator_fee_vault)
     if creator_fee > 0 {
-        market.sub_lamports(creator_fee)?;
-        ctx.accounts.creator_fee_vault.add_lamports(creator_fee)?;
+        if ctx.accounts.creator_fee_vault.lamports() > 0 || creator_fee >= rent_exempt {
+            market.sub_lamports(creator_fee)?;
+            ctx.accounts.creator_fee_vault.add_lamports(creator_fee)?;
+        }
     }
 
     // 5. Update State
