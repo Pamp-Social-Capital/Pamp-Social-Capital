@@ -31,7 +31,12 @@ pub fn claim_creator(ctx: Context<ClaimCreator>) -> Result<()> {
 
     // Verify Ed25519 signature
     let ixs = &ctx.accounts.instructions;
-    let ed25519_ix = load_instruction_at_checked(0, ixs)
+    let current_index = anchor_lang::solana_program::sysvar::instructions::load_current_index_checked(ixs)
+        .map_err(|_| SocialCapitalError::Unauthorized)?;
+        
+    require!(current_index > 0, SocialCapitalError::Unauthorized);
+
+    let ed25519_ix = load_instruction_at_checked((current_index - 1) as usize, ixs)
         .map_err(|_| SocialCapitalError::Unauthorized)?;
     
     require!(
