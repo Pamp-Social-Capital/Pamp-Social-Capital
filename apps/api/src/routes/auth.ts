@@ -90,6 +90,42 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
     }
   });
 
+  fastify.get("/me", async (request, reply) => {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return reply.status(401).send({ success: false, error: "Missing authorization header" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return reply.status(500).send({ success: false, error: "JWT_SECRET is not configured" });
+    }
+
+    try {
+      const decoded = jwt.verify(token, jwtSecret) as { wallet: string };
+      const user = await db.query.users.findFirst({
+        where: eq(users.walletAddress, decoded.wallet)
+      });
+
+      if (!user) {
+        return reply.status(404).send({ success: false, error: "User not found" });
+      }
+
+      return reply.send({
+        success: true,
+        user: {
+          walletAddress: user.walletAddress,
+          username: user.username || null,
+          twitterName: user.twitterName || null,
+          avatarUrl: user.avatarUrl || null,
+        }
+      });
+    } catch (e) {
+      return reply.status(401).send({ success: false, error: "Invalid token" });
+    }
+  });
+
   fastify.post("/claim-signature", async (request, reply) => {
     const authHeader = request.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {

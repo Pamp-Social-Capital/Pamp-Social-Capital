@@ -119,8 +119,8 @@ export default function CreatorPage({ params }: PageProps) {
   
   return (
     <div className="flex flex-col gap-6 pb-12">
-      {/* Creator Dashboard (Only shows if connected wallet == creatorWallet) */}
-      {finalMarket && <CreatorDashboard marketPda={id as string} creatorWallet={onChainMarket?.creatorWallet?.toBase58() || ""} />}
+      {/* Creator Dashboard (Only shows if connected wallet == creatorWallet, or unclaimed market owner) */}
+      {finalMarket && <CreatorDashboard marketPda={id as string} creatorWallet={onChainMarket?.creatorWallet?.toBase58() || ""} claimed={!!finalMarket.claimed} twitterHandle={finalMarket.twitterHandle || ""} />}
       
       {/* Header Profile */}
       <div className="flex items-center gap-6 bg-color-card p-6 rounded-2xl border border-color-border shadow-lg">
