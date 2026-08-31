@@ -115,7 +115,20 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
       toast.loading("Withdrawing fees...", { id: loadingId });
       const signature = await sdk.claimCreatorFees(new Uint8Array(creatorId));
       
-      toast.success("Fees withdrawn successfully!", { id: loadingId });
+      toast.success(
+        <div>
+          Fees withdrawn successfully!{" "}
+          <a
+            href={`https://explorer.solana.com/tx/${signature}?cluster=devnet`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            View TX
+          </a>
+        </div>,
+        { id: loadingId }
+      );
       
       // Optimistically update balance
       setVaultBalance(0);

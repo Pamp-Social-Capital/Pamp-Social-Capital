@@ -186,6 +186,22 @@ export type SocialCapital = {
     {
       name: "KeysSold";
       type: { kind: "struct"; fields: [{ name: "seller"; type: "pubkey" }, { name: "creatorMarket"; type: "pubkey" }, { name: "keyAmount"; type: "u64" }, { name: "grossReturn"; type: "u64" }, { name: "netReturn"; type: "u64" }, { name: "creatorFee"; type: "u64" }, { name: "protocolFee"; type: "u64" }, { name: "newSupply"; type: "u64" }, { name: "spotPrice"; type: "u64" }, { name: "timestamp"; type: "i64" }] };
+    },
+    {
+      name: "CreatorClaimed";
+      type: { kind: "struct"; fields: [{ name: "creatorMarket"; type: "pubkey" }, { name: "creatorWallet"; type: "pubkey" }, { name: "timestamp"; type: "i64" }] };
+    },
+    {
+      name: "CreatorFeesWithdrawn";
+      type: { kind: "struct"; fields: [{ name: "creatorMarket"; type: "pubkey" }, { name: "creatorWallet"; type: "pubkey" }, { name: "amount"; type: "u64" }, { name: "timestamp"; type: "i64" }] };
+    },
+    {
+      name: "ProtocolFeeCollected";
+      type: { kind: "struct"; fields: [{ name: "amount"; type: "u64" }, { name: "timestamp"; type: "i64" }] };
+    },
+    {
+      name: "PscBuybackExecuted";
+      type: { kind: "struct"; fields: [{ name: "solAmount"; type: "u64" }, { name: "pscAmount"; type: "u64" }, { name: "timestamp"; type: "i64" }] };
     }
   ];
   events: [
@@ -199,6 +215,22 @@ export type SocialCapital = {
     },
     {
       name: "KeysSold";
+      discriminator: [0,0,0,0,0,0,0,0];
+    },
+    {
+      name: "CreatorClaimed";
+      discriminator: [0,0,0,0,0,0,0,0];
+    },
+    {
+      name: "CreatorFeesWithdrawn";
+      discriminator: [0,0,0,0,0,0,0,0];
+    },
+    {
+      name: "ProtocolFeeCollected";
+      discriminator: [0,0,0,0,0,0,0,0];
+    },
+    {
+      name: "PscBuybackExecuted";
       discriminator: [0,0,0,0,0,0,0,0];
     }
   ];
@@ -393,6 +425,22 @@ export const IDL: SocialCapital = {
     {
       name: "KeysSold",
       type: { kind: "struct", fields: [{ name: "seller", type: "pubkey" }, { name: "creatorMarket", type: "pubkey" }, { name: "keyAmount", type: "u64" }, { name: "grossReturn", type: "u64" }, { name: "netReturn", type: "u64" }, { name: "creatorFee", type: "u64" }, { name: "protocolFee", type: "u64" }, { name: "newSupply", type: "u64" }, { name: "spotPrice", type: "u64" }, { name: "timestamp", type: "i64" }] }
+    },
+    {
+      name: "CreatorClaimed",
+      type: { kind: "struct", fields: [{ name: "creatorMarket", type: "pubkey" }, { name: "creatorWallet", type: "pubkey" }, { name: "timestamp", type: "i64" }] }
+    },
+    {
+      name: "CreatorFeesWithdrawn",
+      type: { kind: "struct", fields: [{ name: "creatorMarket", type: "pubkey" }, { name: "creatorWallet", type: "pubkey" }, { name: "amount", type: "u64" }, { name: "timestamp", type: "i64" }] }
+    },
+    {
+      name: "ProtocolFeeCollected",
+      type: { kind: "struct", fields: [{ name: "amount", type: "u64" }, { name: "timestamp", type: "i64" }] }
+    },
+    {
+      name: "PscBuybackExecuted",
+      type: { kind: "struct", fields: [{ name: "solAmount", type: "u64" }, { name: "pscAmount", type: "u64" }, { name: "timestamp", type: "i64" }] }
     }
   ],
   events: [
@@ -406,6 +454,22 @@ export const IDL: SocialCapital = {
     },
     {
       name: "KeysSold",
+      discriminator: [0,0,0,0,0,0,0,0]
+    },
+    {
+      name: "CreatorClaimed",
+      discriminator: [0,0,0,0,0,0,0,0]
+    },
+    {
+      name: "CreatorFeesWithdrawn",
+      discriminator: [0,0,0,0,0,0,0,0]
+    },
+    {
+      name: "ProtocolFeeCollected",
+      discriminator: [0,0,0,0,0,0,0,0]
+    },
+    {
+      name: "PscBuybackExecuted",
       discriminator: [0,0,0,0,0,0,0,0]
     }
   ],
