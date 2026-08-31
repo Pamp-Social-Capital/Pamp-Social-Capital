@@ -26,6 +26,7 @@ export default function ClaimPage() {
   const [ticker, setTicker] = useState("");
   const [description, setDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [telegramUrl, setTelegramUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
@@ -85,6 +86,7 @@ export default function ClaimPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setUploadError(null);
     try {
       setIsUploading(true);
       const { supabase } = await import("../../lib/supabase");
@@ -93,19 +95,21 @@ export default function ClaimPage() {
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadErr } = await supabase.storage
         .from('banners')
         .upload(filePath, file);
 
-      if (uploadError) {
-        throw uploadError;
+      if (uploadErr) {
+        throw uploadErr;
       }
 
       const { data } = supabase.storage.from('banners').getPublicUrl(filePath);
       setBannerUrl(data.publicUrl);
       toast.success("Image uploaded successfully!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to upload image");
+      const errorMessage = error.message || error.error || JSON.stringify(error) || "Failed to upload image";
+      setUploadError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsUploading(false);
     }
@@ -546,18 +550,24 @@ export default function ClaimPage() {
                     />
                     <label 
                       htmlFor="banner-upload" 
-                      className={`cursor-pointer bg-[#161A22] border border-color-border rounded-lg px-4 py-3 flex items-center justify-center text-white hover:border-color-buy transition-colors text-sm font-semibold ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                      className={`cursor-pointer bg-[#161A22] border ${uploadError ? 'border-red-500 text-red-400' : 'border-color-border text-white hover:border-color-buy'} rounded-lg px-4 py-3 flex items-center justify-center transition-colors text-sm font-semibold ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
                     >
                       {isUploading ? 'Uploading...' : 'Upload File'}
                     </label>
                     <input 
                       type="text" 
                       value={bannerUrl} 
-                      onChange={e => setBannerUrl(e.target.value)} 
+                      onChange={e => {
+                        setBannerUrl(e.target.value);
+                        if (uploadError) setUploadError(null);
+                      }} 
                       placeholder="Or paste image URL..." 
-                      className="flex-1 bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" 
+                      className={`flex-1 bg-[#0B0E14] border ${uploadError ? 'border-red-500 focus:border-red-400' : 'border-color-border focus:border-color-buy'} rounded-lg p-3 text-white outline-none transition-colors text-sm`}
                     />
                   </div>
+                  {uploadError && (
+                    <p className="text-red-500 text-xs mt-2">{uploadError}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-white text-sm font-semibold mb-1 block">Initial Buy (Keys)</label>
