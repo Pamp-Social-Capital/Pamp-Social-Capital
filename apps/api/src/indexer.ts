@@ -1,7 +1,7 @@
 import { BorshCoder, Program, BN, EventParser } from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { IDL } from "@social-capital/sdk/dist/idl/social_capital";
-import { db, tradeHistory, creatorMarkets, userPositions, priceCandles, activityLogs, users, feeWithdrawals } from "@social-capital/db";
+import { db, tradeHistory, creatorMarkets, userPositions, priceCandles, activityLogs, users, feeWithdrawals, protocolFees, pscBuybacks, pscBurns } from "@social-capital/db";
 import { eq, sql } from "drizzle-orm";
 import { createHash } from "crypto";
 import bs58 from "bs58";
@@ -281,6 +281,55 @@ export async function processHeliusPayload(transactions: any[]) {
           });
 
           console.log(`Indexed fee withdrawal of ${amount} lamports for ${marketPda}`);
+        } else if (event.name === "ProtocolFeeCollected") {
+          const data = event.data as any;
+          const amount = (data.amount as BN).toNumber();
+
+          const existingFee = await db.query.protocolFees.findFirst({
+            where: eq(protocolFees.signature, tx.signature)
+          });
+          if (existingFee) continue;
+
+          await db.insert(protocolFees).values({
+            signature: tx.signature,
+            amount
+          }).onConflictDoNothing();
+
+          console.log(`Indexed protocol fee of ${amount} lamports`);
+        } else if (event.name === "PscBuybackExecuted") {
+          const data = event.data as any;
+          const caller = data.caller.toString();
+          const solSpent = (data.solSpent as BN).toNumber();
+          const pscReceived = (data.pscReceived as BN).toNumber();
+
+          const existingBuyback = await db.query.pscBuybacks.findFirst({
+            where: eq(pscBuybacks.signature, tx.signature)
+          });
+          if (existingBuyback) continue;
+
+          await db.insert(pscBuybacks).values({
+            signature: tx.signature,
+            caller,
+            solSpent,
+            pscReceived
+          }).onConflictDoNothing();
+
+          console.log(`Indexed PSC Buyback: Spent ${solSpent} lamports, Received ${pscReceived} PSC`);
+        } else if (event.name === "PscBurnExecuted") {
+          const data = event.data as any;
+          const amount = (data.amount as BN).toNumber();
+
+          const existingBurn = await db.query.pscBurns.findFirst({
+            where: eq(pscBurns.signature, tx.signature)
+          });
+          if (existingBurn) continue;
+
+          await db.insert(pscBurns).values({
+            signature: tx.signature,
+            amount
+          }).onConflictDoNothing();
+
+          console.log(`Indexed PSC Burn: ${amount} PSC`);
         }
       }
     } catch (e) {

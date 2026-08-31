@@ -107,12 +107,13 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
     solValue = calculateSellReturn(supply, parsedAmount);
   }
   
-  const creatorFee = solValue * 0.003; // 0.30%
-  const protocolFee = solValue * 0.0095; // 0.95%
+  const totalFee = solValue * 0.0125; // 1.25% Total Fee
+  const creatorFee = totalFee * 0.95; // 95% of the fee goes to creator
+  const protocolFee = totalFee * 0.05; // 5% of the fee goes to protocol buyback vault
   
   const totalSol = tradeType === "buy" 
-    ? solValue + creatorFee + protocolFee 
-    : solValue - creatorFee - protocolFee;
+    ? solValue + totalFee 
+    : solValue - totalFee;
 
   const handleTrade = async () => {
     if (!parsedAmount || parsedAmount <= 0) return;
@@ -260,12 +261,12 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
             <span className="font-semibold text-white">{parsedAmount > 0 ? solValue.toFixed(4) : "--"} SOL</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-color-muted">Creator Fee (0.30%)</span>
-            <span className="text-color-foreground">{parsedAmount > 0 ? creatorFee.toFixed(4) : "--"} SOL</span>
+            <span className="text-color-muted">Creator Reward (95% of Fee)</span>
+            <span className="text-color-foreground">{parsedAmount > 0 ? creatorFee.toFixed(5) : "--"} SOL</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-color-muted">Protocol Fee (0.95%)</span>
-            <span className="text-color-foreground">{parsedAmount > 0 ? protocolFee.toFixed(4) : "--"} SOL</span>
+            <span className="text-color-muted">Protocol Buyback (5% of Fee)</span>
+            <span className="text-color-foreground">{parsedAmount > 0 ? protocolFee.toFixed(5) : "--"} SOL</span>
           </div>
           <div className="border-t border-color-border pt-3 mt-1 flex justify-between font-semibold">
             <span className="text-white">Total {tradeType === "buy" ? "Cost" : "Return"}</span>

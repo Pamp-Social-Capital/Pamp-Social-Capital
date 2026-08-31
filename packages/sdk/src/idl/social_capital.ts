@@ -41,7 +41,7 @@ export type SocialCapital = {
         { name: "creatorMarket"; writable: true; signer: false },
         { name: "userPosition"; writable: true; signer: false },
         { name: "protocolConfig"; writable: false; signer: false },
-        { name: "treasury"; writable: true; signer: false },
+        { name: "pscBuybackVault"; writable: true; signer: false },
         { name: "creatorFeeVault"; writable: true; signer: false },
         { name: "buyer"; writable: true; signer: true },
         { name: "systemProgram"; writable: false; signer: false }
@@ -58,7 +58,7 @@ export type SocialCapital = {
         { name: "creatorMarket"; writable: true; signer: false },
         { name: "userPosition"; writable: true; signer: false },
         { name: "protocolConfig"; writable: false; signer: false },
-        { name: "treasury"; writable: true; signer: false },
+        { name: "pscBuybackVault"; writable: true; signer: false },
         { name: "creatorFeeVault"; writable: true; signer: false },
         { name: "seller"; writable: true; signer: true },
         { name: "systemProgram"; writable: false; signer: false }
@@ -73,7 +73,9 @@ export type SocialCapital = {
       discriminator: [231, 240, 197, 249, 244, 10, 21, 59];
       accounts: [
         { name: "creatorMarket"; writable: true; signer: false },
-        { name: "creatorWallet"; writable: true; signer: true }
+        { name: "protocolConfig"; writable: false; signer: false },
+        { name: "creatorWallet"; writable: true; signer: true },
+        { name: "instructions"; writable: false; signer: false }
       ];
       args: [];
     },
@@ -222,7 +224,7 @@ export const IDL: SocialCapital = {
         { name: "creatorMarket", writable: true, signer: false },
         { name: "userPosition", writable: true, signer: false },
         { name: "protocolConfig", writable: false, signer: false },
-        { name: "treasury", writable: true, signer: false },
+        { name: "pscBuybackVault", writable: true, signer: false },
         { name: "creatorFeeVault", writable: true, signer: false },
         { name: "buyer", writable: true, signer: true },
         { name: "systemProgram", writable: false, signer: false }
@@ -239,7 +241,7 @@ export const IDL: SocialCapital = {
         { name: "creatorMarket", writable: true, signer: false },
         { name: "userPosition", writable: true, signer: false },
         { name: "protocolConfig", writable: false, signer: false },
-        { name: "treasury", writable: true, signer: false },
+        { name: "pscBuybackVault", writable: true, signer: false },
         { name: "creatorFeeVault", writable: true, signer: false },
         { name: "seller", writable: true, signer: true },
         { name: "systemProgram", writable: false, signer: false }
@@ -254,7 +256,9 @@ export const IDL: SocialCapital = {
       discriminator: [231, 240, 197, 249, 244, 10, 21, 59],
       accounts: [
         { name: "creatorMarket", writable: true, signer: false },
-        { name: "creatorWallet", writable: true, signer: true }
+        { name: "protocolConfig", writable: false, signer: false },
+        { name: "creatorWallet", writable: true, signer: true },
+        { name: "instructions", writable: false, signer: false }
       ],
       args: []
     },

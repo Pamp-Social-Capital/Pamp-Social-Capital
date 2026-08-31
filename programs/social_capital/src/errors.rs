@@ -18,4 +18,10 @@ pub enum SocialCapitalError {
     Unauthorized,
     #[msg("Invalid creator wallet")]
     InvalidCreatorWallet,
+    #[msg("Insolvency risk")]
+    InsolvencyRisk,
+    #[msg("Invalid owner")]
+    InvalidOwner,
+    #[msg("Insufficient keys")]
+    InsufficientKeys,
 }

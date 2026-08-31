@@ -18,7 +18,7 @@ pub struct SellKeys<'info> {
         mut,
         seeds = [b"position", creator_market.key().as_ref(), seller.key().as_ref()],
         bump = user_position.bump,
-        has_one = owner @ SocialCapitalError::InvalidOwner
+        constraint = user_position.owner == seller.key() @ SocialCapitalError::InvalidOwner
     )]
     pub user_position: Account<'info, UserPosition>,
     

@@ -189,7 +189,7 @@ export default function ClaimPage() {
       return;
     }
     
-    if (!sdk) {
+    if (!sdk || !publicKey) {
       setMessage("Wallet not connected or SDK not initialized.");
       setStatus("ERROR");
       return;
@@ -222,21 +222,53 @@ export default function ClaimPage() {
       }
       
       if (!marketState) {
-        // Send transaction via SDK
-        const signature = await sdk.createCreatorMarket(creatorIdArray);
-        setStatus("LOADING");
+        // Send transaction via SDK to create market
+        await sdk.createCreatorMarket(creatorIdArray);
         toast.loading(`Market Created! Claiming market ownership...`, { id: loadingId });
+      }
+
+      if (!marketState || !marketState.claimed) {
+        // We need to claim the market using Ed25519 verification
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const walletToken = localStorage.getItem("walletToken");
         
-        // Automatically claim the market so the creatorWallet is set to the user's wallet
-        const claimSig = await sdk.claimCreator(new Uint8Array(creatorIdArray));
-        setStatus("SUCCESS");
-        toast.success(`Market Claimed Successfully!`, { id: loadingId });
-        setCreatedMarketPda(marketPda.toBase58());
-      } else if (!marketState.claimed) {
-        setStatus("LOADING");
-        toast.loading(`Market already exists on-chain! Skipping creation, proceeding to claim...`, { id: loadingId });
+        toast.loading("Requesting backend signature for claim...", { id: loadingId });
         
-        const claimSig = await sdk.claimCreator(new Uint8Array(creatorIdArray));
+        const sigRes = await fetch(`${apiUrl}/api/auth/claim-signature`, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${walletToken}`
+          },
+          body: JSON.stringify({ marketPda: marketPda.toBase58() })
+        });
+        
+        const sigData = await sigRes.json();
+        if (!sigData.success) {
+          throw new Error(sigData.error || "Failed to fetch claim signature");
+        }
+        
+        const { Transaction, Ed25519Program } = await import("@solana/web3.js");
+        const tx = new Transaction();
+        
+        // 1. Add Ed25519 signature instruction
+        tx.add(
+          Ed25519Program.createInstructionWithPublicKey({
+            publicKey: bs58.decode(sigData.pubkey),
+            message: new TextEncoder().encode(sigData.message),
+            signature: bs58.decode(sigData.signature),
+          })
+        );
+        
+        // 2. Add Claim Creator instruction
+        const claimIx = await sdk.claimCreatorInstruction(new Uint8Array(creatorIdArray));
+        tx.add(claimIx);
+        
+        toast.loading("Approve claim transaction...", { id: loadingId });
+        
+        const provider = sdk.program.provider as any;
+        const txSig = await provider.sendAndConfirm(tx);
+        
         setStatus("SUCCESS");
         toast.success(`Market Claimed Successfully!`, { id: loadingId });
         setCreatedMarketPda(marketPda.toBase58());
@@ -262,7 +294,7 @@ export default function ClaimPage() {
           cleanMessage = err.message.length > 100 ? "Transaction failed. Check console for details." : err.message;
         }
       }
-      toast.error(cleanMessage);
+      toast.error(cleanMessage, { id: "claim-error" });
     }
   };
 

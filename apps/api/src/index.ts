@@ -10,6 +10,7 @@ import { authRoutes } from "./routes/auth";
 import { marketRoutes } from "./routes/markets";
 import { oauthRoutes } from "./routes/oauth";
 import { portfolioRoutes } from "./routes/portfolio";
+import { protocolRoutes } from "./routes/protocol";
 import { websocketRoutes } from "./routes/websocket";
 
 dotenv.config({ path: resolve(__dirname, "../../../.env") });
@@ -33,6 +34,7 @@ fastify.register(authRoutes, { prefix: "/auth" });
 fastify.register(oauthRoutes, { prefix: "/api/oauth" });
 fastify.register(marketRoutes, { prefix: "/api/markets" });
 fastify.register(portfolioRoutes, { prefix: "/api/portfolio" });
+fastify.register(protocolRoutes, { prefix: "/api/protocol" });
 fastify.register(websocketRoutes, { prefix: "/ws" });
 
 fastify.post("/webhook/helius", async (request, reply) => {
