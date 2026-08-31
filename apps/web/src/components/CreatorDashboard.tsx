@@ -164,7 +164,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet }: CreatorDashboardP
                       </td>
                       <td className="px-6 py-4">
                         <a 
-                          href={`https://solscan.io/tx/${w.signature}?cluster=devnet`} 
+                          href={`https://solscan.io/tx/${w.signature}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet' ? '?cluster=devnet' : ''}`} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1"

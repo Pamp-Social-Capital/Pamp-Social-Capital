@@ -161,7 +161,7 @@ export default function CreatorPage({ params }: PageProps) {
           <div className="flex items-center gap-2 mt-1 mb-2">
             <p className="text-color-muted text-sm truncate max-w-[200px] md:max-w-xs font-mono">{id}</p>
             <a 
-              href={`https://solscan.io/account/${id}?cluster=devnet`} 
+              href={`https://solscan.io/account/${id}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet' ? '?cluster=devnet' : ''}`} 
               target="_blank" 
               rel="noopener noreferrer"
               title="View on Solscan"

@@ -110,7 +110,7 @@ export default function ProtocolDashboard() {
                       <div key={fee.id} className="bg-[#161A22] border border-color-border rounded-xl p-3 flex justify-between items-center">
                         <div className="flex flex-col">
                           <span className="text-white font-mono text-sm">+{(Number(fee.amount) / 1e9).toFixed(6)} SOL</span>
-                          <a href={`https://solscan.io/tx/${fee.signature}?cluster=devnet`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline text-xs mt-1">
+                          <a href={`https://solscan.io/tx/${fee.signature}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet' ? '?cluster=devnet' : ''}`} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline text-xs mt-1">
                             {fee.signature.substring(0, 4)}...{fee.signature.substring(fee.signature.length - 4)}
                           </a>
                         </div>
