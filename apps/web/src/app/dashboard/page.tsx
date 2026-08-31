@@ -42,6 +42,7 @@ export default function Home() {
       description: m.description,
       websiteUrl: m.websiteUrl,
       telegramUrl: m.telegramUrl,
+      claimed: m.claimed,
     };
   }) || [];
 

@@ -19,6 +19,7 @@ export interface Market {
   websiteUrl?: string;
   telegramUrl?: string;
   description?: string;
+  claimed?: boolean;
 }
 
 export const MarketCard: FC<{ market: Market }> = ({ market }) => {
@@ -64,9 +65,14 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
               </div>
             </div>
           </div>
-          <button className="bg-color-buy/10 text-color-buy px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-color-buy hover:text-color-background transition-colors">
-            Buy Keys
-          </button>
+          <div className="flex items-center gap-2">
+            {market.claimed === false && (
+              <span className="bg-amber-500/15 text-amber-400 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide">UNCLAIMED</span>
+            )}
+            <button className="bg-color-buy/10 text-color-buy px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-color-buy hover:text-color-background transition-colors">
+              Buy Keys
+            </button>
+          </div>
         </div>
 
         {/* Description */}

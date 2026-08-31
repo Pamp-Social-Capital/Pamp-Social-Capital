@@ -187,8 +187,8 @@ export default function CreatorPage({ params }: PageProps) {
             <span className="bg-[#161A22] border border-color-border px-3 py-1 rounded-full text-white">
               <span className="text-color-muted mr-1">Keys:</span> {supply.toLocaleString()}
             </span>
-            <span className="bg-[#161A22] border border-color-border px-3 py-1 rounded-full text-white">
-              <span className="text-color-muted mr-1">Status:</span> {finalMarket.claimed ? "Claimed" : "Active"}
+            <span className={`border px-3 py-1 rounded-full ${finalMarket.claimed ? 'bg-color-buy/10 border-color-buy/30 text-color-buy' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'}`}>
+              <span className="text-color-muted mr-1">Status:</span> {finalMarket.claimed ? "Claimed" : "Unclaimed"}
             </span>
           </div>
         </div>
