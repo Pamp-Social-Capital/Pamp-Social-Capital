@@ -248,6 +248,7 @@ export async function processHeliusPayload(transactions: any[]) {
           });
           
           realtimeEmitter.emit("trade", {
+            signature: tx.signature,
             marketPda,
             traderWallet: userWallet,
             tradeType,
