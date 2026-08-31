@@ -29,6 +29,9 @@ export const TopNav = () => {
             <Link href="/portfolio" className="hover:text-white transition-colors">
               Portfolio
             </Link>
+            <Link href="/protocol" className="hover:text-white transition-colors">
+              Protocol
+            </Link>
             <Link href="/claim" className="flex items-center gap-1 hover:text-white transition-colors text-color-buy">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
               Create Market
