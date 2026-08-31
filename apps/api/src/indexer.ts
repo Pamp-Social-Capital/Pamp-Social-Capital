@@ -44,7 +44,7 @@ async function processTradeForCandles(marketPda: string, price: number, volume: 
       close: price,
       volumeLamports: volume,
     }).onConflictDoUpdate({
-      target: [priceCandles.marketPda, priceCandles.resolution, priceCandles.timestamp],
+      target: [priceCandles.marketPda, priceCandles.resolution, priceCandles.timestamp, priceCandles.network],
       set: {
         high: sql`GREATEST(${priceCandles.high}, ${price})`,
         low: sql`LEAST(${priceCandles.low}, ${price})`,
