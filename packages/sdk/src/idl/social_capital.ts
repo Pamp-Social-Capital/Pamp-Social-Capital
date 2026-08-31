@@ -116,7 +116,9 @@ export type SocialCapital = {
           { name: "protocolFeeBps"; type: "u16" },
           { name: "defaultCreatorFeeBps"; type: "u16" },
           { name: "paused"; type: "bool" },
-          { name: "bump"; type: "u8" }
+          { name: "bump"; type: "u8" },
+          { name: "pscMint"; type: "pubkey" },
+          { name: "backendSigner"; type: "pubkey" }
         ];
       };
     },
@@ -299,7 +301,9 @@ export const IDL: SocialCapital = {
           { name: "protocolFeeBps", type: "u16" },
           { name: "defaultCreatorFeeBps", type: "u16" },
           { name: "paused", type: "bool" },
-          { name: "bump", type: "u8" }
+          { name: "bump", type: "u8" },
+          { name: "pscMint", type: "pubkey" },
+          { name: "backendSigner", type: "pubkey" }
         ]
       }
     },

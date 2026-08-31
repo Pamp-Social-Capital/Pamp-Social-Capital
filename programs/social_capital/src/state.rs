@@ -4,15 +4,18 @@ use anchor_lang::prelude::*;
 pub struct ProtocolConfig {
     pub authority: Pubkey,
     pub treasury: Pubkey,
-    pub psc_mint: Pubkey,
-    pub backend_signer: Pubkey,
+    pub protocol_fee_bps: u16, // Preserved for backward ABI compatibility
+    pub default_creator_fee_bps: u16, // Preserved for backward ABI compatibility
     pub paused: bool,
     pub bump: u8,
+    // Newly added fields must be at the end
+    pub psc_mint: Pubkey, 
+    pub backend_signer: Pubkey,
 }
 
 impl ProtocolConfig {
-    // 8 (discriminator) + 32 + 32 + 32 + 32 + 1 + 1
-    pub const INIT_SPACE: usize = 8 + 32 + 32 + 32 + 32 + 1 + 1;
+    // 8 (discriminator) + 32 + 32 + 2 + 2 + 1 + 1 + 32 + 32
+    pub const INIT_SPACE: usize = 8 + 32 + 32 + 2 + 2 + 1 + 1 + 32 + 32;
 }
 
 #[account]
@@ -23,13 +26,14 @@ pub struct CreatorMarket {
     pub supply: u64,
     pub reserve_lamports: u64,
     pub total_volume_lamports: u128,
+    pub creator_fee_bps: u16, // Preserved for backward ABI compatibility
     pub paused: bool,
     pub bump: u8,
 }
 
 impl CreatorMarket {
-    // 8 (discriminator) + 32 + 32 + 1 + 8 + 8 + 16 + 1 + 1
-    pub const INIT_SPACE: usize = 8 + 32 + 32 + 1 + 8 + 8 + 16 + 1 + 1;
+    // 8 (discriminator) + 32 + 32 + 1 + 8 + 8 + 16 + 2 + 1 + 1
+    pub const INIT_SPACE: usize = 8 + 32 + 32 + 1 + 8 + 8 + 16 + 2 + 1 + 1;
 }
 
 #[account]

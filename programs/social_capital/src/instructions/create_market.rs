@@ -37,6 +37,7 @@ pub fn create_creator_market(ctx: Context<CreateCreatorMarket>, creator_id: [u8;
     market.supply = 0;
     market.reserve_lamports = 0;
     market.total_volume_lamports = 0;
+    market.creator_fee_bps = 0; // Legacy field
     market.paused = false;
     market.bump = ctx.bumps.creator_market;
 

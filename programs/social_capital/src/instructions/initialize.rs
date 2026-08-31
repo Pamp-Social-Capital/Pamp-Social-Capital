@@ -34,6 +34,8 @@ pub fn initialize_protocol(
     let protocol = &mut ctx.accounts.protocol_config;
     protocol.authority = ctx.accounts.authority.key();
     protocol.treasury = ctx.accounts.treasury.key();
+    protocol.protocol_fee_bps = 0;
+    protocol.default_creator_fee_bps = 0;
     protocol.psc_mint = psc_mint;
     protocol.backend_signer = backend_signer;
     protocol.paused = false;
