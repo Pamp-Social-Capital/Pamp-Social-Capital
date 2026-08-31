@@ -269,6 +269,7 @@ export async function processHeliusPayload(transactions: any[]) {
             .set({
               creatorWallet: creatorWallet,
               claimed: true,
+              txSignature: tx.signature,
             })
             .where(and(eq(creatorMarkets.network, network), eq(creatorMarkets.marketPda, marketPda)));
 

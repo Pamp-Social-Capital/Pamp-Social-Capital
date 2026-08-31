@@ -219,11 +219,15 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
       tx.add(claimIx);
 
       const provider = sdk.program.provider as any;
-      await provider.sendAndConfirm(tx);
+      const claimTxSig = await provider.sendAndConfirm(tx);
 
-      // Step 4: Sync to backend
+      // Step 4: Sync to backend with claim TX signature
       try {
-        await fetch(`${apiUrl}/api/markets/${marketPda}/sync`, { method: "POST" });
+        await fetch(`${apiUrl}/api/markets/${marketPda}/sync`, { 
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ txSignature: typeof claimTxSig === 'string' ? claimTxSig : undefined })
+        });
       } catch (e) {
         console.error("Failed to sync after claim:", e);
       }

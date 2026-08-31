@@ -204,7 +204,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         where: (users, { sql }) => sql`lower(${users.username}) = lower(${twitterHandle})`
       });
 
-      const body = request.body as { ticker?: string, websiteUrl?: string, telegramUrl?: string, description?: string, bannerUrl?: string } | undefined;
+      const body = request.body as { ticker?: string, websiteUrl?: string, telegramUrl?: string, description?: string, bannerUrl?: string, txSignature?: string } | undefined;
 
       await db.insert(creatorMarkets).values({
         marketPda: pda,
@@ -235,6 +235,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
           ...(body?.telegramUrl ? { telegramUrl: body.telegramUrl } : {}),
           ...(body?.description ? { description: body.description } : {}),
           ...(body?.bannerUrl ? { bannerUrl: body.bannerUrl } : {}),
+          ...(body?.txSignature ? { txSignature: body.txSignature } : {}),
         }
       });
       

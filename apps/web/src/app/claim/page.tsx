@@ -395,7 +395,8 @@ export default function ClaimPage() {
               description,
               websiteUrl,
               telegramUrl,
-              bannerUrl
+              bannerUrl,
+              txSignature: typeof txSig === 'string' ? txSig : undefined
             })
           });
         } catch (e) {
