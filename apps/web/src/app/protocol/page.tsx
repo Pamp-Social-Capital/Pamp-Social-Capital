@@ -30,8 +30,6 @@ export default function ProtocolDashboard() {
 
   return (
     <div className="min-h-screen bg-color-background text-color-foreground flex flex-col">
-      <TopNav />
-
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8">
         <div className="mb-8 border-b border-color-border pb-6 mt-4">
           <h1 className="text-3xl font-black text-white uppercase tracking-tight flex items-center gap-3">
