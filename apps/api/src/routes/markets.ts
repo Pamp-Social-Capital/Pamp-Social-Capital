@@ -225,6 +225,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       }).onConflictDoUpdate({
         target: creatorMarkets.marketPda,
         set: {
+          creatorWallet: creatorWalletStr,
           claimed: marketState.claimed,
           supply: marketState.supply.toNumber(),
           reserveLamports: marketState.reserveLamports.toNumber(),

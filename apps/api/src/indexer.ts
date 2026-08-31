@@ -260,6 +260,26 @@ export async function processHeliusPayload(transactions: any[]) {
           });
           
           console.log(`Indexed ${tradeType} for ${amount} keys at ${marketPda}`);
+        } else if (event.name === "CreatorClaimed") {
+          const data = event.data as any;
+          const marketPda = data.creatorMarket.toString();
+          const creatorWallet = data.creatorWallet.toString();
+
+          await db.update(creatorMarkets)
+            .set({
+              creatorWallet: creatorWallet,
+              claimed: true,
+            })
+            .where(and(eq(creatorMarkets.network, network), eq(creatorMarkets.marketPda, marketPda)));
+
+          await db.insert(activityLogs).values({ network,
+            action: 'CREATOR_CLAIMED',
+            walletAddress: creatorWallet,
+            details: JSON.stringify({ marketPda, signature: tx.signature }),
+            status: 'SUCCESS'
+          }).onConflictDoNothing();
+
+          console.log(`Indexed creator claim: wallet ${creatorWallet} claimed market ${marketPda}`);
         } else if (event.name === "CreatorFeesWithdrawn") {
           const data = event.data as any;
           const marketPda = data.creatorMarket.toString();
