@@ -30,7 +30,7 @@ fastify.register(fastifyRateLimit, {
 
 fastify.register(fastifyWebsocket);
 
-fastify.register(authRoutes, { prefix: "/auth" });
+fastify.register(authRoutes, { prefix: "/api/auth" });
 fastify.register(oauthRoutes, { prefix: "/api/oauth" });
 fastify.register(marketRoutes, { prefix: "/api/markets" });
 fastify.register(portfolioRoutes, { prefix: "/api/portfolio" });

@@ -36,7 +36,7 @@ export default function ClaimPage() {
       const loadingId = toast.loading("Requesting challenge from server...");
       
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const challengeRes = await fetch(`${apiUrl}/auth/challenge?wallet=${publicKey.toBase58()}`);
+      const challengeRes = await fetch(`${apiUrl}/api/auth/challenge?wallet=${publicKey.toBase58()}`);
       const challengeData = await challengeRes.json();
       
       if (!challengeData.success) {
@@ -48,7 +48,7 @@ export default function ClaimPage() {
       const signature = await signMessage(messageUint8);
       
       toast.loading("Verifying signature...", { id: loadingId });
-      const verifyRes = await fetch(`${apiUrl}/auth/verify`, {
+      const verifyRes = await fetch(`${apiUrl}/api/auth/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -195,9 +195,11 @@ export default function ClaimPage() {
       return;
     }
 
+    let loadingId: string | undefined;
+
     try {
       setStatus("LOADING");
-      const loadingId = toast.loading("Requesting approval from wallet to create market on-chain...");
+      loadingId = toast.loading("Requesting approval from wallet to create market on-chain...");
       
       // Convert handle to 32 bytes zero-padded array
       const textBytes = new TextEncoder().encode(twitterHandle);
@@ -294,7 +296,7 @@ export default function ClaimPage() {
           cleanMessage = err.message.length > 100 ? "Transaction failed. Check console for details." : err.message;
         }
       }
-      toast.error(cleanMessage, { id: "claim-error" });
+      toast.error(cleanMessage, { id: loadingId || "claim-error" });
     }
   };
 
