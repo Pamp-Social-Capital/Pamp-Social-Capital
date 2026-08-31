@@ -231,9 +231,9 @@ export default function ClaimPage() {
         
         if (checkData.exists) {
           toast.dismiss(loadingId);
-          toast.error("Akun X (Twitter) ini sudah pernah didaftarkan sebagai kreator.");
+          toast.error("This X (Twitter) account is already registered as a creator.");
           setStatus("ERROR");
-          setMessage("Akun ini sudah memiliki market. Harap gunakan akun X yang belum terdaftar.");
+          setMessage("This account already has a market. Please use an unregistered X account.");
           return;
         }
 
