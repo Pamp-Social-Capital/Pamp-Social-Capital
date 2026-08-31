@@ -34,19 +34,19 @@ export default function ClaimPage() {
     try {
       setStatus("LOADING");
       const loadingId = toast.loading("Requesting challenge from server...");
-      
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const challengeRes = await fetch(`${apiUrl}/api/auth/challenge?wallet=${publicKey.toBase58()}`);
       const challengeData = await challengeRes.json();
-      
+
       if (!challengeData.success) {
         throw new Error(challengeData.error || "Failed to get challenge");
       }
-      
+
       toast.loading("Please sign the message in your wallet...", { id: loadingId });
       const messageUint8 = new TextEncoder().encode(challengeData.message);
       const signature = await signMessage(messageUint8);
-      
+
       toast.loading("Verifying signature...", { id: loadingId });
       const verifyRes = await fetch(`${apiUrl}/api/auth/verify`, {
         method: "POST",
@@ -57,12 +57,12 @@ export default function ClaimPage() {
           signature: bs58.encode(signature)
         })
       });
-      
+
       const verifyData = await verifyRes.json();
       if (!verifyData.success) {
         throw new Error(verifyData.error || "Failed to verify signature");
       }
-      
+
       localStorage.setItem("walletToken", verifyData.token);
       setStatus("AUTHENTICATED");
       toast.success("Wallet authenticated! Please link your X account.", { id: loadingId });
@@ -80,7 +80,7 @@ export default function ClaimPage() {
       const params = new URLSearchParams(window.location.search);
       const token = params.get("oauth_token");
       const handle = params.get("handle");
-      
+
       if (token && handle) {
         const linkTwitter = async () => {
           try {
@@ -88,28 +88,28 @@ export default function ClaimPage() {
             if (!walletToken) {
               throw new Error("Wallet not authenticated. Please connect wallet first.");
             }
-            
+
             setStatus("LOADING");
             const loadingId = toast.loading("Linking X account to your wallet...");
-            
+
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const linkRes = await fetch(`${apiUrl}/api/oauth/twitter/link`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ oauthToken: token, walletToken })
             });
-            
+
             const linkData = await linkRes.json();
             if (!linkData.success) {
               throw new Error(linkData.error || "Failed to link Twitter account");
             }
-            
+
             setOauthToken(token);
             setTwitterHandle(handle);
             setIsXLinked(true);
-            
+
             const isPopup = params.get("popup") === "true";
-            
+
             if (isPopup) {
               if (window.opener) {
                 window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle }, '*');
@@ -132,12 +132,12 @@ export default function ClaimPage() {
               window.close();
               return;
             }
-            
+
             setStatus("ERROR");
             toast.error(err.message || "An error occurred while linking X account.");
           }
         };
-        
+
         linkTwitter();
       }
     }
@@ -145,10 +145,28 @@ export default function ClaimPage() {
 
   // Listen for popup messages
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'OAUTH_LINK_SUCCESS') {
+        const handle = event.data.handle;
+
+        // Check if market already exists before proceeding
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+          const checkRes = await fetch(`${apiUrl}/api/markets/check/${encodeURIComponent(handle)}`);
+          const checkData = await checkRes.json();
+
+          if (checkData.exists) {
+            toast.error("This X (Twitter) account is already registered as a creator.");
+            setStatus("ERROR");
+            setMessage(`The account @${handle} already has an active market. Please use a different X account.`);
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to check market existence:", e);
+        }
+
         setOauthToken(event.data.token);
-        setTwitterHandle(event.data.handle);
+        setTwitterHandle(handle);
         setIsXLinked(true);
         setStatus("AUTHENTICATED");
         toast.success("X account linked successfully!");
@@ -157,7 +175,7 @@ export default function ClaimPage() {
         toast.error(event.data.error || "An error occurred while linking X account.");
       }
     };
-    
+
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, []);
@@ -165,16 +183,16 @@ export default function ClaimPage() {
   const handleOAuthLogin = () => {
     setStatus("LOADING");
     setMessage("Waiting for X (Twitter) authentication...");
-    
+
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     const redirectUrl = encodeURIComponent(window.location.origin + "/claim?popup=true");
-    
+
     // Open in popup modal
     const width = 600;
     const height = 700;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
-    
+
     window.open(
       `${apiUrl}/api/oauth/twitter/login?redirect_to=${redirectUrl}`,
       "TwitterLogin",
@@ -188,7 +206,7 @@ export default function ClaimPage() {
       setStatus("ERROR");
       return;
     }
-    
+
     if (!sdk || !publicKey) {
       setMessage("Wallet not connected or SDK not initialized.");
       setStatus("ERROR");
@@ -200,21 +218,21 @@ export default function ClaimPage() {
     try {
       setStatus("LOADING");
       loadingId = toast.loading("Requesting approval from wallet to create market on-chain...");
-      
+
       // Convert handle to 32 bytes zero-padded array
       const textBytes = new TextEncoder().encode(twitterHandle);
       if (textBytes.length > 32) {
         throw new Error("Handle is too long");
       }
-      
+
       const creatorIdArray = new Array(32).fill(0);
       for (let i = 0; i < textBytes.length; i++) {
         creatorIdArray[i] = textBytes[i];
       }
-      
+
       // Get the PDA so we can redirect to the creator page
       const marketPda = sdk.getCreatorMarketPda(new Uint8Array(creatorIdArray));
-      
+
       // Check market state first
       let marketState = null;
       try {
@@ -222,13 +240,13 @@ export default function ClaimPage() {
       } catch (e) {
         // Doesn't exist yet
       }
-      
+
       if (!marketState) {
         // Check if market already exists in DB for this Twitter Handle
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         const checkRes = await fetch(`${apiUrl}/api/markets/check/${encodeURIComponent(twitterHandle)}`);
         const checkData = await checkRes.json();
-        
+
         if (checkData.exists) {
           toast.dismiss(loadingId);
           toast.error("This X (Twitter) account is already registered as a creator.");
@@ -246,26 +264,26 @@ export default function ClaimPage() {
         // We need to claim the market using Ed25519 verification
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         const walletToken = localStorage.getItem("walletToken");
-        
+
         toast.loading("Requesting backend signature for claim...", { id: loadingId });
-        
+
         const sigRes = await fetch(`${apiUrl}/api/auth/claim-signature`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${walletToken}`
           },
           body: JSON.stringify({ marketPda: marketPda.toBase58() })
         });
-        
+
         const sigData = await sigRes.json();
         if (!sigData.success) {
           throw new Error(sigData.error || "Failed to fetch claim signature");
         }
-        
+
         const { Transaction, Ed25519Program } = await import("@solana/web3.js");
         const tx = new Transaction();
-        
+
         // 1. Add Ed25519 signature instruction
         tx.add(
           Ed25519Program.createInstructionWithPublicKey({
@@ -274,16 +292,16 @@ export default function ClaimPage() {
             signature: bs58.decode(sigData.signature),
           })
         );
-        
+
         // 2. Add Claim Creator instruction
         const claimIx = await sdk.claimCreatorInstruction(new Uint8Array(creatorIdArray));
         tx.add(claimIx);
-        
+
         toast.loading("Approve claim transaction...", { id: loadingId });
-        
+
         const provider = sdk.program.provider as any;
         const txSig = await provider.sendAndConfirm(tx);
-        
+
         // Sync market immediately to avoid webhook delays
         try {
           await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { method: "POST" });
@@ -311,7 +329,7 @@ export default function ClaimPage() {
       console.error("Transaction Error:", err);
       if (err.logs) console.error("Logs:", err.logs);
       setStatus("ERROR");
-      
+
       let cleanMessage = "Transaction failed. Please try again.";
       if (err.message) {
         if (err.message.includes("already in use")) {
@@ -340,7 +358,7 @@ export default function ClaimPage() {
       <div className="bg-color-card border border-color-border p-8 rounded-2xl w-full max-w-md flex flex-col gap-8 items-center shadow-2xl relative overflow-hidden">
         {/* Subtle glow effect */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-color-buy to-transparent opacity-50" />
-        
+
         {/* Steps Tracker */}
         <div className="w-full flex justify-between px-4 relative">
           <div className="absolute top-1/2 left-8 right-8 h-0.5 bg-color-border -z-10 -translate-y-1/2" />
@@ -362,7 +380,7 @@ export default function ClaimPage() {
                 {publicKey.toBase58()}
               </p>
             </div>
-            
+
             <button
               onClick={handleClaim}
               disabled={status === "LOADING"}
@@ -378,7 +396,7 @@ export default function ClaimPage() {
               <p className="text-color-muted text-sm mb-4">
                 {isXLinked ? "Identity verified via X." : "Click below to authenticate your X (Twitter) account."}
               </p>
-              
+
               {isXLinked && (
                 <div className="w-full bg-white/10 border border-white/30 rounded-xl p-4 flex items-center justify-center gap-2 mb-4">
                   <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
@@ -387,7 +405,7 @@ export default function ClaimPage() {
                 </div>
               )}
             </div>
-            
+
             {!isXLinked ? (
               <button
                 onClick={handleOAuthLogin}

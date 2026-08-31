@@ -35,7 +35,7 @@ export default function Home() {
       marketCapLamports: m.marketCapLamports || (BigInt(m.supply || 0) * BigInt(currentPriceLamports)).toString(),
       holderCount: m.holderCount || 0,
       creatorFeeBps: m.creatorFeeBps || 30, // 30 bps = 0.3%
-      username: m.twitterHandle || "Unknown",
+      username: m.twitterName || m.twitterHandle || "Unknown",
       avatarUrl: m.avatarUrl,
       sparkline: m.sparkline,
     };

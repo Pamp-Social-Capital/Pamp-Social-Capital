@@ -114,7 +114,8 @@ export default function CreatorPage({ params }: PageProps) {
   const spotPrice = calculateNextKeyPrice(supply);
   const mcap = (supply * spotPrice).toFixed(4); 
   const price = spotPrice.toFixed(6); 
-  const creatorName = finalMarket.twitterHandle || "Unknown";
+  const creatorName = finalMarket.twitterName || finalMarket.twitterHandle || "Unknown";
+  const handleUrl = finalMarket.twitterHandle || creatorName;
   
   return (
     <div className="flex flex-col gap-6 pb-12">
@@ -134,11 +135,11 @@ export default function CreatorPage({ params }: PageProps) {
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
             {creatorName}
             <a 
-              href={`https://x.com/${creatorName}`} 
+              href={`https://x.com/${handleUrl}`} 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-white hover:text-gray-300 transition-colors"
-              title={`View @${creatorName} on X`}
+              title={`View @${handleUrl} on X`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
             </a>
