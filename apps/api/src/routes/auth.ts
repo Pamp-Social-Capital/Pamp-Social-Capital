@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
 import crypto from "crypto";
 import { db, users, activityLogs, creatorMarkets } from "@social-capital/db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
 import jwt from "jsonwebtoken";
@@ -141,8 +141,9 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
 
       // 2. Fetch market to verify ownership (Check DB first, then fallback to RPC)
       let isOwner = false;
+      const network = process.env.SOLANA_NETWORK || 'devnet';
       const market = await db.query.creatorMarkets.findFirst({
-        where: eq(creatorMarkets.marketPda, marketPda)
+        where: and(eq(creatorMarkets.network, network), eq(creatorMarkets.marketPda, marketPda))
       });
 
       if (market) {
