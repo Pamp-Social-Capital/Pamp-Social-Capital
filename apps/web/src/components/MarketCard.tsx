@@ -18,6 +18,7 @@ export interface Market {
   ticker?: string;
   websiteUrl?: string;
   telegramUrl?: string;
+  description?: string;
 }
 
 export const MarketCard: FC<{ market: Market }> = ({ market }) => {
@@ -68,17 +69,23 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
           </button>
         </div>
 
+        {/* Description */}
+        {market.description && (
+          <div className="text-color-muted text-xs mb-6 line-clamp-2 italic">
+            "{market.description}"
+          </div>
+        )}
+
         {/* Main Metric & Sparkline */}
-        <div className="flex items-end justify-between mb-8">
+        <div className="flex items-end justify-between mb-8 mt-auto">
           <div>
             <div className="text-color-muted text-xs mb-1">Price (SOL)</div>
             <div className="text-2xl font-bold text-color-foreground">{priceSol}</div>
             <div className="text-color-buy text-xs mt-1">{mcapSol} Market Cap</div>
           </div>
           
-          {/* Sparkline */}
           <div className="h-8 w-24 flex items-end">
-            {market.sparkline && market.sparkline.length > 1 ? (
+            {market.sparkline && market.sparkline.length > 0 ? (
               <svg viewBox="0 0 100 32" className="w-full h-full overflow-visible" preserveAspectRatio="none">
                 <polyline
                   fill="none"
@@ -86,7 +93,7 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  points={market.sparkline.map((price, i, arr) => {
+                  points={(market.sparkline.length === 1 ? [market.sparkline[0], market.sparkline[0]] : market.sparkline).map((price, i, arr) => {
                     const min = Math.min(...arr);
                     const max = Math.max(...arr);
                     const range = max - min || 1;

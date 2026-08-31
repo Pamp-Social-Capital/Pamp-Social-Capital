@@ -38,6 +38,10 @@ export default function Home() {
       username: m.twitterName || m.twitterHandle || "Unknown",
       avatarUrl: m.avatarUrl,
       sparkline: m.sparkline,
+      ticker: m.ticker,
+      description: m.description,
+      websiteUrl: m.websiteUrl,
+      telegramUrl: m.telegramUrl,
     };
   }) || [];
 

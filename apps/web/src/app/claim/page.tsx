@@ -2,7 +2,7 @@
 
 import { useWallet } from "@solana/wallet-adapter-react";
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
@@ -78,6 +78,7 @@ export default function ClaimPage() {
       toast.error(err.message || "An unknown error occurred");
     }
   };
+  const hasLinkedRef = useRef(false);
 
   useEffect(() => {
     // Check if returning from OAuth
@@ -88,6 +89,9 @@ export default function ClaimPage() {
 
       if (token && handle) {
         const linkTwitter = async () => {
+          if (hasLinkedRef.current) return;
+          hasLinkedRef.current = true;
+          
           try {
             const walletToken = localStorage.getItem("walletToken");
             if (!walletToken) {
