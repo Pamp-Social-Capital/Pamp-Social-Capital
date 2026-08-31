@@ -273,7 +273,7 @@ export default function ClaimPage() {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${walletToken}`
           },
-          body: JSON.stringify({ marketPda: marketPda.toBase58() })
+          body: JSON.stringify({ marketPda: marketPda.toBase58(), oauthToken })
         });
 
         const sigData = await sigRes.json();

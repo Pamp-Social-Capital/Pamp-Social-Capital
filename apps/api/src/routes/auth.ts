@@ -111,19 +111,32 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
     
     const wallet = decoded.wallet;
     
-    const { marketPda } = request.body as { marketPda: string };
+    const { marketPda, oauthToken } = request.body as { marketPda: string, oauthToken?: string };
     if (!marketPda) {
       return reply.status(400).send({ error: "marketPda is required" });
     }
 
     try {
-      // 1. Fetch user to get their linked X handle
-      const user = await db.query.users.findFirst({
-        where: eq(users.walletAddress, wallet)
-      });
+      // 1. Determine verified X handle (via oauthToken if provided, else DB)
+      let verifiedHandle: string | null = null;
       
-      if (!user || !user.username) {
-        return reply.status(403).send({ error: "User has not linked their X account" });
+      if (oauthToken) {
+        try {
+          const decodedOAuth = jwt.verify(oauthToken, process.env.JWT_SECRET as string) as { twitterHandle: string };
+          verifiedHandle = decodedOAuth.twitterHandle;
+        } catch (e) {
+          fastify.log.error("Invalid oauth token provided for claim signature");
+        }
+      }
+      
+      if (!verifiedHandle) {
+        const user = await db.query.users.findFirst({
+          where: eq(users.walletAddress, wallet)
+        });
+        if (!user || !user.username) {
+          return reply.status(403).send({ error: "User has not linked their X account" });
+        }
+        verifiedHandle = user.username;
       }
 
       // 2. Fetch market to verify ownership (Check DB first, then fallback to RPC)
@@ -133,7 +146,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
       });
 
       if (market) {
-        isOwner = (market.twitterHandle.toLowerCase() === user.username.toLowerCase());
+        isOwner = (market.twitterHandle.toLowerCase() === verifiedHandle.toLowerCase());
       } else {
         // Fallback to Solana RPC due to webhook delay or unindexed market
         try {
@@ -159,7 +172,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
             }
           }
           
-          isOwner = (twitterHandleFromChain.toLowerCase() === user.username.toLowerCase());
+          isOwner = (twitterHandleFromChain.toLowerCase() === verifiedHandle.toLowerCase());
         } catch (rpcErr) {
           fastify.log.error(rpcErr);
           return reply.status(404).send({ error: "Market not found in DB or on-chain" });
