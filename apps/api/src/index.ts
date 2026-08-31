@@ -73,8 +73,9 @@ fastify.post("/webhook/helius", async (request, reply) => {
 
 const start = async () => {
   try {
-    const port = parseInt(process.env.PORT || "3000");
-    await fastify.listen({ port, host: "0.0.0.0" });
+    if (!process.env.PORT) throw new Error("PORT is required");
+    const port = parseInt(process.env.PORT);
+    await fastify.listen({ port, host: '0.0.0.0' });
     fastify.log.info(`Server listening on port ${port}`);
   } catch (err) {
     fastify.log.error(err);

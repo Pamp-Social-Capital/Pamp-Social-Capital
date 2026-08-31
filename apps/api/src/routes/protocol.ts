@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
-import { db, protocolFees, pscBuybacks, pscBurns } from "@social-capital/db";
-import { sum } from "drizzle-orm";
+import { db, protocolFees, pscBuybacks, pscBurns, activityLogs } from "@social-capital/db";
+import { sum, desc, eq } from "drizzle-orm";
 
 export const protocolRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.get("/stats", async (request, reply) => {
@@ -33,6 +33,32 @@ export const protocolRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send({ success: false, error: "Failed to fetch protocol stats" });
+    }
+  });
+
+  fastify.get("/logs", async (request, reply) => {
+    try {
+      // Get last 50 fee collections
+      const recentFees = await db.query.protocolFees.findMany({
+        orderBy: [desc(protocolFees.timestamp)],
+        limit: 50
+      });
+
+      // Get last 50 keeper logs
+      const keeperLogs = await db.query.activityLogs.findMany({
+        where: eq(activityLogs.action, "KEEPER_EXECUTION"),
+        orderBy: [desc(activityLogs.createdAt)],
+        limit: 50
+      });
+
+      return reply.send({
+        success: true,
+        recentFees,
+        keeperLogs
+      });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ success: false, error: "Failed to fetch protocol logs" });
     }
   });
 };

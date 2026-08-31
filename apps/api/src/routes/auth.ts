@@ -10,7 +10,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
   fastify.get("/challenge", async (request, reply) => {
     const { wallet } = request.query as { wallet: string };
     if (!wallet) return reply.status(400).send({ error: "Wallet address is required" });
-
+    
     try {
       const nonce = crypto.randomUUID();
       const message = `Sign this message to verify your wallet for Pump Social Capital.\nNonce: ${nonce}`;
@@ -73,7 +73,8 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
       await db.update(users).set({ nonce: null }).where(eq(users.walletAddress, wallet));
 
       // Generate JWT
-      const jwtSecret = process.env.JWT_SECRET || "super_secret_dev_key";
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) throw new Error("JWT_SECRET is required");
       const token = jwt.sign({ wallet }, jwtSecret, { expiresIn: '7d' });
 
       await db.insert(activityLogs).values({
@@ -96,7 +97,10 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
     }
     
     const token = authHeader.split(" ")[1];
-    const jwtSecret = process.env.JWT_SECRET || "super_secret_dev_key";
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return reply.status(500).send({ error: "JWT_SECRET is not configured" });
+    }
     
     let decoded: any;
     try {
