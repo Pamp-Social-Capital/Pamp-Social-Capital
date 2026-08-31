@@ -211,23 +211,25 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         reserveLamports: marketState.reserveLamports.toNumber(),
         totalVolumeLamports: "0",
         claimed: marketState.claimed,
-      }).onConflictDoUpdate({
-        target: creatorMarkets.twitterHandle,
-        set: {
-          marketPda: pda, // update PDA in case program ID changed
-          creatorIdHex: Buffer.from(marketState.creatorId).toString('hex'),
-          creatorWallet: creatorWalletStr,
-          claimed: marketState.claimed,
-          avatarUrl: userRecord?.avatarUrl || null, // ensure avatar is set
-          supply: marketState.supply.toNumber(),
-          reserveLamports: marketState.reserveLamports.toNumber(),
-        }
-      });
+      }).onConflictDoNothing();
       
       return reply.send({ success: true, message: "Market synced" });
     } catch (err) {
       fastify.log.error(err);
       return reply.status(500).send({ success: false, error: "Failed to sync market" });
+    }
+  });
+
+  fastify.get("/check/:handle", async (request, reply) => {
+    try {
+      const { handle } = request.params as { handle: string };
+      const market = await db.query.creatorMarkets.findFirst({
+        where: (creatorMarkets, { sql }) => sql`lower(${creatorMarkets.twitterHandle}) = lower(${handle})`
+      });
+      return reply.send({ exists: !!market });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ success: false, error: "Failed to check handle" });
     }
   });
 };

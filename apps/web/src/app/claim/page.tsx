@@ -224,6 +224,19 @@ export default function ClaimPage() {
       }
       
       if (!marketState) {
+        // Check if market already exists in DB for this Twitter Handle
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const checkRes = await fetch(`${apiUrl}/api/markets/check/${encodeURIComponent(twitterHandle)}`);
+        const checkData = await checkRes.json();
+        
+        if (checkData.exists) {
+          toast.dismiss(loadingId);
+          toast.error("Akun X (Twitter) ini sudah pernah didaftarkan sebagai kreator.");
+          setStatus("ERROR");
+          setMessage("Akun ini sudah memiliki market. Harap gunakan akun X yang belum terdaftar.");
+          return;
+        }
+
         // Send transaction via SDK to create market
         await sdk.createCreatorMarket(creatorIdArray);
         toast.loading(`Market Created! Claiming market ownership...`, { id: loadingId });
