@@ -25,6 +25,7 @@ export default function ClaimPage() {
   const [createdMarketPda, setCreatedMarketPda] = useState("");
   const [ticker, setTicker] = useState("");
   const [description, setDescription] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [telegramUrl, setTelegramUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
@@ -79,6 +80,37 @@ export default function ClaimPage() {
       toast.error(err.message || "An unknown error occurred");
     }
   };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const { supabase } = await import("../../lib/supabase");
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('banners')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage.from('banners').getPublicUrl(filePath);
+      setBannerUrl(data.publicUrl);
+      toast.success("Image uploaded successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const hasLinkedRef = useRef(false);
 
   useEffect(() => {
@@ -502,8 +534,30 @@ export default function ClaimPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-white text-sm font-semibold mb-1 block">Banner Image URL</label>
-                  <input type="text" value={bannerUrl} onChange={e => setBannerUrl(e.target.value)} placeholder="https://... (direct image link)" className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
+                  <label className="text-white text-sm font-semibold mb-1 block">Banner Image</label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={isUploading}
+                      className="hidden" 
+                      id="banner-upload"
+                    />
+                    <label 
+                      htmlFor="banner-upload" 
+                      className={`cursor-pointer bg-[#161A22] border border-color-border rounded-lg px-4 py-3 flex items-center justify-center text-white hover:border-color-buy transition-colors text-sm font-semibold ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                    >
+                      {isUploading ? 'Uploading...' : 'Upload File'}
+                    </label>
+                    <input 
+                      type="text" 
+                      value={bannerUrl} 
+                      onChange={e => setBannerUrl(e.target.value)} 
+                      placeholder="Or paste image URL..." 
+                      className="flex-1 bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" 
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="text-white text-sm font-semibold mb-1 block">Initial Buy (Keys)</label>
