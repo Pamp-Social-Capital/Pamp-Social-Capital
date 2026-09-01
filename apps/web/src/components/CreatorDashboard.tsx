@@ -25,6 +25,12 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [linkedHandle, setLinkedHandle] = useState<string | null>(null);
 
+  // Withdraw modal state
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawModalStatus, setWithdrawModalStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [withdrawModalMessage, setWithdrawModalMessage] = useState('');
+  const [withdrawModalSignature, setWithdrawModalSignature] = useState('');
+
   // Check if connected wallet is the creator (for claimed markets)
   const isCreator = publicKey?.toBase58() === creatorWallet;
 
@@ -103,44 +109,71 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
   const handleWithdraw = async () => {
     if (!sdk) return;
     
-    let loadingId: string | undefined;
-    
     try {
       setIsWithdrawing(true);
-      loadingId = toast.loading("Requesting withdrawal from wallet...");
+      setWithdrawModalStatus('loading');
+      setWithdrawModalMessage('Requesting withdrawal from wallet...');
+      setWithdrawModalSignature('');
+      setShowWithdrawModal(true);
       
       const marketState = await sdk.program.account.creatorMarket.fetch(new PublicKey(marketPda));
       const creatorId = marketState.creatorId;
 
-      toast.loading("Withdrawing fees...", { id: loadingId });
+      setWithdrawModalMessage('Withdrawing fees... Please approve in your wallet.');
       const signature = await sdk.claimCreatorFees(new Uint8Array(creatorId));
       
-      toast.success(
-        <div>
-          Fees withdrawn successfully!{" "}
-          <a
-            href={`https://explorer.solana.com/tx/${signature}?cluster=devnet`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            View TX
-          </a>
-        </div>,
-        { id: loadingId }
-      );
+      // Success
+      setWithdrawModalStatus('success');
+      setWithdrawModalMessage('Fees withdrawn successfully!');
+      setWithdrawModalSignature(signature);
       
       // Optimistically update balance
       setVaultBalance(0);
+
+      // Dual-write fallback: record withdrawal via API in case webhook is delayed/missing
+      const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+      try {
+        await fetch(`${API_URL}/api/markets/${marketPda}/record-withdrawal`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ signature })
+        });
+      } catch (recordErr) {
+        console.warn("Failed to record withdrawal via API (webhook may still capture it):", recordErr);
+      }
+
+      // Refresh withdrawal history after a short delay to reflect the new entry
+      setTimeout(async () => {
+        try {
+          const res = await fetch(`${API_URL}/api/markets/${marketPda}/withdrawals`);
+          const data = await res.json();
+          if (data.success && data.withdrawals) {
+            setWithdrawals(data.withdrawals);
+          }
+        } catch (e) {
+          console.warn("Failed to refresh withdrawal history:", e);
+        }
+      }, 2000);
     } catch (err: any) {
       console.error(err);
-      if (typeof loadingId !== 'undefined') {
-          toast.error(err.message || "Failed to withdraw fees", { id: loadingId });
-      } else {
-          toast.error(err.message || "Failed to withdraw fees");
+      let errorMsg = err.message || "Failed to withdraw fees";
+      if (errorMsg.includes("User rejected") || errorMsg.includes("cancelled")) {
+        errorMsg = "Transaction was cancelled by user.";
       }
+      setWithdrawModalStatus('error');
+      setWithdrawModalMessage(errorMsg);
+      setWithdrawModalSignature('');
     } finally {
       setIsWithdrawing(false);
+    }
+  };
+
+  const copyWithdrawSignature = () => {
+    if (withdrawModalSignature) {
+      navigator.clipboard.writeText(withdrawModalSignature);
+      const prevMsg = withdrawModalMessage;
+      setWithdrawModalMessage('Signature copied to clipboard!');
+      setTimeout(() => setWithdrawModalMessage(prevMsg), 2000);
     }
   };
 
@@ -405,6 +438,81 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Withdraw Result Modal */}
+      {showWithdrawModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-color-card border border-color-border p-6 rounded-2xl shadow-2xl max-w-sm w-full relative overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${
+              withdrawModalStatus === 'error' 
+                ? 'from-red-500 to-orange-500' 
+                : withdrawModalStatus === 'success' 
+                  ? 'from-emerald-500 to-cyan-500' 
+                  : 'from-indigo-500 to-purple-500'
+            } opacity-70`} />
+            
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                withdrawModalStatus === 'error' 
+                  ? 'bg-red-500/20 text-red-400' 
+                  : withdrawModalStatus === 'success' 
+                    ? 'bg-emerald-500/20 text-emerald-400' 
+                    : 'bg-indigo-500/20 text-indigo-400'
+              }`}>
+                {withdrawModalStatus === 'error' ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                ) : withdrawModalStatus === 'loading' ? (
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                )}
+              </div>
+              <h3 className="text-xl font-bold text-white">
+                {withdrawModalStatus === 'error' ? 'Withdrawal Failed' : withdrawModalStatus === 'success' ? 'Withdrawal Success' : 'Processing Withdrawal'}
+              </h3>
+            </div>
+
+            <p className="text-color-muted text-sm mb-4 pl-11 break-all">{withdrawModalMessage}</p>
+
+            {withdrawModalSignature && (
+              <div className="ml-11 mb-6 flex items-center gap-2">
+                <span className="text-color-foreground font-mono text-xs break-all flex-1">{withdrawModalSignature}</span>
+                <a 
+                  href={`https://solscan.io/tx/${withdrawModalSignature}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet' ? '?cluster=devnet' : ''}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="View on Solscan"
+                  className="p-2 bg-[#161A22] border border-color-border rounded-lg text-white hover:text-emerald-400 transition-colors flex items-center justify-center"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+                <button
+                  onClick={copyWithdrawSignature}
+                  title="Copy Signature"
+                  className="p-2 bg-[#161A22] border border-color-border rounded-lg text-white hover:text-emerald-400 transition-colors flex items-center justify-center"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                </button>
+              </div>
+            )}
+
+            {withdrawModalStatus !== 'loading' && (
+              <button 
+                onClick={() => {
+                  setShowWithdrawModal(false);
+                  setWithdrawModalSignature('');
+                }} 
+                className="w-full bg-[#161A22] border border-color-border text-white py-2.5 rounded-xl hover:bg-white/10 transition-colors font-semibold mt-2"
+              >
+                Close
+              </button>
+            )}
           </div>
         </div>
       )}

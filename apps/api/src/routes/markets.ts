@@ -145,6 +145,115 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
     }
   });
 
+  // Dual-write fallback: frontend calls this after a successful on-chain withdrawal
+  // to guarantee the record is saved even if the Helius webhook is delayed or missing.
+  fastify.post("/:pda/record-withdrawal", async (request, reply) => {
+    try {
+      const { pda } = request.params as { pda: string };
+      const { signature } = request.body as { signature: string };
+
+      if (!signature) {
+        return reply.status(400).send({ success: false, error: "Missing transaction signature" });
+      }
+
+      // Import dependencies
+      const { feeWithdrawals, activityLogs } = await import("@social-capital/db");
+
+      // Idempotency check: skip if already recorded (by webhook or previous call)
+      const existing = await db.query.feeWithdrawals.findFirst({
+        where: and(eq(feeWithdrawals.network, network), eq(feeWithdrawals.signature, signature))
+      });
+
+      if (existing) {
+        return reply.send({ success: true, message: "Withdrawal already recorded", withdrawal: existing });
+      }
+
+      // Verify the transaction on-chain via RPC
+      const { Connection } = await import("@solana/web3.js");
+      const rpcUrl = process.env.SOLANA_RPC_URL as string;
+      const connection = new Connection(rpcUrl, "confirmed");
+
+      const txInfo = await connection.getTransaction(signature, {
+        maxSupportedTransactionVersion: 0,
+        commitment: "confirmed"
+      });
+
+      if (!txInfo) {
+        return reply.status(404).send({ success: false, error: "Transaction not found on-chain. It may still be confirming, try again shortly." });
+      }
+
+      if (txInfo.meta?.err) {
+        return reply.status(400).send({ success: false, error: "Transaction failed on-chain" });
+      }
+
+      // Parse the event from on-chain logs to extract amount and creatorWallet
+      const { BorshCoder, EventParser } = await import("@coral-xyz/anchor");
+      const { PublicKey } = await import("@solana/web3.js");
+      const { IDL } = await import("@social-capital/sdk/dist/idl/social_capital");
+      const { createHash } = await import("crypto");
+
+      const PROGRAM_ID = new PublicKey(IDL.address);
+
+      const patchedIdl = JSON.parse(JSON.stringify(IDL));
+      for (const ix of patchedIdl.instructions) {
+        ix.discriminator = Array.from(createHash('sha256').update('global:' + ix.name).digest().slice(0, 8));
+      }
+      for (const ev of patchedIdl.events) {
+        ev.discriminator = Array.from(createHash('sha256').update('event:' + ev.name).digest().slice(0, 8));
+      }
+      const coder = new BorshCoder(patchedIdl as any);
+      const eventParser = new EventParser(PROGRAM_ID, coder);
+
+      let withdrawalAmount: number | null = null;
+      let creatorWallet: string | null = null;
+      let marketPdaFromEvent: string | null = null;
+
+      if (txInfo.meta?.logMessages) {
+        for (const event of eventParser.parseLogs(txInfo.meta.logMessages)) {
+          if (event.name === "CreatorFeesWithdrawn") {
+            const data = event.data as any;
+            withdrawalAmount = Number(data.amount);
+            creatorWallet = data.creatorWallet.toString();
+            marketPdaFromEvent = data.creatorMarket.toString();
+            break;
+          }
+        }
+      }
+
+      if (withdrawalAmount === null || !creatorWallet || !marketPdaFromEvent) {
+        return reply.status(400).send({ success: false, error: "No CreatorFeesWithdrawn event found in this transaction" });
+      }
+
+      // Verify the event's market PDA matches the URL parameter
+      if (marketPdaFromEvent !== pda) {
+        return reply.status(400).send({ success: false, error: "Market PDA mismatch between URL and on-chain event" });
+      }
+
+      // Insert withdrawal record (onConflictDoNothing for extra safety)
+      const [inserted] = await db.insert(feeWithdrawals).values({
+        network,
+        signature,
+        marketPda: pda,
+        creatorWallet,
+        amount: withdrawalAmount
+      }).onConflictDoNothing().returning();
+
+      // Log activity
+      await db.insert(activityLogs).values({
+        network,
+        action: 'FEE_WITHDRAWAL',
+        walletAddress: creatorWallet,
+        details: JSON.stringify({ marketPda: pda, amount: withdrawalAmount, signature, source: 'frontend_fallback' }),
+        status: 'SUCCESS'
+      });
+
+      return reply.send({ success: true, message: "Withdrawal recorded", withdrawal: inserted || existing });
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.status(500).send({ success: false, error: "Failed to record withdrawal" });
+    }
+  });
+
   fastify.get("/:pda/analytics", async (request, reply) => {
     try {
       const { pda } = request.params as { pda: string };
