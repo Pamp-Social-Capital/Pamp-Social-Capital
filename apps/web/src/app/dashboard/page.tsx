@@ -41,6 +41,7 @@ export default function Home() {
       creatorFeeBps: m.creatorFeeBps || 30, // 30 bps = 0.3%
       username: m.twitterName || m.twitterHandle || "Unknown",
       avatarUrl: m.avatarUrl,
+      bannerUrl: m.bannerUrl,
       sparkline: m.sparkline,
       ticker: m.ticker,
       description: m.description,

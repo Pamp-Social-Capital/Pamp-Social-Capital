@@ -19,6 +19,7 @@ export interface Market {
   websiteUrl?: string;
   telegramUrl?: string;
   description?: string;
+  bannerUrl?: string;
   claimed?: boolean;
 }
 
@@ -33,9 +34,25 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
 
   return (
     <Link href={`/creator/${market.marketPda}`} className="block h-full">
-      <div className="bg-[#12141A] rounded-xl p-5 hover:bg-white/5 transition-colors border border-color-border/50 hover:border-color-border group flex flex-col justify-between h-full shadow-lg">
-        {/* Header: Avatar, Name, Followers, Action Button */}
-        <div className="flex items-start justify-between mb-6">
+      <div className="bg-[#12141A] rounded-xl p-5 hover:bg-white/5 transition-colors border border-color-border/50 hover:border-color-border group flex flex-col justify-between h-full shadow-lg relative overflow-hidden">
+        
+        {market.bannerUrl && (
+          <>
+            <div 
+              className="absolute top-0 left-0 right-0 bottom-20 z-0 opacity-30 mix-blend-luminosity group-hover:opacity-50 transition-opacity"
+              style={{ 
+                backgroundImage: `url(${market.bannerUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+            <div className="absolute top-0 left-0 right-0 bottom-20 z-0 bg-gradient-to-b from-transparent via-[#12141A]/70 to-[#12141A]" />
+          </>
+        )}
+
+        <div className="relative z-10 flex flex-col h-full justify-between">
+          {/* Header: Avatar, Name, Followers, Action Button */}
+          <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
               {market.avatarUrl ? (
@@ -126,6 +143,7 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
             <div className="text-color-foreground font-medium">{reserveSol} SOL</div>
           </div>
         </div>
+      </div>
       </div>
     </Link>
   );
