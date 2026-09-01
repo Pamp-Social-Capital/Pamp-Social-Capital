@@ -63,4 +63,64 @@ export const usersRoutes = async (fastify: FastifyInstance) => {
       return reply.status(500).send({ success: false, error: e.message || "Failed to fetch user markets" });
     }
   });
+
+  fastify.put("/me", async (request, reply) => {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return reply.status(401).send({ success: false, error: "Missing authorization header" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return reply.status(500).send({ success: false, error: "JWT_SECRET is not configured" });
+    }
+
+    let decoded: any;
+    try {
+      const jwt = await import("jsonwebtoken");
+      decoded = jwt.default.verify(token, jwtSecret);
+    } catch (e) {
+      return reply.status(401).send({ success: false, error: "Invalid token" });
+    }
+
+    const wallet = decoded.wallet;
+    const { username, avatarUrl, bio } = request.body as { username?: string, avatarUrl?: string, bio?: string };
+
+    try {
+      // Validate inputs
+      const updateData: any = {};
+      
+      if (username !== undefined) {
+        if (username.length > 50) return reply.status(400).send({ success: false, error: "Username too long" });
+        updateData.username = username;
+      }
+      
+      if (avatarUrl !== undefined) {
+        updateData.avatarUrl = avatarUrl;
+      }
+      
+      if (bio !== undefined) {
+        if (bio.length > 160) return reply.status(400).send({ success: false, error: "Bio must be 160 characters or less" });
+        updateData.bio = bio;
+      }
+      
+      if (Object.keys(updateData).length === 0) {
+        return reply.status(400).send({ success: false, error: "No update data provided" });
+      }
+
+      await db.update(users)
+        .set(updateData)
+        .where(eq(users.walletAddress, wallet));
+
+      const updatedUser = await db.query.users.findFirst({
+        where: eq(users.walletAddress, wallet)
+      });
+
+      return reply.send({ success: true, userProfile: updatedUser });
+    } catch (e: any) {
+      console.error("Error updating user profile:", e);
+      return reply.status(500).send({ success: false, error: e.message || "Failed to update profile" });
+    }
+  });
 }

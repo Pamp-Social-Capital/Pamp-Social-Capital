@@ -6,6 +6,7 @@ export const users = pgTable("users", {
   nonce: text("nonce"),
   username: text("username"),
   avatarUrl: text("avatar_url"),
+  bio: text("bio"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

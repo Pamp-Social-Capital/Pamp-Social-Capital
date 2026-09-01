@@ -1,8 +1,9 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import useSWR from "swr";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { UserTradeHistoryComponent } from "@/components/UserTradeHistory";
 import { UserWithdrawalHistoryComponent } from "@/components/UserWithdrawalHistory";
 import { Tabs } from "@/components/Tabs";
@@ -15,11 +16,23 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ProfilePage({ params }: PageProps) {
   const { address } = use(params);
+  const { publicKey } = useWallet();
+  const isOwner = publicKey?.toBase58() === address;
+  
   const [activeTab, setActiveTab] = useState<"keys" | "trades" | "withdrawals">("keys");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editUsername, setEditUsername] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null);
+  const [editAvatarPreview, setEditAvatarPreview] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
   const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet";
   
-  const { data, error, isLoading: profileLoading } = useSWR(
+  const { data, error, isLoading: profileLoading, mutate: mutateProfile } = useSWR(
     `${API_URL}/api/users/${address}/markets?network=${network}`, 
     fetcher
   );
@@ -53,6 +66,87 @@ export default function ProfilePage({ params }: PageProps) {
   const netProfitLamports = totalPnLLamports + totalFeesLamports;
   const netProfitSol = (Number(netProfitLamports) / 1e9).toFixed(2);
 
+  const handleEditOpen = () => {
+    setEditUsername(userProfile?.username || "");
+    setEditBio(userProfile?.bio || "");
+    setEditAvatarPreview(userProfile?.avatarUrl || null);
+    setEditAvatarFile(null);
+    setErrorMsg("");
+    setIsEditing(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMsg("File is too large. Max 5MB.");
+        return;
+      }
+      setEditAvatarFile(file);
+      setEditAvatarPreview(URL.createObjectURL(file));
+      setErrorMsg("");
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (editBio && editBio.length > 160) {
+      setErrorMsg("Bio cannot exceed 160 characters.");
+      return;
+    }
+    
+    setIsSaving(true);
+    setErrorMsg("");
+    
+    try {
+      let finalAvatarUrl = userProfile?.avatarUrl;
+
+      if (editAvatarFile) {
+        const { supabase } = await import("../../../lib/supabase");
+        const fileExt = editAvatarFile.name.split('.').pop();
+        const fileName = `${address}-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadErr } = await supabase.storage
+          .from('banners')
+          .upload(fileName, editAvatarFile);
+
+        if (uploadErr) {
+          throw new Error("Failed to upload avatar: " + uploadErr.message);
+        }
+
+        const { data } = supabase.storage.from('banners').getPublicUrl(fileName);
+        finalAvatarUrl = data.publicUrl;
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("Please connect your wallet and authenticate first");
+
+      const response = await fetch(`${API_URL}/api/users/me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          username: editUsername,
+          bio: editBio,
+          avatarUrl: finalAvatarUrl
+        })
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update profile");
+      }
+
+      await mutateProfile();
+      setIsEditing(false);
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-8 pb-12 animate-pulse">
@@ -84,10 +178,10 @@ export default function ProfilePage({ params }: PageProps) {
   return (
     <div className="flex flex-col gap-8 pb-12">
       {/* Profile Header */}
-      <div className="flex flex-col items-center gap-4 bg-gradient-to-b from-indigo-900/40 to-color-card p-10 rounded-2xl border border-color-border shadow-lg text-center relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-70" />
+      <div className="flex flex-col items-center gap-4 bg-gradient-to-b from-emerald-900/20 to-[#12141A] p-10 rounded-2xl border border-color-border/50 shadow-lg text-center relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-color-buy to-emerald-500 opacity-70" />
         
-        <div className="w-28 h-28 rounded-full overflow-hidden bg-[#161A22] border-4 border-indigo-500/30 shadow-xl">
+        <div className="w-28 h-28 rounded-full overflow-hidden bg-[#161A22] border-4 border-color-buy/30 shadow-xl">
           <img 
             src={userProfile?.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${address}`} 
             alt="Creator Avatar" 
@@ -96,29 +190,41 @@ export default function ProfilePage({ params }: PageProps) {
         </div>
         
         <div>
-          <h1 className="text-2xl font-bold text-white mb-2 flex items-center justify-center gap-2">
-            {userProfile?.username || `${address.slice(0, 4)}...${address.slice(-4)}`}
+          <h1 className="text-2xl font-bold text-white mb-1">
+            {userProfile?.username || "Creator"}
+          </h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="font-mono text-sm text-color-muted">{`${address.slice(0, 6)}...${address.slice(-4)}`}</span>
             <button
               onClick={() => navigator.clipboard.writeText(address)}
               title="Copy Address"
-              className="p-1.5 bg-[#161A22] border border-color-border rounded-lg text-color-muted hover:text-white transition-colors"
+              className="p-1.5 bg-[#161A22] border border-color-border/50 rounded-lg text-color-muted hover:text-white transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
             </button>
-          </h1>
-          <p className="text-indigo-300 font-medium">Creator Profile</p>
-        </div>
-        
-        <div className="flex flex-wrap items-center justify-center gap-6 mt-4">
-          <div className="bg-[#161A22] border border-color-border px-6 py-3 rounded-xl min-w-[150px]">
-            <div className="text-color-muted text-sm mb-1">Total Launched</div>
-            <div className="text-2xl font-bold text-white">{markets.length} <span className="text-sm font-normal text-color-muted">Markets</span></div>
           </div>
-          <div className="bg-[#161A22] border border-color-border px-6 py-3 rounded-xl min-w-[150px]">
-            <div className="text-color-muted text-sm mb-1">Total Profit (Withdrawn)</div>
-            <div className="text-2xl font-bold text-emerald-400">{stats.totalFeesWithdrawn.toFixed(4)} <span className="text-sm font-normal text-color-muted">SOL</span></div>
-          </div>
+          {userProfile?.createdAt && (
+            <p className="text-color-muted text-xs mt-1">
+              Joined {new Date(userProfile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </p>
+          )}
+          
+          {userProfile?.bio && (
+            <p className="text-white text-sm mt-3 max-w-md mx-auto">{userProfile.bio}</p>
+          )}
+          
+          {isOwner && (
+            <div className="mt-4">
+              <button 
+                onClick={handleEditOpen}
+                className="bg-[#161A22] border border-color-border/50 text-white text-sm font-medium px-4 py-2 rounded-lg hover:border-color-buy/50 transition-colors"
+              >
+                Edit Profile
+              </button>
+            </div>
+          )}
         </div>
+
       </div>
       {/* Portfolio Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
@@ -142,20 +248,22 @@ export default function ProfilePage({ params }: PageProps) {
                 +{totalFeesSol} SOL
              </div>
           </div>
-          <div className="bg-gradient-to-br from-[#1FC782]/20 to-transparent p-6 rounded-2xl border border-color-border shadow-lg xl:col-span-1 relative overflow-hidden">
+          <div className="bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg xl:col-span-1 relative overflow-hidden">
              <div className="text-color-muted text-sm mb-1">Total Net Profit</div>
-             <div className={`text-4xl font-bold ${netProfitLamports >= 0 ? 'text-color-buy' : 'text-color-sell'}`}>
-                {netProfitLamports >= 0 ? '+' : ''}{netProfitSol} SOL
+             <div className={`text-3xl font-bold ${netProfitLamports >= 0 ? 'text-color-buy' : 'text-color-sell'}`}>
+                {netProfitLamports >= 0 ? '+' : ''}{netProfitSol} <span className="text-sm font-normal text-color-muted">SOL</span>
              </div>
-             <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy opacity-10 rounded-full blur-2xl -mr-8 -mt-8 pointer-events-none" />
           </div>
       </div>
 
       {/* Market History */}
       <div className="w-full mt-8">
-        <h2 className="text-xl font-bold text-white mb-6">
-          Market History
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-white">Market History</h2>
+          <span className="bg-[#161A22] border border-color-border px-3 py-1 rounded-full text-white text-sm">
+            <span className="text-color-muted mr-1">Total Launched:</span> {markets.length}
+          </span>
+        </div>
         
         {markets.length === 0 ? (
           <div className="bg-[#12141A] border border-color-border/50 rounded-2xl p-10 text-center">
@@ -316,6 +424,90 @@ export default function ProfilePage({ params }: PageProps) {
         </div>
       )}
 
+      {isEditing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-[#12141A] border border-color-border/50 rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-bold text-white mb-4">Edit Profile</h2>
+            
+            {errorMsg && (
+              <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-2 rounded-lg mb-4 text-sm">
+                {errorMsg}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="block text-color-muted text-sm mb-1">Avatar</label>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full overflow-hidden bg-[#161A22] border-2 border-color-buy/30">
+                    <img 
+                      src={editAvatarPreview || `https://api.dicebear.com/7.x/identicon/svg?seed=${address}`} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange}
+                  />
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-3 py-1.5 text-sm bg-[#161A22] border border-color-border/50 text-white rounded hover:border-color-buy/50 transition-colors"
+                  >
+                    Upload Image
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-color-muted text-sm mb-1">Username</label>
+                <input 
+                  type="text" 
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
+                  className="w-full bg-[#161A22] border border-color-border/50 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-color-buy/50"
+                  placeholder="Enter username"
+                  maxLength={50}
+                />
+              </div>
+
+              <div>
+                <label className="block text-color-muted text-sm mb-1">Bio</label>
+                <textarea 
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  className="w-full bg-[#161A22] border border-color-border/50 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-color-buy/50 resize-none h-24"
+                  placeholder="Tell us about yourself..."
+                  maxLength={160}
+                />
+                <div className="text-right text-xs text-color-muted mt-1">
+                  {editBio.length}/160
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-2">
+                <button 
+                  onClick={() => setIsEditing(false)}
+                  disabled={isSaving}
+                  className="px-4 py-2 text-color-muted hover:text-white transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleSaveProfile}
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-color-buy text-black font-semibold rounded-lg hover:bg-emerald-400 transition-colors disabled:opacity-50"
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
