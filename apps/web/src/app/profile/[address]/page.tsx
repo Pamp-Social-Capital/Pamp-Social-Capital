@@ -117,7 +117,7 @@ export default function ProfilePage({ params }: PageProps) {
         finalAvatarUrl = data.publicUrl;
       }
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('walletToken');
       if (!token) throw new Error("Please connect your wallet and authenticate first");
 
       const response = await fetch(`${API_URL}/api/users/me`, {
