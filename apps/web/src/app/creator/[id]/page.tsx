@@ -21,7 +21,7 @@ export default function CreatorPage({ params }: PageProps) {
   const sdk = useSocialCapital();
   const [onChainMarket, setOnChainMarket] = useState<any>(null);
   const [isChainLoading, setIsChainLoading] = useState(true);
-  const [chartResolution, setChartResolution] = useState("1m");
+  const [chartResolution, setChartResolution] = useState("5m");
   
   // Fetch from database API
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
