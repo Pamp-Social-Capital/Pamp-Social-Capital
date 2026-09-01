@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#07090c] text-white overflow-hidden font-sans">
       
       <style>{`
         @keyframes pulse-beam-x {
@@ -33,7 +33,7 @@ export default function LandingPage() {
       {/* Neon Grid Background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden flex justify-center">
         {/* Dark Overlay to fade the edges of the grid */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,#0B0E14_80%)] z-10" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,#07090c_80%)] z-10" />
         
         {/* The Static Grid Pattern */}
         <div 
@@ -116,7 +116,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <Link 
               href="/dashboard" 
-              className="bg-color-buy text-[#0B0E14] font-semibold px-8 py-4 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2"
+              className="bg-color-buy text-[#07090c] font-semibold px-8 py-4 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2"
             >
               Launch App
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -175,7 +175,7 @@ export default function LandingPage() {
             <div className="relative bg-[#161A22]/50 backdrop-blur-xl border border-white/10 rounded-3xl p-12 overflow-hidden flex items-center justify-center aspect-square shadow-2xl">
               {/* Floating Element */}
               <div className="w-40 h-40 bg-gradient-to-br from-color-buy to-emerald-700 rounded-3xl rotate-12 shadow-[0_0_50px_rgba(34,197,94,0.4)] flex items-center justify-center animate-bounce duration-[3000ms]">
-                 <svg className="w-16 h-16 text-[#0B0E14]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                 <svg className="w-16 h-16 text-[#07090c]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
               </div>
             </div>
           </div>
@@ -221,7 +221,7 @@ export default function LandingPage() {
                       </div>
                     </div>
                     {/* Floating pill */}
-                    <div className="absolute -right-4 -top-4 bg-color-buy text-[#0B0E14] px-4 py-2 rounded-full font-bold text-sm shadow-[0_0_20px_rgba(34,197,94,0.4)] animate-pulse">
+                    <div className="absolute -right-4 -top-4 bg-color-buy text-[#07090c] px-4 py-2 rounded-full font-bold text-sm shadow-[0_0_20px_rgba(34,197,94,0.4)] animate-pulse">
                       + 45.2 SOL
                     </div>
                   </div>
@@ -367,7 +367,7 @@ export default function LandingPage() {
             <div className="mt-24 text-center">
                <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">READY TO CLAIM WHAT'S YOURS?</h2>
                <p className="text-color-muted max-w-xl mx-auto mb-8 font-light">We set it all up. You need an audience and a Solana wallet. We handle the rest — permanently, on-chain.</p>
-               <Link href="/dashboard" className="bg-color-buy text-[#0B0E14] font-bold px-8 py-4 rounded-full hover:bg-opacity-90 transition-all inline-block">
+               <Link href="/dashboard" className="bg-color-buy text-[#07090c] font-bold px-8 py-4 rounded-full hover:bg-opacity-90 transition-all inline-block">
                  APPLY AS A CREATOR
                </Link>
             </div>
@@ -381,7 +381,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 text-lg font-bold text-white">
             <div className="w-5 h-5 rounded-sm bg-color-buy flex items-center justify-center transform rotate-45">
-              <div className="w-2.5 h-2.5 bg-[#0B0E14] rounded-sm transform -rotate-45" />
+              <div className="w-2.5 h-2.5 bg-[#07090c] rounded-sm transform -rotate-45" />
             </div>
             PumpSocial
           </div>

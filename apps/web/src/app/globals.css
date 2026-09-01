@@ -2,7 +2,7 @@
 
 :root {
   /* Sleek Dark Mode strictly */
-  --background: #0B0E14;
+  --background: #07090c;
   --foreground: #F0F0F0;
   --card-bg: #161A22;
   --border-color: #232832;
@@ -40,9 +40,17 @@ body {
 }
 
 @keyframes pulse-slow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
+
 .pulse-slow {
   animation: pulse-slow 3s ease-in-out infinite;
 }

@@ -32,7 +32,7 @@ export default function ProtocolDashboard() {
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8">
         <div className="mb-8 border-b border-color-border pb-6 mt-4">
           <h1 className="text-3xl font-black text-white uppercase tracking-tight flex items-center gap-3">
-            <div className="w-10 h-10 bg-color-buy rounded-xl flex items-center justify-center text-[#0B0E14]">
+            <div className="w-10 h-10 bg-color-buy rounded-xl flex items-center justify-center text-[#07090c]">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
             </div>
             Protocol Dashboard
@@ -52,8 +52,7 @@ export default function ProtocolDashboard() {
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               
-              <div className="bg-color-card border border-color-border rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
+              <div className="bg-[#12141A] border border-color-border/50 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
                 <p className="text-color-muted text-sm font-semibold mb-2 uppercase tracking-wide">Total Protocol Fees</p>
                 <p className="text-3xl font-black text-white">{feesSol} <span className="text-xl text-color-muted font-bold">SOL</span></p>
                 <div className="mt-4 pt-4 border-t border-color-border/50 flex items-center justify-between text-xs text-color-muted">
@@ -62,8 +61,7 @@ export default function ProtocolDashboard() {
                 </div>
               </div>
 
-              <div className="bg-color-card border border-color-border rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
+              <div className="bg-[#12141A] border border-color-border/50 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
                 <p className="text-color-muted text-sm font-semibold mb-2 uppercase tracking-wide">Total SOL Deployed</p>
                 <p className="text-3xl font-black text-white">{buybackSol} <span className="text-xl text-color-muted font-bold">SOL</span></p>
                 <div className="mt-4 pt-4 border-t border-color-border/50 flex items-center justify-between text-xs text-color-muted">
@@ -72,8 +70,7 @@ export default function ProtocolDashboard() {
                 </div>
               </div>
 
-              <div className="bg-color-card border border-color-border rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
+              <div className="bg-[#12141A] border border-color-border/50 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
                 <p className="text-color-muted text-sm font-semibold mb-2 uppercase tracking-wide">$PSC Acquired</p>
                 <p className="text-3xl font-black text-white">{pscBought} <span className="text-xl text-color-muted font-bold">$PSC</span></p>
                 <div className="mt-4 pt-4 border-t border-color-border/50 flex items-center justify-between text-xs text-color-muted">
@@ -82,8 +79,7 @@ export default function ProtocolDashboard() {
                 </div>
               </div>
 
-              <div className="bg-color-card border border-color-border rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-color-sell/10 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
+              <div className="bg-[#12141A] border border-color-border/50 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
                 <p className="text-color-muted text-sm font-semibold mb-2 uppercase tracking-wide">$PSC Burned</p>
                 <p className="text-3xl font-black text-white">{pscBurned} <span className="text-xl text-color-muted font-bold">$PSC</span></p>
                 <div className="mt-4 pt-4 border-t border-color-border/50 flex items-center justify-between text-xs text-color-muted">
@@ -97,7 +93,7 @@ export default function ProtocolDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
               {/* Fee Inflows */}
-              <div className="bg-color-card border border-color-border rounded-2xl p-6 shadow-xl flex flex-col h-[500px]">
+              <div className="bg-[#12141A] border border-color-border/50 rounded-2xl p-6 shadow-xl flex flex-col h-[500px]">
                 <h2 className="text-xl font-bold text-white mb-4 border-b border-color-border/50 pb-2 flex justify-between items-center">
                   Protocol Fee Inflows
                   <span className="text-xs font-normal text-color-muted bg-[#161A22] px-2 py-1 rounded">Live from On-Chain</span>
@@ -124,7 +120,7 @@ export default function ProtocolDashboard() {
               </div>
 
               {/* Keeper Logs */}
-              <div className="bg-color-card border border-color-border rounded-2xl p-6 shadow-xl flex flex-col h-[500px]">
+              <div className="bg-[#12141A] border border-color-border/50 rounded-2xl p-6 shadow-xl flex flex-col h-[500px]">
                 <h2 className="text-xl font-bold text-white mb-4 border-b border-color-border/50 pb-2 flex justify-between items-center">
                   Keeper Execution Logs
                   <span className="text-xs font-normal text-color-muted bg-[#161A22] px-2 py-1 rounded">Every 6 Hours</span>
@@ -147,7 +143,7 @@ export default function ProtocolDashboard() {
                               {new Date(log.createdAt).toLocaleString()}
                             </span>
                           </div>
-                          <div className="text-sm text-color-muted font-mono bg-[#0B0E14] p-2 rounded-lg break-words">
+                          <div className="text-sm text-color-muted font-mono bg-[#07090c] p-2 rounded-lg break-words">
                             {isSkipped && details.reason && `Reason: ${details.reason} (Vault: ${(details.vaultBalance / 1e9).toFixed(4)} SOL)`}
                             {isSuccess && `Spent: ${(details.solSpent / 1e9).toFixed(4)} SOL | Burned: ${(details.pscReceived / 1e6).toFixed(2)} PSC`}
                             {!isSkipped && !isSuccess && (log.errorMessage || "Unknown Error")}

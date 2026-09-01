@@ -14,7 +14,7 @@ export const BottomNav = () => {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 w-full bg-[#0B0E14] border-t border-color-border z-50 px-6 py-3 pb-safe flex justify-between items-center">
+    <div className="md:hidden fixed bottom-0 left-0 w-full bg-[#07090c] border-t border-color-border z-50 px-6 py-3 pb-safe flex justify-between items-center">
       {navItems.map((item) => {
         const isActive = pathname === item.path || (item.path !== "/" && pathname.startsWith(item.path));
         return (

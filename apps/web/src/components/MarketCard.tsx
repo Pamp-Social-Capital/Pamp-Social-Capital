@@ -33,7 +33,7 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
 
   return (
     <Link href={`/creator/${market.marketPda}`} className="block h-full">
-      <div className="bg-color-card rounded-xl p-5 hover:bg-white/5 transition-colors border border-transparent hover:border-color-border group flex flex-col justify-between h-full">
+      <div className="bg-[#12141A] rounded-xl p-5 hover:bg-white/5 transition-colors border border-color-border/50 hover:border-color-border group flex flex-col justify-between h-full shadow-lg">
         {/* Header: Avatar, Name, Followers, Action Button */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -66,21 +66,15 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {market.claimed === false && (
+            {market.claimed === false ? (
               <span className="bg-amber-500/15 text-amber-400 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide">UNCLAIMED</span>
+            ) : (
+              <div className="text-color-buy" title="Verified Creator">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M15.616 3.268L12 .186L8.383 3.268l-4.737.378l-.378 4.737L.186 12l3.082 3.617l.378 4.737l4.737.378l3.616 3.082l3.617-3.082l4.737-.378l.378-4.737L23.813 12l-3.082-3.617l-.378-4.737zM11 16.414L6.585 12L8 10.586l3 3l5.5-5.5L17.914 9.5z"/></svg>
+              </div>
             )}
-            <button className="bg-color-buy/10 text-color-buy px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-color-buy hover:text-color-background transition-colors">
-              Buy Keys
-            </button>
           </div>
         </div>
-
-        {/* Description */}
-        {market.description && (
-          <div className="text-color-muted text-xs mb-6 line-clamp-2 italic">
-            "{market.description}"
-          </div>
-        )}
 
         {/* Main Metric & Sparkline */}
         <div className="flex items-end justify-between mb-8 mt-auto">

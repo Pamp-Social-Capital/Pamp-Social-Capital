@@ -67,7 +67,7 @@ export default function CreatorPage({ params }: PageProps) {
     return (
       <div className="flex flex-col gap-6 pb-12 animate-pulse">
         {/* Header Skeleton */}
-        <div className="flex items-center gap-6 bg-color-card p-6 rounded-2xl border border-color-border shadow-lg">
+        <div className="flex items-center gap-6 bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg">
           <div className="w-24 h-24 rounded-full bg-white/5"></div>
           <div className="flex-1">
             <div className="h-8 w-48 bg-white/5 rounded mb-3"></div>
@@ -81,12 +81,12 @@ export default function CreatorPage({ params }: PageProps) {
         
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2 flex flex-col gap-6">
-            <div className="h-[500px] bg-color-card rounded-2xl border border-color-border"></div>
-            <div className="h-[300px] bg-color-card rounded-2xl border border-color-border"></div>
+            <div className="h-[500px] bg-[#12141A] rounded-2xl border border-color-border/50"></div>
+            <div className="h-[300px] bg-[#12141A] rounded-2xl border border-color-border/50"></div>
           </div>
           <div className="flex flex-col gap-6">
-            <div className="h-[400px] bg-color-card rounded-2xl border border-color-border"></div>
-            <div className="h-[200px] bg-color-card rounded-2xl border border-color-border"></div>
+            <div className="h-[400px] bg-[#12141A] rounded-2xl border border-color-border/50"></div>
+            <div className="h-[200px] bg-[#12141A] rounded-2xl border border-color-border/50"></div>
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@ export default function CreatorPage({ params }: PageProps) {
       {finalMarket && <CreatorDashboard marketPda={id as string} creatorWallet={onChainMarket?.creatorWallet?.toBase58() || ""} claimed={!!finalMarket.claimed} twitterHandle={finalMarket.twitterHandle || ""} />}
       
       {/* Header Profile */}
-      <div className="flex items-center gap-6 bg-color-card p-6 rounded-2xl border border-color-border shadow-lg">
+      <div className="flex items-center gap-6 bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg">
         <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-inner overflow-hidden">
           {finalMarket.avatarUrl ? (
             <img src={finalMarket.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -166,14 +166,14 @@ export default function CreatorPage({ params }: PageProps) {
               target="_blank" 
               rel="noopener noreferrer"
               title="View on Solscan"
-              className="p-1 bg-[#161A22] text-color-muted hover:text-white border border-color-border rounded transition-colors flex items-center justify-center"
+              className="p-1 bg-[#161A22] text-color-muted hover:text-white border border-color-border/50 rounded transition-colors flex items-center justify-center"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
             </a>
             <button
               onClick={() => navigator.clipboard.writeText(id as string)}
               title="Copy Address"
-              className="p-1 bg-[#161A22] text-color-muted hover:text-white border border-color-border rounded transition-colors flex items-center justify-center"
+              className="p-1 bg-[#161A22] text-color-muted hover:text-white border border-color-border/50 rounded transition-colors flex items-center justify-center"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
             </button>
@@ -185,7 +185,7 @@ export default function CreatorPage({ params }: PageProps) {
             </p>
           )}
           <div className="flex items-center gap-4 text-sm font-medium mt-4">
-            <span className="bg-[#161A22] border border-color-border px-3 py-1 rounded-full text-white">
+            <span className="bg-[#161A22] border border-color-border/50 px-3 py-1 rounded-full text-white">
               <span className="text-color-muted mr-1">Keys:</span> {supply.toLocaleString()}
             </span>
             <span className={`border px-3 py-1 rounded-full ${finalMarket.claimed ? 'bg-color-buy/10 border-color-buy/30 text-color-buy' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'}`}>
@@ -198,7 +198,7 @@ export default function CreatorPage({ params }: PageProps) {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 flex flex-col gap-6">
           {/* Main Chart */}
-          <section className="bg-color-card border border-color-border p-6 rounded-2xl shadow-lg">
+          <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-xl font-bold text-white">Price History</h2>
@@ -227,13 +227,13 @@ export default function CreatorPage({ params }: PageProps) {
                 >1D</button>
               </div>
             </div>
-            <div className="w-full bg-[#0B0E14] border border-color-border rounded-xl h-[400px] overflow-hidden">
+            <div className="w-full bg-[#07090c] border border-color-border/50 rounded-xl h-[400px] overflow-hidden">
               <ChartComponent marketPda={id} resolution={chartResolution} />
             </div>
           </section>
 
           {/* Trade History */}
-          <section className="bg-color-card border border-color-border p-6 rounded-2xl shadow-lg">
+          <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
             <h2 className="text-xl font-bold text-white mb-6">Recent Trades</h2>
             <TradeHistoryComponent marketPda={id} />
           </section>
@@ -245,7 +245,7 @@ export default function CreatorPage({ params }: PageProps) {
 
           {/* Creator Profile Card */}
           {onChainMarket?.creatorWallet && (
-            <div className="bg-color-card border border-color-border p-6 rounded-2xl shadow-lg hover:border-indigo-500/50 transition-colors group">
+            <div className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg hover:border-indigo-500/50 transition-colors group">
               <h2 className="text-lg font-bold text-white mb-4 flex items-center justify-between">
                 Creator Profile
                 {finalMarket.claimed ? (
@@ -286,18 +286,18 @@ export default function CreatorPage({ params }: PageProps) {
           )}
 
           {/* Market Stats */}
-          <div className="bg-color-card rounded-2xl p-6 border border-color-border shadow-lg">
+          <div className="bg-[#12141A] rounded-2xl p-6 border border-color-border/50 shadow-lg">
             <h2 className="text-lg font-bold text-white mb-4">Market Stats</h2>
             <div className="flex flex-col gap-4 text-sm">
-              <div className="flex justify-between border-b border-color-border pb-3">
+              <div className="flex justify-between border-b border-color-border/50 pb-3">
                 <span className="text-color-muted">Market Cap</span>
                 <span className="font-semibold text-white">{mcap} SOL</span>
               </div>
-              <div className="flex justify-between border-b border-color-border pb-3">
+              <div className="flex justify-between border-b border-color-border/50 pb-3">
                 <span className="text-color-muted">Total Reserve</span>
                 <span className="font-semibold text-white">{reserve} SOL</span>
               </div>
-              <div className="flex justify-between border-b border-color-border pb-3">
+              <div className="flex justify-between border-b border-color-border/50 pb-3">
                 <span className="text-color-muted">Creator Fee</span>
                 <span className="font-semibold text-white">0.30%</span>
               </div>

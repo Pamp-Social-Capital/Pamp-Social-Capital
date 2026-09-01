@@ -16,14 +16,15 @@ interface UserWithdrawal {
   };
 }
 
-export const UserWithdrawalHistoryComponent = () => {
+export const UserWithdrawalHistoryComponent = ({ address }: { address?: string }) => {
   const { publicKey } = useWallet();
+  const targetAddress = address || publicKey?.toBase58();
   const [withdrawals, setWithdrawals] = useState<UserWithdrawal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!publicKey) {
+    if (!targetAddress) {
       setLoading(false);
       return;
     }
@@ -31,7 +32,7 @@ export const UserWithdrawalHistoryComponent = () => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
     
     // Fetch user withdrawals
-    fetch(`${API_URL}/api/portfolio/${publicKey.toBase58()}/withdrawals`)
+    fetch(`${API_URL}/api/portfolio/${targetAddress}/withdrawals`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.withdrawals) {
@@ -46,9 +47,9 @@ export const UserWithdrawalHistoryComponent = () => {
         setError(true);
         setLoading(false);
       });
-  }, [publicKey]);
+  }, [targetAddress]);
 
-  if (!publicKey) return null;
+  if (!targetAddress) return null;
 
   if (loading) {
     return (

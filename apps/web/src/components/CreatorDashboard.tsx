@@ -327,7 +327,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
           </div>
         </div>
 
-        <div className="bg-[#0B0E14]/50 rounded-xl p-4 border border-amber-500/20 mb-4">
+        <div className="bg-[#07090c]/50 rounded-xl p-4 border border-amber-500/20 mb-4">
           <table className="w-full text-sm">
             <tbody>
               <tr className="border-b border-amber-500/10">
@@ -401,15 +401,15 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-[#0B0E14]/50 rounded-xl p-4 border border-indigo-500/20">
+        <div className="bg-[#07090c]/50 rounded-xl p-4 border border-indigo-500/20">
           <div className="text-indigo-200/70 text-sm mb-1">Accumulated Fees</div>
           <div className="text-2xl font-bold text-white">{formattedBalance} SOL</div>
         </div>
-        <div className="bg-[#0B0E14]/50 rounded-xl p-4 border border-indigo-500/20">
+        <div className="bg-[#07090c]/50 rounded-xl p-4 border border-indigo-500/20">
           <div className="text-indigo-200/70 text-sm mb-1">Total Volume</div>
           <div className="text-2xl font-bold text-white">{formattedVolume} SOL</div>
         </div>
-        <div className="bg-[#0B0E14]/50 rounded-xl p-4 border border-indigo-500/20">
+        <div className="bg-[#07090c]/50 rounded-xl p-4 border border-indigo-500/20">
           <div className="text-indigo-200/70 text-sm mb-1">Unique Holders</div>
           <div className="text-2xl font-bold text-white">{holderCount}</div>
         </div>
@@ -418,7 +418,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
       {withdrawals.length > 0 && (
         <div className="mt-8">
           <h3 className="text-lg font-bold text-white mb-4">Withdrawal History</h3>
-          <div className="bg-[#0B0E14]/50 rounded-xl border border-indigo-500/20 overflow-hidden">
+          <div className="bg-[#07090c]/50 rounded-xl border border-indigo-500/20 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-gray-300">
                 <thead className="bg-indigo-900/20 text-indigo-300 text-xs uppercase font-semibold">

@@ -474,9 +474,9 @@ export default function ClaimPage() {
         {/* Steps Tracker */}
         <div className="w-full flex justify-between px-4 relative">
           <div className="absolute top-1/2 left-8 right-8 h-0.5 bg-color-border -z-10 -translate-y-1/2" />
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${publicKey ? "bg-color-buy text-[#0B0E14]" : "bg-[#161A22] border-2 border-color-muted text-color-muted"}`}>1</div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${(status === "AUTHENTICATED" || status === "SUCCESS") ? "bg-color-buy text-[#0B0E14]" : (publicKey ? "bg-[#161A22] border-2 border-color-buy text-color-buy" : "bg-[#161A22] border-2 border-color-muted text-color-muted")}`}>2</div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${status === "SUCCESS" ? "bg-color-buy text-[#0B0E14]" : (status === "AUTHENTICATED" ? "bg-[#161A22] border-2 border-color-buy text-color-buy" : "bg-[#161A22] border-2 border-color-muted text-color-muted")}`}>3</div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${publicKey ? "bg-color-buy text-[#07090c]" : "bg-[#161A22] border-2 border-color-muted text-color-muted"}`}>1</div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${(status === "AUTHENTICATED" || status === "SUCCESS") ? "bg-color-buy text-[#07090c]" : (publicKey ? "bg-[#161A22] border-2 border-color-buy text-color-buy" : "bg-[#161A22] border-2 border-color-muted text-color-muted")}`}>2</div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${status === "SUCCESS" ? "bg-color-buy text-[#07090c]" : (status === "AUTHENTICATED" ? "bg-[#161A22] border-2 border-color-buy text-color-buy" : "bg-[#161A22] border-2 border-color-muted text-color-muted")}`}>3</div>
         </div>
 
         {!publicKey ? (
@@ -488,7 +488,7 @@ export default function ClaimPage() {
           <div className="flex flex-col items-center gap-6 w-full mt-4">
             <div className="text-center">
               <p className="text-white font-semibold text-lg mb-1">Step 2: Authenticate</p>
-              <p className="text-color-muted text-xs break-all bg-[#0B0E14] border border-color-border px-3 py-2 rounded-lg font-mono">
+              <p className="text-color-muted text-xs break-all bg-[#07090c] border border-color-border px-3 py-2 rounded-lg font-mono">
                 {publicKey.toBase58()}
               </p>
             </div>
@@ -496,7 +496,7 @@ export default function ClaimPage() {
             <button
               onClick={handleClaim}
               disabled={status === "LOADING"}
-              className="w-full bg-color-buy text-[#0B0E14] font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-color-buy/20 shadow-lg"
+              className="w-full bg-color-buy text-[#07090c] font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-color-buy/20 shadow-lg"
             >
               {status === "LOADING" ? "Awaiting Signature..." : "Sign Challenge"}
             </button>
@@ -513,7 +513,7 @@ export default function ClaimPage() {
                 <div className="w-full bg-white/10 border border-white/30 rounded-xl p-4 flex items-center justify-center gap-2 mb-4">
                   <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
                   <span className="font-bold text-white">@{twitterHandle}</span>
-                  <span className="bg-color-buy text-[#0B0E14] text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">VERIFIED</span>
+                  <span className="bg-color-buy text-[#07090c] text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">VERIFIED</span>
                 </div>
               )}
             </div>
@@ -530,20 +530,20 @@ export default function ClaimPage() {
               <div className="w-full flex flex-col gap-4 text-left">
                 <div>
                   <label className="text-white text-sm font-semibold mb-1 block">Ticker *</label>
-                  <input type="text" value={ticker} onChange={e => setTicker(e.target.value)} placeholder={`e.g. $${twitterHandle?.toUpperCase()}`} className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                  <input type="text" value={ticker} onChange={e => setTicker(e.target.value)} placeholder={`e.g. $${twitterHandle?.toUpperCase()}`} className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
                 </div>
                 <div>
                   <label className="text-white text-sm font-semibold mb-1 block">Description</label>
-                  <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="About your community..." className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors resize-none h-20" />
+                  <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="About your community..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors resize-none h-20" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-white text-sm font-semibold mb-1 block">Website</label>
-                    <input type="text" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://..." className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
+                    <input type="text" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
                   </div>
                   <div>
                     <label className="text-white text-sm font-semibold mb-1 block">Telegram</label>
-                    <input type="text" value={telegramUrl} onChange={e => setTelegramUrl(e.target.value)} placeholder="https://t.me/..." className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
+                    <input type="text" value={telegramUrl} onChange={e => setTelegramUrl(e.target.value)} placeholder="https://t.me/..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
                   </div>
                 </div>
                 <div>
@@ -571,7 +571,7 @@ export default function ClaimPage() {
                         if (uploadError) setUploadError(null);
                       }} 
                       placeholder="Or paste image URL..." 
-                      className={`flex-1 bg-[#0B0E14] border ${uploadError ? 'border-red-500 focus:border-red-400' : 'border-color-border focus:border-color-buy'} rounded-lg p-3 text-white outline-none transition-colors text-sm`}
+                      className={`flex-1 bg-[#07090c] border ${uploadError ? 'border-red-500 focus:border-red-400' : 'border-color-border focus:border-color-buy'} rounded-lg p-3 text-white outline-none transition-colors text-sm`}
                     />
                   </div>
                   {uploadError && (
@@ -580,7 +580,7 @@ export default function ClaimPage() {
                 </div>
                 <div>
                   <label className="text-white text-sm font-semibold mb-1 block">Initial Buy (Keys)</label>
-                  <input type="number" min="0" value={initialBuyAmount} onChange={e => setInitialBuyAmount(e.target.value)} placeholder="0" className="w-full bg-[#0B0E14] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                  <input type="number" min="0" value={initialBuyAmount} onChange={e => setInitialBuyAmount(e.target.value)} placeholder="0" className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
                   <p className="text-color-muted text-xs mt-1">Optional. Buy keys in the same transaction to prevent snipers.</p>
                 </div>
                 

@@ -1,12 +1,16 @@
 "use client";
 
 import { MarketCard, Market } from "@/components/MarketCard";
+import { useState } from "react";
+import { Tabs } from "@/components/Tabs";
 import Link from "next/link";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState("overall");
+  
   const { data, error, isLoading } = useSWR(
     `${process.env.NEXT_PUBLIC_API_URL}/api/markets`, 
     fetcher
@@ -84,7 +88,7 @@ export default function Home() {
           </div>
 
           <div className="mt-8 lg:mt-0 z-10 flex flex-col sm:flex-row gap-4">
-            <button className="bg-white text-[#0B0E14] font-semibold px-6 py-2.5 rounded-full hover:bg-gray-200 transition-colors">
+            <button className="bg-white text-[#07090c] font-semibold px-6 py-2.5 rounded-full hover:bg-gray-200 transition-colors">
               Explore Markets
             </button>
             <Link href="/claim" className="glass-panel text-white font-semibold px-6 py-2.5 rounded-full hover:bg-white/10 transition-colors text-center">
@@ -96,12 +100,16 @@ export default function Home() {
 
       {/* Tabs and Filters */}
       <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-color-border pb-4 mt-4">
-        <div className="flex gap-6 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-          <button className="text-white font-semibold whitespace-nowrap bg-[#232832] px-4 py-1.5 rounded-lg">Overall Ranking</button>
-          <button className="text-color-muted hover:text-white font-medium whitespace-nowrap transition-colors px-2 py-1.5">Highest Volume</button>
-          <button className="text-color-muted hover:text-white font-medium whitespace-nowrap transition-colors px-2 py-1.5">Newest</button>
-          <button className="text-color-muted hover:text-white font-medium whitespace-nowrap transition-colors px-2 py-1.5">Most Holders</button>
-        </div>
+        <Tabs
+          tabs={[
+            { id: 'overall', label: 'Overall Ranking' },
+            { id: 'volume', label: 'Highest Volume' },
+            { id: 'newest', label: 'Newest' },
+            { id: 'holders', label: 'Most Holders' },
+          ]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
         
         <div className="flex items-center gap-3 w-full md:w-auto">
           <button className="glass-panel text-white px-4 py-1.5 rounded-lg flex items-center text-sm font-medium hover:bg-white/5 transition-colors">
@@ -120,7 +128,7 @@ export default function Home() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-color-card rounded-xl p-5 border border-color-border flex flex-col justify-between h-[200px] animate-pulse">
+              <div key={i} className="bg-[#12141A] rounded-xl p-5 border border-color-border/50 flex flex-col justify-between h-[200px] animate-pulse shadow-lg">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-white/5"></div>

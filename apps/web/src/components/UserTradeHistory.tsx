@@ -14,14 +14,15 @@ interface UserTrade {
   timestamp: string;
 }
 
-export const UserTradeHistoryComponent = () => {
+export const UserTradeHistoryComponent = ({ address }: { address?: string }) => {
   const { publicKey } = useWallet();
+  const targetAddress = address || publicKey?.toBase58();
   const [trades, setTrades] = useState<UserTrade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!publicKey) {
+    if (!targetAddress) {
       setLoading(false);
       return;
     }
@@ -29,7 +30,7 @@ export const UserTradeHistoryComponent = () => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
     
     // Fetch user trades
-    fetch(`${API_URL}/api/portfolio/${publicKey.toBase58()}/trades`)
+    fetch(`${API_URL}/api/portfolio/${targetAddress}/trades`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.trades) {
@@ -40,13 +41,13 @@ export const UserTradeHistoryComponent = () => {
         setLoading(false);
       })
       .catch(err => {
-        console.error("Failed to load user trades:", err);
+        console.error("Failed to fetch trades:", err);
         setError(true);
         setLoading(false);
       });
-  }, [publicKey]);
+  }, [targetAddress]);
 
-  if (!publicKey) return null;
+  if (!targetAddress) return null;
 
   if (loading) {
     return (

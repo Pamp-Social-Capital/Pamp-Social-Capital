@@ -35,7 +35,7 @@ export default function DocsPage() {
         <p className="leading-relaxed">
           The platform uses a Solana-first architecture. The backend is fast but the Solana program is always the single source of truth for balances and final pricing.
         </p>
-        <div className="bg-[#0B0E14] border border-white/10 p-6 rounded-xl font-mono text-sm text-color-buy overflow-x-auto">
+        <div className="bg-[#07090c] border border-white/10 p-6 rounded-xl font-mono text-sm text-color-buy overflow-x-auto">
           Wallet → Frontend → Backend API → Solana RPC → Anchor Program → Helius Webhook → Indexer → Postgres/Redis → Realtime WebSocket
         </div>
       </section>
@@ -70,7 +70,7 @@ export default function DocsPage() {
         <p className="leading-relaxed">
           Pricing is deterministic and calculated entirely on-chain using discrete quadratic pricing.
         </p>
-        <div className="bg-[#0B0E14] border border-white/10 p-6 rounded-xl font-mono text-lg text-center text-white">
+        <div className="bg-[#07090c] border border-white/10 p-6 rounded-xl font-mono text-lg text-center text-white">
           Price(s) = base + k × s²
         </div>
         <p className="text-sm text-color-muted mt-2">

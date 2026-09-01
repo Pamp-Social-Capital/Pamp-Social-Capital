@@ -41,7 +41,7 @@ export const TopNav = () => {
   }, [connected, publicKey]);
 
   return (
-    <header className="border-b border-color-border bg-[#0B0E14] sticky top-0 z-50">
+    <header className="border-b border-color-border bg-[#07090c] sticky top-0 z-50">
       <div className="w-full px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
         
         {/* Left Side: Logo & Navigation */}
@@ -54,9 +54,6 @@ export const TopNav = () => {
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-color-muted">
             <Link href="/dashboard" className="hover:text-white transition-colors">
               Markets
-            </Link>
-            <Link href="/portfolio" className="hover:text-white transition-colors">
-              Portfolio
             </Link>
             <Link href="/protocol" className="hover:text-white transition-colors">
               Protocol
@@ -81,7 +78,7 @@ export const TopNav = () => {
                   />
                 </div>
                 {wallet?.adapter?.icon && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#0B0E14] flex items-center justify-center">
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#07090c] flex items-center justify-center">
                     <img 
                       src={wallet.adapter.icon} 
                       alt={wallet.adapter.name} 
@@ -99,7 +96,7 @@ export const TopNav = () => {
               </button>
             </div>
           ) : (
-            <WalletMultiButton className="!bg-color-buy !text-[#0B0E14] !font-sans !font-semibold !text-sm !h-9 !px-5 !rounded-full hover:!opacity-90 transition-opacity" />
+            <WalletMultiButton className="!bg-color-buy !text-[#07090c] !font-sans !font-semibold !text-sm !h-9 !px-5 !rounded-full hover:!opacity-90 transition-opacity" />
           )}
         </div>
       </div>
