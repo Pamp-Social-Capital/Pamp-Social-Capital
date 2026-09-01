@@ -213,6 +213,20 @@ export default function ProfilePage({ params }: PageProps) {
     );
   }
 
+  // Show Empty State for non-existent profiles that have no activity, UNLESS they are the owner looking at their own profile
+  if (!isLoading && !userProfile && markets.length === 0 && positions.length === 0 && !isOwner) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8 bg-[#12141A] rounded-2xl border border-color-border/50">
+        <svg className="w-16 h-16 text-color-muted mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <h1 className="text-2xl font-bold text-white mb-2">User Not Found</h1>
+        <p className="text-color-muted max-w-md">This wallet has not registered a profile and has no market activity.</p>
+        <Link href="/" className="mt-6 px-6 py-2 bg-color-buy text-[#07090c] font-bold rounded-lg hover:opacity-90 transition-opacity">
+          Return Home
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-8 pb-12">
       {/* Profile Header */}

@@ -4,7 +4,9 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import bs58 from "bs58";
+import toast from "react-hot-toast";
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
@@ -12,9 +14,11 @@ const WalletMultiButton = dynamic(
 );
 
 export const TopNav = () => {
-  const { connected, publicKey, wallet, disconnect } = useWallet();
+  const { connected, publicKey, wallet, disconnect, signMessage } = useWallet();
   const [mounted, setMounted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const authPromptedRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -22,36 +26,83 @@ export const TopNav = () => {
 
   useEffect(() => {
     if (connected && publicKey) {
-      // Clear token if it doesn't match current wallet
-      try {
-        const token = localStorage.getItem("walletToken");
+      const authenticateAndFetch = async () => {
+        let token = localStorage.getItem("walletToken");
+        
+        // Clear stale token
         if (token) {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          if (payload.wallet !== publicKey.toBase58()) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.wallet !== publicKey.toBase58()) {
+              localStorage.removeItem("walletToken");
+              token = null;
+            }
+          } catch (e) {
             localStorage.removeItem("walletToken");
+            token = null;
           }
         }
-      } catch (e) {
-        localStorage.removeItem("walletToken");
-      }
 
-      const fetchProfile = async () => {
-        try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-          const res = await fetch(`${apiUrl}/api/users/${publicKey.toBase58()}/markets`);
-          const data = await res.json();
-          if (data.success && data.userProfile?.avatarUrl) {
-            setAvatarUrl(data.userProfile.avatarUrl);
+        // Trigger Sign Message if no valid token
+        if (!token && signMessage && !authPromptedRef.current && !isAuthenticating) {
+          authPromptedRef.current = true;
+          setIsAuthenticating(true);
+          const loadingId = toast.loading("Please sign the message to authenticate...");
+          try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+            const challengeRes = await fetch(`${apiUrl}/api/auth/challenge?wallet=${publicKey.toBase58()}`);
+            const challengeData = await challengeRes.json();
+            if (!challengeData.success) throw new Error("Failed to get challenge");
+            
+            const messageUint8 = new TextEncoder().encode(challengeData.message);
+            const signature = await signMessage(messageUint8);
+            
+            const verifyRes = await fetch(`${apiUrl}/api/auth/verify`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                wallet: publicKey.toBase58(),
+                message: challengeData.message,
+                signature: bs58.encode(signature)
+              })
+            });
+            
+            const verifyData = await verifyRes.json();
+            if (!verifyData.success) throw new Error("Verify failed");
+            
+            localStorage.setItem("walletToken", verifyData.token);
+            token = verifyData.token;
+            toast.success("Wallet authenticated successfully!", { id: loadingId });
+          } catch (e) {
+            console.error("Auth error:", e);
+            toast.error("Authentication required to use this app", { id: loadingId });
+            disconnect();
+          } finally {
+            setIsAuthenticating(false);
+            authPromptedRef.current = false;
           }
-        } catch (e) {
-          console.error("Failed to fetch user profile avatar:", e);
+        }
+
+        // Fetch profile
+        if (token) {
+          try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+            const res = await fetch(`${apiUrl}/api/users/${publicKey.toBase58()}/markets`);
+            const data = await res.json();
+            if (data.success && data.userProfile?.avatarUrl) {
+              setAvatarUrl(data.userProfile.avatarUrl);
+            }
+          } catch (e) {
+            console.error("Failed to fetch user profile avatar:", e);
+          }
         }
       };
-      fetchProfile();
+
+      authenticateAndFetch();
     } else {
       setAvatarUrl(null);
     }
-  }, [connected, publicKey]);
+  }, [connected, publicKey, signMessage, disconnect, isAuthenticating]);
 
   return (
     <header className="border-b border-color-border bg-[#07090c] sticky top-0 z-50">

@@ -182,15 +182,20 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
         
         currentUsername = newUsername;
         currentAvatarUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${wallet}`;
+        
+        await db.update(users)
+          .set({ 
+            nonce: null,
+            username: currentUsername,
+            avatarUrl: currentAvatarUrl
+          })
+          .where(eq(users.walletAddress, wallet));
+      } else {
+        // User already has a profile, just clear the nonce
+        await db.update(users)
+          .set({ nonce: null })
+          .where(eq(users.walletAddress, wallet));
       }
-
-      await db.update(users)
-        .set({ 
-          nonce: null,
-          username: currentUsername,
-          avatarUrl: currentAvatarUrl
-        })
-        .where(eq(users.walletAddress, wallet));
 
       // Generate JWT
       const jwtSecret = process.env.JWT_SECRET;
