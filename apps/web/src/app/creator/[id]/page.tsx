@@ -124,15 +124,26 @@ export default function CreatorPage({ params }: PageProps) {
       {finalMarket && <CreatorDashboard marketPda={id as string} creatorWallet={onChainMarket?.creatorWallet?.toBase58() || ""} claimed={!!finalMarket.claimed} twitterHandle={finalMarket.twitterHandle || ""} />}
       
       {/* Header Profile */}
-      <div className="flex items-center gap-6 bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg">
-        <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-inner overflow-hidden">
+      <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg overflow-hidden">
+        {finalMarket?.bannerUrl && (
+          <>
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25"
+              style={{ backgroundImage: `url(${finalMarket.bannerUrl})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#12141A] via-[#12141A]/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#12141A] via-transparent to-transparent sm:hidden" />
+          </>
+        )}
+        
+        <div className="relative z-10 w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-inner overflow-hidden flex-shrink-0 border-2 border-white/10">
           {finalMarket.avatarUrl ? (
             <img src={finalMarket.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
             creatorName.charAt(0).toUpperCase()
           )}
         </div>
-        <div>
+        <div className="relative z-10 w-full">
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
             {finalMarket.ticker || creatorName}
             
