@@ -64,7 +64,8 @@ export const usersRoutes = async (fastify: FastifyInstance) => {
     }
   });
 
-  fastify.put("/me", async (request, reply) => {
+  fastify.put("/:address/me", async (request, reply) => {
+    const { address } = request.params as { address: string };
     const authHeader = request.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return reply.status(401).send({ success: false, error: "Missing authorization header" });
@@ -85,6 +86,10 @@ export const usersRoutes = async (fastify: FastifyInstance) => {
     }
 
     const wallet = decoded.wallet;
+    if (wallet !== address) {
+      return reply.status(403).send({ success: false, error: "Wallet mismatch. Please disconnect and re-authenticate your wallet." });
+    }
+    
     const { username, avatarUrl, bio } = request.body as { username?: string, avatarUrl?: string, bio?: string };
 
     try {

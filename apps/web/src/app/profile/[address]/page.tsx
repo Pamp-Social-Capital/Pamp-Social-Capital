@@ -27,6 +27,7 @@ export default function ProfilePage({ params }: PageProps) {
   const [editAvatarPreview, setEditAvatarPreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -120,7 +121,7 @@ export default function ProfilePage({ params }: PageProps) {
       const token = localStorage.getItem('walletToken');
       if (!token) throw new Error("Please connect your wallet and authenticate first");
 
-      const response = await fetch(`${API_URL}/api/users/me`, {
+      const response = await fetch(`${API_URL}/api/users/${address}/me`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -139,7 +140,12 @@ export default function ProfilePage({ params }: PageProps) {
       }
 
       await mutateProfile();
+      setSuccessMsg("Profile updated successfully!");
       setIsEditing(false);
+      
+      setTimeout(() => {
+        setSuccessMsg("");
+      }, 3000);
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
@@ -421,6 +427,13 @@ export default function ProfilePage({ params }: PageProps) {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-[#1FC782]/20 border border-[#1FC782]/50 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 animate-bounce">
+          <svg className="w-5 h-5 text-[#1FC782]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+          <span className="font-medium">{successMsg}</span>
         </div>
       )}
 
