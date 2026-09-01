@@ -5,7 +5,75 @@ import { eq, and } from "drizzle-orm";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
 import jwt from "jsonwebtoken";
+import { uniqueNamesGenerator, adjectives, colors, animals, NumberDictionary } from "unique-names-generator";
 
+// Custom Web3 dictionary
+
+const cryptoAdjectives = [
+  "Based", "Degen", "Diamond", "Paper", "Moon", "Rug", "Savage", "Swift",
+  "Quiet", "Neon", "Cyber", "Quantum", "Alpha", "Beta", "Sigma", "Chad",
+  "Fresh", "Rare", "Epic", "Legendary", "Mystic", "Cosmic", "Galactic",
+  "Bullish", "Bearish", "Wicked", "Fearless", "Reckless", "Steady", "Volatile",
+  "Risky", "Smart", "Sharp", "Fast", "Lucky", "Unlucky", "Greedy", "Patient",
+  "Bold", "Brave", "Aggressive", "Tactical", "Strategic", "Sneaky", "Clever",
+  "Wild", "Crazy", "Insane", "Degenerate", "Unhinged", "Chaotic", "Cracked",
+  "Goated", "Woke", "Dank", "Lunar", "Moonbound", "Moonshot", "Rugged",
+  "Jeeted", "Aped", "Rekt", "Unrekt", "Ultra", "Mega", "Super", "Hyper",
+  "Turbo", "Max", "Digital", "Virtual", "Synthetic", "Atomic", "Nuclear",
+  "Plasma", "Electric", "Binary", "Encrypted", "Decentralized", "Autonomous",
+  "Artificial", "Algorithmic", "Neural", "Holographic", "Infinite", "Parallel",
+  "Orbital", "Stellar", "Astral", "Interstellar", "Singular", "Dimensional",
+  "Mighty", "Powerful", "Supreme", "Ultimate", "Immortal", "Invincible",
+  "Unstoppable", "Dominant", "Royal", "Golden", "Platinum", "Titan", "Colossal",
+  "Massive", "Heavy", "Brutal", "Furious", "Deadly", "Dangerous", "Shadow",
+  "Dark", "Phantom", "Ghostly", "Hidden", "Secret", "Unknown", "Anonymous",
+  "Nameless", "Silent", "Invisible", "Obscure", "Arcane", "Cryptic", "Lost",
+  "Forgotten", "Void", "Null", "Rapid", "Sonic", "Lightning", "Flash",
+  "Velocity", "Supersonic", "Rocket", "Blazing", "Instant", "Frenzy", "Rush",
+  "Nitro", "Warp", "Warped", "UltraRare", "Mythic", "Mythical", "Epic",
+  "Ancient", "Eternal", "Timeless", "Primal", "Prime", "Genesis", "Origin",
+  "First", "OG", "Classic", "Exclusive", "Elite", "Frozen", "Blazing",
+  "Stormy", "Thunder", "Storm", "Volcanic", "Toxic", "Venomous", "Feral",
+  "Arctic", "Infernal", "Solar", "Solaris", "Oceanic", "Desert", "Jungle",
+  "Goofy", "Silly", "Nerdy", "Sleepy", "Hungry", "Broke", "Rich", "Poor",
+  "Clueless", "Fearful", "Hopeless", "Hopium", "Copium", "Maximum", "Minimum",
+  "Average", "Typical", "Random"
+];
+
+const cryptoNouns = [
+  "Ape", "Whale", "Shrimp", "Jeet", "Chad", "Frog", "Cat", "Dog", "Doge",
+  "Monkey", "Hunter", "Dodger", "Holder", "Hands", "Punk", "Ninja",
+  "Pirate", "Ghost", "Bear", "Bull", "Shark", "Tiger", "Dragon",
+  "Wolf", "Fox", "Lion", "Panther", "Leopard", "Cheetah", "Jaguar",
+  "Cobra", "Viper", "Snake", "Python", "Scorpion", "Spider", "Raven",
+  "Crow", "Hawk", "Eagle", "Falcon", "Owl", "Penguin", "Duck", "Goose",
+  "Swan", "Chicken", "Rooster", "Parrot", "Turtle", "Tortoise", "Rabbit",
+  "Bunny", "Hamster", "Mouse", "Rat", "Otter", "Beaver", "Badger", "Boar",
+  "Bison", "Buffalo", "Horse", "Stallion", "Goat", "Ram", "Sheep", "Cow",
+  "Pig", "Panda", "Koala", "Sloth", "Gorilla", "Orangutan", "Lemur",
+  "Meerkat", "Mongoose", "Dolphin", "Orca", "Manta", "Squid", "Octopus",
+  "Kraken", "Jellyfish", "Lobster", "Crab", "Piranha", "Marlin",
+  "Swordfish", "Phoenix", "Griffin", "Hydra", "Titan", "Giant", "Goblin",
+  "Wizard", "Mage", "Warlock", "Sorcerer", "Druid", "Demon", "Devil",
+  "Angel", "Valkyrie", "Samurai", "Ronin", "Shogun", "Oni", "Vampire",
+  "Werewolf", "Reaper", "Necromancer", "Trader", "Sniper", "Miner",
+  "Builder", "Dev", "Founder", "Farmer", "Staker", "Validator", "Node",
+  "Operator", "Watcher", "Scanner", "Researcher", "Analyst", "Strategist",
+  "Investor", "Collector", "Flipper", "Swapper", "Hodler", "Maxi", "Shiller",
+  "Caller", "Insider", "Arb", "Arbitrageur", "Hacker", "Coder", "Runner",
+  "Specter", "Cipher", "Encryptor", "Decryptor", "Bot", "Botter", "Script",
+  "Protocol", "Daemon", "Kernel", "Byte", "Bit", "Pixel", "Glitch", "Virus",
+  "Firewall", "Proxy", "Warrior", "Soldier", "Knight", "Assassin",
+  "Mercenary", "Gladiator", "Fighter", "Brawler", "Raider", "Ranger",
+  "Gunner", "Commander", "Captain", "General", "Warlord", "Conqueror",
+  "Rocket", "Moon", "Lambo", "Bag", "Bagholder", "Wallet", "Ledger",
+  "Block", "Chain", "Token", "Coin", "Gem", "Diamond", "Candle", "Chart",
+  "Pump", "Dump", "Rug", "Liquidity", "Pool", "Vault", "Bridge", "Oracle",
+  "Contract", "Hash", "Phantom", "Void", "Zero", "One", "Echo", "Nova",
+  "Orbit", "Comet", "Meteor", "Star", "Cosmos", "Galaxy", "Nebula",
+  "Pioneer", "Voyager", "Explorer", "Nomad", "Drifter", "Wanderer",
+  "Outlaw", "Rebel", "Renegade", "Maverick", "Legend", "Myth", "Oracle"
+];
 export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.get("/challenge", async (request, reply) => {
     const { wallet } = request.query as { wallet: string };
@@ -69,8 +137,60 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
         return reply.status(401).send({ success: false, error: "Invalid signature" });
       }
 
-      // Prevent replay attacks by clearing nonce
-      await db.update(users).set({ nonce: null }).where(eq(users.walletAddress, wallet));
+      // Prevent replay attacks and initialize default profile if needed
+      let currentUsername = user.username;
+      let currentAvatarUrl = user.avatarUrl;
+
+      if (!currentUsername) {
+        // Generate a highly unique, memecoin-style username
+        let isUnique = false;
+        let newUsername = "";
+        let attempts = 0;
+        
+        while (!isUnique && attempts < 10) {
+          // Combine crypto words with generic adjectives/colors for high entropy
+          const dicts = [
+            [cryptoAdjectives, adjectives, colors], // Pick one list for first word
+            [cryptoNouns, animals] // Pick one list for second word
+          ];
+          
+          const firstDict = dicts[0][Math.floor(Math.random() * dicts[0].length)];
+          const secondDict = dicts[1][Math.floor(Math.random() * dicts[1].length)];
+          
+          newUsername = uniqueNamesGenerator({
+            dictionaries: [firstDict, secondDict],
+            separator: '',
+            style: 'capital',
+            length: 2
+          });
+
+          // Check DB for collision
+          const existingUser = await db.query.users.findFirst({
+            where: eq(users.username, newUsername)
+          });
+          
+          if (!existingUser) {
+            isUnique = true;
+          }
+          attempts++;
+        }
+        
+        if (!isUnique) {
+          // Fallback if somehow 10 attempts failed (very rare)
+          newUsername = `User_${wallet.slice(0, 4)}${Math.floor(Math.random() * 1000)}`;
+        }
+        
+        currentUsername = newUsername;
+        currentAvatarUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${wallet}`;
+      }
+
+      await db.update(users)
+        .set({ 
+          nonce: null,
+          username: currentUsername,
+          avatarUrl: currentAvatarUrl
+        })
+        .where(eq(users.walletAddress, wallet));
 
       // Generate JWT
       const jwtSecret = process.env.JWT_SECRET;
@@ -117,7 +237,6 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
         user: {
           walletAddress: user.walletAddress,
           username: user.username || null,
-          twitterName: user.twitterName || null,
           avatarUrl: user.avatarUrl || null,
         }
       });
@@ -166,13 +285,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
       }
       
       if (!verifiedHandle) {
-        const user = await db.query.users.findFirst({
-          where: eq(users.walletAddress, wallet)
-        });
-        if (!user || !user.username) {
-          return reply.status(403).send({ error: "User has not linked their X account" });
-        }
-        verifiedHandle = user.username;
+        return reply.status(403).send({ error: "X account session expired or not provided. Please authenticate again." });
       }
 
       // 2. Fetch market to verify ownership (Check DB first, then fallback to RPC)

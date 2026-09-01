@@ -112,6 +112,9 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       redirectUrlObj.searchParams.append("oauth_token", oauthToken);
       redirectUrlObj.searchParams.append("handle", twitterHandle);
       redirectUrlObj.searchParams.append("name", twitterName);
+      if (avatarUrl) {
+        redirectUrlObj.searchParams.append("avatarUrl", avatarUrl);
+      }
       return reply.redirect(redirectUrlObj.toString());
       
     } catch (e) {
@@ -141,15 +144,6 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
         return reply.status(400).send({ success: false, error: "Invalid OAuth token type" });
       }
       
-      // Save link in DB (users table)
-      await db.update(users)
-        .set({ 
-          username: decodedOAuth.twitterHandle,
-          twitterName: decodedOAuth.twitterName,
-          avatarUrl: decodedOAuth.avatarUrl
-        })
-        .where(eq(users.walletAddress, decodedWallet.wallet));
-
       // Also update the cached avatar in creator_markets if it exists
       await db.update(creatorMarkets)
         .set({ 

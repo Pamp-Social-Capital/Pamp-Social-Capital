@@ -5,7 +5,6 @@ export const users = pgTable("users", {
   walletAddress: text("wallet_address").unique().notNull(),
   nonce: text("nonce"),
   username: text("username"),
-  twitterName: text("twitter_name"),
   avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

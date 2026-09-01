@@ -20,9 +20,10 @@
     "drizzle-orm": "^0.30.9",
     "fastify": "^4.26.2",
     "jsonwebtoken": "^9.0.3",
+    "tsx": "^4.7.2",
     "tweetnacl": "^1.0.3",
     "twitter-api-v2": "^1.29.1",
-    "tsx": "^4.7.2"
+    "unique-names-generator": "^4.7.1"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",

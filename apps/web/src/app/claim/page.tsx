@@ -20,6 +20,8 @@ export default function ClaimPage() {
   const [status, setStatus] = useState<"IDLE" | "LOADING" | "AUTHENTICATED" | "SUCCESS" | "ERROR">("IDLE");
   const [message, setMessage] = useState<string>("");
   const [twitterHandle, setTwitterHandle] = useState("");
+  const [twitterName, setTwitterName] = useState("");
+  const [twitterAvatar, setTwitterAvatar] = useState("");
   const [oauthToken, setOauthToken] = useState("");
   const [isXLinked, setIsXLinked] = useState(false);
   const [createdMarketPda, setCreatedMarketPda] = useState("");
@@ -123,6 +125,8 @@ export default function ClaimPage() {
       const params = new URLSearchParams(window.location.search);
       const token = params.get("oauth_token");
       const handle = params.get("handle");
+      const name = params.get("name");
+      const avatarUrl = params.get("avatarUrl");
 
       if (token && handle) {
         const linkTwitter = async () => {
@@ -158,7 +162,7 @@ export default function ClaimPage() {
 
             if (isPopup) {
               if (window.opener) {
-                window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle }, '*');
+                window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle, name, avatarUrl }, '*');
               }
               window.close();
               return;
@@ -213,6 +217,8 @@ export default function ClaimPage() {
 
         setOauthToken(event.data.token);
         setTwitterHandle(handle);
+        if (event.data.name) setTwitterName(event.data.name);
+        if (event.data.avatarUrl) setTwitterAvatar(event.data.avatarUrl);
         setIsXLinked(true);
         setStatus("AUTHENTICATED");
         toast.success("X account linked successfully!");
@@ -396,7 +402,9 @@ export default function ClaimPage() {
               websiteUrl,
               telegramUrl,
               bannerUrl,
-              txSignature: typeof txSig === 'string' ? txSig : undefined
+              txSignature: typeof txSig === 'string' ? txSig : undefined,
+              twitterName,
+              avatarUrl: twitterAvatar
             })
           });
         } catch (e) {

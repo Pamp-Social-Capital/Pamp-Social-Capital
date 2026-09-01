@@ -308,20 +308,16 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       
       const creatorWalletStr = marketState.creatorWallet.toString();
       
-      // Try to find the user in DB by twitterHandle (case-insensitive)
-      const userRecord = await db.query.users.findFirst({
-        where: (users, { sql }) => sql`lower(${users.username}) = lower(${twitterHandle})`
-      });
-
-      const body = request.body as { ticker?: string, websiteUrl?: string, telegramUrl?: string, description?: string, bannerUrl?: string, txSignature?: string } | undefined;
+      // Twitter profile metadata (name, avatar) can now be passed from the frontend.
+      const body = request.body as { ticker?: string, websiteUrl?: string, telegramUrl?: string, description?: string, bannerUrl?: string, txSignature?: string, twitterName?: string, avatarUrl?: string } | undefined;
 
       await db.insert(creatorMarkets).values({
         marketPda: pda,
         twitterHandle: twitterHandle,
-        twitterName: userRecord?.twitterName || null,
+        twitterName: body?.twitterName || null,
         creatorIdHex: Buffer.from(marketState.creatorId).toString('hex'),
         creatorWallet: creatorWalletStr,
-        avatarUrl: userRecord?.avatarUrl || null,
+        avatarUrl: body?.avatarUrl || null,
         supply: marketState.supply.toNumber(),
         reserveLamports: marketState.reserveLamports.toNumber(),
         totalVolumeLamports: "0",
@@ -345,6 +341,8 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
           ...(body?.description ? { description: body.description } : {}),
           ...(body?.bannerUrl ? { bannerUrl: body.bannerUrl } : {}),
           ...(body?.txSignature ? { txSignature: body.txSignature } : {}),
+          ...(body?.twitterName ? { twitterName: body.twitterName } : {}),
+          ...(body?.avatarUrl ? { avatarUrl: body.avatarUrl } : {}),
         }
       });
       
