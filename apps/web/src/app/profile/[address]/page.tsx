@@ -7,6 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { UserTradeHistoryComponent } from "@/components/UserTradeHistory";
 import { UserWithdrawalHistoryComponent } from "@/components/UserWithdrawalHistory";
 import { Tabs } from "@/components/Tabs";
+import bs58 from "bs58";
 
 interface PageProps {
   params: Promise<{ address: string }>;
@@ -16,7 +17,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ProfilePage({ params }: PageProps) {
   const { address } = use(params);
-  const { publicKey } = useWallet();
+  const { publicKey, signMessage } = useWallet();
   const isOwner = publicKey?.toBase58() === address;
   
   const [activeTab, setActiveTab] = useState<"keys" | "trades" | "withdrawals">("keys");
@@ -118,8 +119,39 @@ export default function ProfilePage({ params }: PageProps) {
         finalAvatarUrl = data.publicUrl;
       }
 
-      const token = localStorage.getItem('walletToken');
-      if (!token) throw new Error("Please connect your wallet and authenticate first");
+      let token = localStorage.getItem('walletToken');
+      
+      if (!token) {
+        if (!signMessage || !publicKey) throw new Error("Wallet not connected or does not support signing");
+        setErrorMsg("Authenticating wallet...");
+        
+        // 1. Get Challenge
+        const challengeRes = await fetch(`${API_URL}/api/auth/challenge?wallet=${publicKey.toBase58()}`);
+        const challengeData = await challengeRes.json();
+        if (!challengeData.success) throw new Error("Failed to get authentication challenge");
+        
+        setErrorMsg("Please sign the message in your wallet...");
+        const messageUint8 = new TextEncoder().encode(challengeData.message);
+        const signature = await signMessage(messageUint8);
+        
+        // 2. Verify
+        const verifyRes = await fetch(`${API_URL}/api/auth/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            wallet: publicKey.toBase58(),
+            message: challengeData.message,
+            signature: bs58.encode(signature)
+          })
+        });
+        
+        const verifyData = await verifyRes.json();
+        if (!verifyData.success) throw new Error(verifyData.error || "Failed to verify signature");
+        
+        token = verifyData.token;
+        localStorage.setItem("walletToken", token!);
+        setErrorMsg(""); // clear loading message
+      }
 
       const response = await fetch(`${API_URL}/api/users/${address}/me`, {
         method: "PUT",

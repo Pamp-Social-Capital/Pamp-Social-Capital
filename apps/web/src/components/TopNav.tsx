@@ -22,6 +22,19 @@ export const TopNav = () => {
 
   useEffect(() => {
     if (connected && publicKey) {
+      // Clear token if it doesn't match current wallet
+      try {
+        const token = localStorage.getItem("walletToken");
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.wallet !== publicKey.toBase58()) {
+            localStorage.removeItem("walletToken");
+          }
+        }
+      } catch (e) {
+        localStorage.removeItem("walletToken");
+      }
+
       const fetchProfile = async () => {
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
