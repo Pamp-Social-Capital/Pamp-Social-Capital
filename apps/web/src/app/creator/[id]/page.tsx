@@ -8,6 +8,7 @@ import { use, useState, useEffect } from "react";
 import useSWR from "swr";
 import { useSocialCapital } from "../../../hooks/useSocialCapital";
 import { PublicKey } from "@solana/web3.js";
+import Link from "next/link";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -241,6 +242,48 @@ export default function CreatorPage({ params }: PageProps) {
         {/* Right Sidebar */}
         <div className="flex flex-col gap-6">
           <TradingWidget marketPda={id} twitterHandle={finalMarket.twitterHandle} />
+
+          {/* Creator Profile Card */}
+          {onChainMarket?.creatorWallet && (
+            <div className="bg-color-card border border-color-border p-6 rounded-2xl shadow-lg hover:border-indigo-500/50 transition-colors group">
+              <h2 className="text-lg font-bold text-white mb-4 flex items-center justify-between">
+                Creator Profile
+                {finalMarket.claimed ? (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                    Verified
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/30 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Unclaimed
+                  </span>
+                )}
+              </h2>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-[#161A22] border-2 border-indigo-500/20 group-hover:border-indigo-500/50 transition-colors shrink-0">
+                  <img 
+                    src={finalMarket.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${onChainMarket.creatorWallet.toBase58()}`} 
+                    alt="Creator Avatar" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-bold truncate">@{handleUrl}</p>
+                  <p className="text-color-muted text-sm font-mono truncate mb-2 text-indigo-300">
+                    {onChainMarket.creatorWallet.toBase58().slice(0, 4)}...{onChainMarket.creatorWallet.toBase58().slice(-4)}
+                  </p>
+                  <Link 
+                    href={`/profile/${onChainMarket.creatorWallet.toBase58()}`}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    View History
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Market Stats */}
           <div className="bg-color-card rounded-2xl p-6 border border-color-border shadow-lg">

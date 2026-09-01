@@ -20,6 +20,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Pump Social Capital",
   description: "Terminal for social capital trading",
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({

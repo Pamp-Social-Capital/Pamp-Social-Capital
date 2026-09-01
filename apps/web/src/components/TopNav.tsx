@@ -16,9 +16,7 @@ export const TopNav = () => {
         {/* Left Side: Logo & Navigation */}
         <div className="flex items-center gap-10">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight text-white">
-            <div className="w-6 h-6 rounded-sm bg-color-buy flex items-center justify-center transform rotate-45">
-              <div className="w-3 h-3 bg-[#0B0E14] rounded-sm transform -rotate-45" />
-            </div>
+            <img src="/logo.png" alt="PumpSocial Logo" className="w-8 h-8 object-contain" />
             <span>PumpSocial</span>
           </Link>
           

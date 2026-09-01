@@ -48,14 +48,25 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
         const walletToken = localStorage.getItem("walletToken");
-        if (!walletToken) return;
+        if (!walletToken) {
+          setLinkedHandle(null);
+          return;
+        }
 
         const res = await fetch(`${API_URL}/api/auth/me`, {
           headers: { "Authorization": `Bearer ${walletToken}` }
         });
         const data = await res.json();
-        if (data.success && data.user?.username) {
+        
+        // Verify that the token actually belongs to the CURRENTLY connected wallet
+        if (data.success && data.user?.username && data.user?.walletAddress === publicKey.toBase58()) {
           setLinkedHandle(data.user.username);
+        } else {
+          // Stale session (token belongs to a different wallet than currently connected)
+          setLinkedHandle(null);
+          if (data.user?.walletAddress && data.user.walletAddress !== publicKey.toBase58()) {
+             localStorage.removeItem("walletToken"); // Clear stale token
+          }
         }
       } catch (e) {
         // silently ignore
@@ -329,7 +340,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
               </tr>
               <tr className="border-b border-amber-500/10">
                 <td className="py-2 text-amber-200/70">Status</td>
-                <td className="py-2 text-right"><span className="bg-amber-500/20 text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full">UNCLAIMED</span></td>
+                <td className="py-2 text-right"><span className="bg-amber-500/20 text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>PENDING CLAIM</span></td>
               </tr>
               <tr>
                 <td className="py-2 text-amber-200/70">Creator Wallet</td>
@@ -368,6 +379,10 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
             Creator Dashboard
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30 flex items-center gap-1">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+              Verified
+            </span>
           </h2>
           <p className="text-indigo-200/70 text-sm mt-1">Manage your market and accumulated fees.</p>
         </div>
