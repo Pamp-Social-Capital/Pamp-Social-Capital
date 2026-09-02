@@ -144,7 +144,7 @@ export const TopNav = () => {
               <Link href={`/profile/${publicKey.toBase58()}`} className="relative group block" title="Go to Profile">
                 <div className="w-10 h-10 rounded-full bg-[#161A22] border border-color-border overflow-hidden group-hover:border-indigo-500 transition-colors">
                   <img 
-                    src={avatarUrl || `https://api.dicebear.com/7.x/${getAvatarStyle(publicKey.toBase58())}/svg?seed=${publicKey.toBase58()}`} 
+                    src={avatarUrl || `https://api.dicebear.com/10.x/${getAvatarStyle(publicKey.toBase58())}/svg?seed=${publicKey.toBase58()}`} 
                     alt="User Avatar" 
                     className="w-full h-full object-cover"
                   />

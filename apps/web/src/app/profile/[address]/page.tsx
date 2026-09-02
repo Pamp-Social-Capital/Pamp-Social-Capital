@@ -243,7 +243,7 @@ export default function ProfilePage({ params }: PageProps) {
         
         <div className="w-28 h-28 rounded-full overflow-hidden bg-[#161A22] border-4 border-color-buy/30 shadow-xl">
           <img 
-            src={userProfile?.avatarUrl || `https://api.dicebear.com/7.x/${getAvatarStyle(address)}/svg?seed=${address}`} 
+            src={userProfile?.avatarUrl || `https://api.dicebear.com/10.x/${getAvatarStyle(address)}/svg?seed=${address}`} 
             alt="Creator Avatar" 
             className="w-full h-full object-cover"
           />
@@ -508,7 +508,7 @@ export default function ProfilePage({ params }: PageProps) {
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full overflow-hidden bg-[#161A22] border-2 border-color-buy/30">
                     <img 
-                      src={editAvatarPreview || `https://api.dicebear.com/7.x/${getAvatarStyle(address)}/svg?seed=${address}`} 
+                      src={editAvatarPreview || `https://api.dicebear.com/10.x/${getAvatarStyle(address)}/svg?seed=${address}`} 
                       alt="Preview" 
                       className="w-full h-full object-cover"
                     />

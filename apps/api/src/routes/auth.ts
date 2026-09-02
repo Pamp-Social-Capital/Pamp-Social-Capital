@@ -188,7 +188,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
         }
         
         currentUsername = newUsername;
-        currentAvatarUrl = `https://api.dicebear.com/7.x/${getAvatarStyle(wallet)}/svg?seed=${wallet}`;
+        currentAvatarUrl = `https://api.dicebear.com/10.x/${getAvatarStyle(wallet)}/svg?seed=${wallet}`;
         
         await db.update(users)
           .set({ 
