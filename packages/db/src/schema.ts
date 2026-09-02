@@ -98,11 +98,14 @@ export const feeWithdrawals = pgTable("fee_withdrawals", {
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
+// TODO: Add `marketPda` column to link each fee to a specific market,
+// enabling avatar display in the Protocol Fee Inflows UI.
 export const protocolFees = pgTable("protocol_fees", {
   id: uuid("id").primaryKey().defaultRandom(),
   network: text("network").notNull().default("devnet"),
   signature: text("signature").unique().notNull(),
   amount: bigint("amount", { mode: "number" }).notNull(), // lamports collected
+  // TODO: marketPda: text("market_pda") — add after updating indexer/webhook
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 

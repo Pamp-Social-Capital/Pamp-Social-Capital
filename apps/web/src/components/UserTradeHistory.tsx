@@ -51,26 +51,28 @@ export const UserTradeHistoryComponent = ({ address }: { address?: string }) => 
 
   if (loading) {
     return (
-      <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
+      <section className="bg-background border-y border-color-border py-6 shadow-lg transition-colors group overflow-x-auto -mx-4 lg:-mx-8">
         <div className="overflow-x-auto animate-pulse">
-          <table className="w-full text-left text-sm">
+          <table className="w-full min-w-[600px] text-left text-sm">
             <thead>
               <tr className="text-color-muted border-b border-color-border">
-                <th className="pb-4 font-medium"><div className="h-4 w-12 bg-white/5 rounded"></div></th>
+                <th className="pb-4 pl-4 lg:pl-8 font-medium"><div className="h-4 w-12 bg-white/5 rounded"></div></th>
                 <th className="pb-4 font-medium"><div className="h-4 w-16 bg-white/5 rounded"></div></th>
+                <th className="pb-4 font-medium"><div className="h-4 w-20 bg-white/5 rounded"></div></th>
                 <th className="pb-4 font-medium"><div className="h-4 w-24 bg-white/5 rounded"></div></th>
-                <th className="pb-4 font-medium"><div className="h-4 w-20 bg-white/5 rounded"></div></th>
-                <th className="pb-4 font-medium"><div className="h-4 w-20 bg-white/5 rounded"></div></th>
+                <th className="pb-4 font-medium"><div className="h-4 w-16 bg-white/5 rounded"></div></th>
+                <th className="pb-4 pr-4 lg:pr-8 font-medium"><div className="h-4 w-20 bg-white/5 rounded"></div></th>
               </tr>
             </thead>
-            <tbody>
-              {[1, 2, 3].map((i) => (
-                <tr key={i} className="border-b border-[#1A1F2B]">
+            <tbody className="text-white">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <tr key={i} className="border-b border-color-border/50">
+                  <td className="py-4 pl-4 lg:pl-8"><div className="h-4 w-10 bg-white/5 rounded"></div></td>
                   <td className="py-4"><div className="h-4 w-12 bg-white/5 rounded"></div></td>
-                  <td className="py-4"><div className="h-4 w-10 bg-white/5 rounded"></div></td>
-                  <td className="py-4"><div className="h-4 w-20 bg-white/5 rounded"></div></td>
                   <td className="py-4"><div className="h-4 w-16 bg-white/5 rounded"></div></td>
+                  <td className="py-4"><div className="h-4 w-24 bg-white/5 rounded"></div></td>
                   <td className="py-4"><div className="h-4 w-16 bg-white/5 rounded"></div></td>
+                  <td className="py-4 pr-4 lg:pr-8"><div className="h-4 w-20 bg-white/5 rounded"></div></td>
                 </tr>
               ))}
             </tbody>
@@ -82,7 +84,7 @@ export const UserTradeHistoryComponent = ({ address }: { address?: string }) => 
 
   if (error) {
     return (
-      <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
+      <section className="bg-background border border-color-border p-6 rounded-xl shadow-lg hover:border-color-buy/50 transition-colors group">
         <div className="text-center py-12 text-color-sell">Error loading trade history</div>
       </section>
     );
@@ -90,24 +92,24 @@ export const UserTradeHistoryComponent = ({ address }: { address?: string }) => 
 
   if (trades.length === 0) {
     return (
-      <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
-        <div className="text-center py-12 text-color-muted">No trade history found.</div>
+      <section className="bg-background border-y border-color-border py-6 shadow-lg transition-colors group overflow-x-auto -mx-4 lg:-mx-8">
+        <div className="text-center py-12 px-4 text-color-muted">No trades found. <br/><a href="/" className="text-color-buy hover:underline mt-2 inline-block">Explore Markets</a></div>
       </section>
     );
   }
 
   return (
-    <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
+    <section className="bg-background border-y border-color-border py-6 shadow-lg transition-colors group overflow-x-auto -mx-4 lg:-mx-8">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="w-full text-left text-sm min-w-[600px]">
           <thead>
             <tr className="text-color-muted border-b border-color-border">
-              <th className="pb-4 font-medium">Type</th>
+              <th className="pb-4 pl-4 lg:pl-8 font-medium">Type</th>
               <th className="pb-4 font-medium">Keys</th>
-              <th className="pb-4 font-medium">Amount (SOL)</th>
-              <th className="pb-4 font-medium">Market PDA</th>
+              <th className="pb-4 font-medium">SOL</th>
+              <th className="pb-4 font-medium">Market</th>
               <th className="pb-4 font-medium">Time</th>
-              <th className="pb-4 font-medium">Transaction</th>
+              <th className="pb-4 pr-4 lg:pr-8 font-medium">Transaction</th>
             </tr>
           </thead>
           <tbody className="text-white">
@@ -117,24 +119,30 @@ export const UserTradeHistoryComponent = ({ address }: { address?: string }) => 
             const timeAgo = new Date(trade.timestamp).toLocaleTimeString();
             const shortMarket = `${trade.marketPda.slice(0, 4)}...${trade.marketPda.slice(-4)}`;
             const marketName = trade.marketDetails?.twitterHandle || "Unknown Creator";
+            const avatarUrl = trade.marketDetails?.avatarUrl || `https://api.dicebear.com/10.x/bottts/svg?seed=${trade.marketPda}`;
 
             return (
-              <tr key={trade.signature} className="border-b border-[#1A1F2B] hover:bg-[#161A22] transition-colors">
-                <td className={`py-3 font-medium ${isBuy ? 'text-color-buy' : 'text-color-sell'}`}>
+              <tr key={trade.signature} className="border-b border-color-border/50 hover:bg-white/5 transition-colors">
+                <td className={`py-3 pl-4 lg:pl-8 font-medium ${isBuy ? 'text-color-buy' : 'text-color-sell'}`}>
                   {isBuy ? 'BUY' : 'SELL'}
                 </td>
                 <td className="py-3 text-white">{trade.amount}</td>
                 <td className="py-3 text-white">{amountSol}</td>
                 <td className="py-3 font-semibold hover:underline">
-                  <a href={`/creator/${trade.marketPda}`} className="flex flex-col">
-                    <span className="text-white text-base">{trade.marketDetails?.twitterHandle || "Unknown Creator"}</span>
-                    <span className="text-color-buy text-xs font-normal mt-0.5">{shortMarket}</span>
+                  <a href={`/creator/${trade.marketPda}`} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-color-border/50 bg-[#161A22]">
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-white text-base truncate">{marketName}</span>
+                      <span className="text-color-buy text-xs font-normal mt-0.5 truncate">{shortMarket}</span>
+                    </div>
                   </a>
                 </td>
                 <td className="py-3 text-color-muted whitespace-nowrap">
                   {timeAgo}
                 </td>
-                <td className="py-3 text-color-muted">
+                <td className="py-3 pr-4 lg:pr-8 text-color-muted">
                   <a href={`https://solscan.io/tx/${trade.signature}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet' ? '?cluster=devnet' : ''}`} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
                     {trade.signature.slice(0, 4)}...{trade.signature.slice(-4)}
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>

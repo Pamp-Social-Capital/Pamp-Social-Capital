@@ -7,6 +7,8 @@ import { CreatorDashboard } from "@/components/CreatorDashboard";
 import { use, useState, useEffect } from "react";
 import useSWR from "swr";
 import { useSocialCapital } from "../../../hooks/useSocialCapital";
+import { useWallet } from '@solana/wallet-adapter-react';
+import { ClaimBadge } from '@/components/ClaimBadge';
 import { PublicKey } from "@solana/web3.js";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -279,14 +281,7 @@ export default function CreatorPage({ params }: PageProps) {
             <div className="relative z-10 min-w-0">
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
             {creatorName}
-            {finalMarket.claimed === false ? (
-              <span className="bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide">UNCLAIMED</span>
-            ) : (
-              <div className="flex items-center gap-1 bg-color-buy/15 text-color-buy px-2 py-0.5 rounded-full" title="Verified Creator">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="currentColor" d="M15.616 3.268L12 .186L8.383 3.268l-4.737.378l-.378 4.737L.186 12l3.082 3.617l.378 4.737l4.737.378l3.616 3.082l3.617-3.082l4.737-.378l.378-4.737L23.813 12l-3.082-3.617l-.378-4.737zM11 16.414L6.585 12L8 10.586l3 3l5.5-5.5L17.914 9.5z"/></svg>
-                <span className="text-[10px] font-bold tracking-wide pt-[1px]">CLAIMED</span>
-              </div>
-            )}
+            <ClaimBadge claimed={finalMarket.claimed} />
           </h1>
           <div className="text-color-muted text-base mt-1 mb-2">@{handleUrl}</div>
           <div className="flex items-center gap-1.5 mt-1 mb-2">

@@ -1,0 +1,60 @@
+import React from 'react';
+import Link from 'next/link';
+
+interface TokensHeldTableProps {
+  positions: any[];
+}
+
+export const TokensHeldTable: React.FC<TokensHeldTableProps> = ({ positions }) => {
+  return (
+    <section className="bg-background border-y border-color-border py-6 shadow-lg transition-colors group overflow-x-auto -mx-4 lg:-mx-8">
+      {positions.length === 0 ? (
+         <div className="text-center py-12 text-color-muted">You do not own any creator keys yet. <br/><Link href="/" className="text-color-buy hover:underline mt-2 inline-block">Explore Markets</Link></div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="text-color-muted border-b border-color-border">
+                <th className="pb-4 pl-4 lg:pl-8 font-medium">Creator PDA</th>
+                <th className="pb-4 font-medium">Balance (Keys)</th>
+                <th className="pb-4 font-medium">Total Value (SOL)</th>
+                <th className="pb-4 pr-4 lg:pr-8 font-medium">PnL (SOL)</th>
+              </tr>
+            </thead>
+            <tbody className="text-white">
+              {positions.map((pos: any, i: number) => {
+                const valSol = (Number(pos.currentValueLamports) / 1e9).toFixed(4);
+                const pnlSol = (Number(pos.pnlLamports) / 1e9).toFixed(4);
+                const isPositive = Number(pos.pnlLamports) >= 0;
+                const shortMarket = `${pos.marketPda.substring(0,8)}...`;
+                const marketName = pos.marketDetails?.twitterHandle || "Unknown Creator";
+                const avatarUrl = pos.marketDetails?.avatarUrl || `https://api.dicebear.com/10.x/bottts/svg?seed=${pos.marketPda}`;
+                
+                return (
+                  <tr key={i} className="border-b border-color-border/50 hover:bg-white/5 transition-colors">
+                    <td className="py-4 pl-4 lg:pl-8 font-semibold hover:underline">
+                      <Link href={`/creator/${pos.marketPda}`} className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-color-border/50 bg-[#161A22]">
+                          <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-white text-base truncate">{marketName}</span>
+                          <span className="text-color-buy text-xs font-normal mt-0.5 truncate">{shortMarket}</span>
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="py-4">{pos.keyBalance}</td>
+                    <td className="py-4 font-medium">{valSol}</td>
+                    <td className={`py-4 pr-4 lg:pr-8 font-semibold ${isPositive ? 'text-color-buy' : 'text-color-sell'}`}>
+                      {isPositive ? '+' : ''}{pnlSol}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+};
