@@ -140,6 +140,13 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
       // Prevent replay attacks and initialize default profile if needed
       let currentUsername = user.username;
       let currentAvatarUrl = user.avatarUrl;
+      
+      const getAvatarStyle = (seed: string) => {
+        const styles = ["adventurer", "big-ears", "bottts", "bottts-neutral", "critters", "pixel-art", "voxel-art", "voxel-bot"];
+        let hash = 0;
+        for (let i = 0; i < Math.min(seed.length, 5); i++) hash += seed.charCodeAt(i);
+        return styles[hash % styles.length];
+      };
 
       if (!currentUsername) {
         // Generate a highly unique, memecoin-style username
@@ -181,7 +188,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
         }
         
         currentUsername = newUsername;
-        currentAvatarUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${wallet}`;
+        currentAvatarUrl = `https://api.dicebear.com/7.x/${getAvatarStyle(wallet)}/svg?seed=${wallet}`;
         
         await db.update(users)
           .set({ 

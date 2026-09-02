@@ -18,6 +18,14 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function CreatorPage({ params }: PageProps) {
   const { id } = use(params);
+  
+  const getAvatarStyle = (seed: string) => {
+    const styles = ["adventurer", "big-ears", "bottts", "bottts-neutral", "critters", "pixel-art", "voxel-art", "voxel-bot"];
+    let hash = 0;
+    for (let i = 0; i < Math.min(seed.length, 5); i++) hash += seed.charCodeAt(i);
+    return styles[hash % styles.length];
+  };
+
   const sdk = useSocialCapital();
   const [onChainMarket, setOnChainMarket] = useState<any>(null);
   const [isChainLoading, setIsChainLoading] = useState(true);
@@ -263,7 +271,7 @@ export default function CreatorPage({ params }: PageProps) {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-[#161A22] border-2 border-indigo-500/20 group-hover:border-indigo-500/50 transition-colors shrink-0">
                   <img 
-                    src={finalMarket.avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${onChainMarket.creatorWallet.toBase58()}`} 
+                    src={finalMarket.avatarUrl || `https://api.dicebear.com/7.x/${getAvatarStyle(onChainMarket.creatorWallet.toBase58())}/svg?seed=${onChainMarket.creatorWallet.toBase58()}`} 
                     alt="Creator Avatar" 
                     className="w-full h-full object-cover"
                   />

@@ -15,6 +15,13 @@ const WalletMultiButton = dynamic(
 
 export const TopNav = () => {
   const { connected, publicKey, wallet, disconnect, signMessage } = useWallet();
+  
+  const getAvatarStyle = (seed: string) => {
+    const styles = ["adventurer", "big-ears", "bottts", "bottts-neutral", "critters", "pixel-art", "voxel-art", "voxel-bot"];
+    let hash = 0;
+    for (let i = 0; i < Math.min(seed.length, 5); i++) hash += seed.charCodeAt(i);
+    return styles[hash % styles.length];
+  };
   const [mounted, setMounted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -137,7 +144,7 @@ export const TopNav = () => {
               <Link href={`/profile/${publicKey.toBase58()}`} className="relative group block" title="Go to Profile">
                 <div className="w-10 h-10 rounded-full bg-[#161A22] border border-color-border overflow-hidden group-hover:border-indigo-500 transition-colors">
                   <img 
-                    src={avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${publicKey.toBase58()}`} 
+                    src={avatarUrl || `https://api.dicebear.com/7.x/${getAvatarStyle(publicKey.toBase58())}/svg?seed=${publicKey.toBase58()}`} 
                     alt="User Avatar" 
                     className="w-full h-full object-cover"
                   />
