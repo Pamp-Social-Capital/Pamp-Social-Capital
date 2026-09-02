@@ -1,4 +1,5 @@
 # Pamp Social Capital
+https://x.com/pumpsocialcpt
 
 > **Disclaimer:** This repository is for educational and experimental purposes only. It is not financial advice, does not promote any "pump and dump" schemes, and should not be used to facilitate illegal financial activities or market manipulation.
 
