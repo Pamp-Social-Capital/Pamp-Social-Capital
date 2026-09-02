@@ -5,6 +5,7 @@ import "./globals.css";
 import { WalletContextProvider } from "@/components/WalletContextProvider";
 import { TopNav } from "@/components/TopNav";
 import { BottomNav } from "@/components/BottomNav";
+import { Footer } from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
@@ -42,6 +43,7 @@ export default function RootLayout({
             <main className="flex-grow w-full px-4 sm:px-8 lg:px-12 py-6 pb-24 md:pb-6">
               {children}
             </main>
+            <Footer />
             <BottomNav />
           </div>
         </WalletContextProvider>
