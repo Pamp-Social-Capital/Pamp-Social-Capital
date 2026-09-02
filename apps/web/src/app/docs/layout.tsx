@@ -15,7 +15,7 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
             <a href="#bonding-curve" className="text-color-muted hover:text-color-buy transition-colors">Bonding Curve Math</a>
             <a href="#flows" className="text-color-muted hover:text-color-buy transition-colors">Buy & Sell Flows</a>
             <a href="#fees" className="text-color-muted hover:text-color-buy transition-colors">Fee Architecture</a>
-            <a href="#backend" className="text-color-muted hover:text-color-buy transition-colors">Backend & Realtime</a>
+            <a href="#backend" className="text-color-muted hover:text-color-buy transition-colors">API & Realtime</a>
           </nav>
         </div>
       </aside>

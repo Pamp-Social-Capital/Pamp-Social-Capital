@@ -152,7 +152,7 @@ export default function Home() {
           </div>
         ) : error ? (
           <div className="text-center py-24 text-color-sell">
-            Error loading markets. Please ensure the backend is running.
+            Error loading markets. Please check your connection or try again later.
           </div>
         ) : markets.length === 0 ? (
           <div className="text-center py-24 text-color-muted border border-dashed border-color-border rounded-2xl mt-2">

@@ -30,7 +30,7 @@ const getConfig = () => {
   const jwtSecret = process.env.JWT_SECRET;
 
   if (!clientId || !clientSecret || !callbackUrl || !jwtSecret) {
-    throw new Error("Missing required OAuth environment variables in backend configuration.");
+    throw new Error("Missing required OAuth environment variables configuration.");
   }
 
   return { clientId, clientSecret, callbackUrl, jwtSecret };

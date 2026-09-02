@@ -331,22 +331,34 @@ export default function ClaimPage() {
         await sdk.createCreatorMarket(creatorIdArray);
         
         // Sync market immediately so metadata is not lost even if claim fails
-        try {
-          await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { 
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ticker,
-              description,
-              websiteUrl,
-              telegramUrl,
-              bannerUrl,
-              twitterName,
-              avatarUrl: twitterAvatar
-            })
-          });
-        } catch (e) {
-          console.error("Failed to sync market:", e);
+        let syncSuccess = false;
+        let syncRetries = 0;
+        while (!syncSuccess && syncRetries < 4) {
+          try {
+            const syncRes = await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { 
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ticker,
+                description,
+                websiteUrl,
+                telegramUrl,
+                bannerUrl,
+                twitterName,
+                avatarUrl: twitterAvatar
+              })
+            });
+            if (syncRes.ok) {
+              syncSuccess = true;
+            } else {
+              await new Promise(r => setTimeout(r, 2000));
+              syncRetries++;
+            }
+          } catch (e) {
+            console.error("Failed to sync market:", e);
+            await new Promise(r => setTimeout(r, 2000));
+            syncRetries++;
+          }
         }
 
         toast.loading(`Market Created! Claiming market ownership...`, { id: loadingId });
@@ -357,7 +369,7 @@ export default function ClaimPage() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         const walletToken = localStorage.getItem("walletToken");
 
-        toast.loading("Requesting backend signature for claim...", { id: loadingId });
+        toast.loading("Requesting signature for claim...", { id: loadingId });
 
         let sigData: any = null;
         let retryCount = 0;

@@ -6,7 +6,7 @@ export default function DocsPage() {
       <div className="border-b border-white/10 pb-8">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Pump Social Capital</h1>
         <p className="text-xl text-color-muted font-light">
-          Solana Backend-First Developer Documentation
+          Solana API-First Developer Documentation
         </p>
       </div>
 
@@ -17,7 +17,7 @@ export default function DocsPage() {
           Pump Social Capital is a social capital market built on Solana. It enables users to create a market for creators, buy/sell Creator Keys, and perform price discovery on-chain while earning creator fees from trading activities.
         </p>
         <blockquote className="border-l-4 border-color-buy bg-white/5 p-4 rounded-r-lg italic">
-          "On-chain first. Backend fast. UI simple."
+          "On-chain first. API fast. UI simple."
         </blockquote>
         <h3 className="text-xl font-bold text-white mt-6">MVP Requirements</h3>
         <ul className="list-disc pl-6 space-y-2">
@@ -33,10 +33,10 @@ export default function DocsPage() {
       <section id="architecture" className="scroll-mt-32 space-y-6">
         <h2 className="text-3xl font-bold text-white">2. Architecture</h2>
         <p className="leading-relaxed">
-          The platform uses a Solana-first architecture. The backend is fast but the Solana program is always the single source of truth for balances and final pricing.
+          The platform uses a Solana-first architecture. The API server is fast but the Solana program is always the single source of truth for balances and final pricing.
         </p>
         <div className="bg-[#07090c] border border-white/10 p-6 rounded-xl font-mono text-sm text-color-buy overflow-x-auto">
-          Wallet → Frontend → Backend API → Solana RPC → Anchor Program → Helius Webhook → Indexer → Postgres/Redis → Realtime WebSocket
+          Wallet → Frontend → API Server → Solana RPC → Anchor Program → Helius Webhook → Indexer → Postgres/Redis → Realtime WebSocket
         </div>
       </section>
 
@@ -74,7 +74,7 @@ export default function DocsPage() {
           Price(s) = base + k × s²
         </div>
         <p className="text-sm text-color-muted mt-2">
-          *The frontend and backend use this exact formula for quotes, but the smart contract acts as the final validator for slippage and bounds.
+          *The frontend and API use this exact formula for quotes, but the smart contract acts as the final validator for slippage and bounds.
         </p>
       </section>
 
@@ -185,11 +185,11 @@ export default function DocsPage() {
         </div>
       </section>
 
-      {/* 7. Backend & Realtime */}
+      {/* 7. API & Realtime */}
       <section id="backend" className="scroll-mt-32 space-y-6">
-        <h2 className="text-3xl font-bold text-white">7. Backend & Realtime</h2>
-        <p className="leading-relaxed">
-          The backend provides metadata, search, charts, and realtime feeds, but <strong>never</strong> acts as the authority for balances or prices.
+        <h2 className="text-3xl font-bold text-white">7. API & Realtime</h2>
+        <p className="text-color-muted text-lg">
+          The API server provides metadata, search, charts, and realtime feeds, but <strong>never</strong> acts as the authority for balances or prices.
         </p>
         <ul className="list-disc pl-6 space-y-2">
           <li><strong>Stack:</strong> Node.js, Fastify, PostgreSQL (Drizzle), Redis, BullMQ.</li>
