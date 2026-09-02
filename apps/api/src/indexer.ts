@@ -75,13 +75,21 @@ export async function processHeliusPayload(transactions: any[]) {
     }
 
     try {
-      const txInfo = await connection.getTransaction(tx.signature, {
-        maxSupportedTransactionVersion: 0,
-        commitment: 'confirmed'
-      });
+      let txInfo = null;
+      let retries = 0;
+      while (retries < 3 && !txInfo) {
+        txInfo = await connection.getTransaction(tx.signature, {
+          maxSupportedTransactionVersion: 0,
+          commitment: 'confirmed'
+        });
+        if (!txInfo) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          retries++;
+        }
+      }
       
       if (!txInfo) {
-        console.log(`[Warning] Transaction ${tx.signature} not found on RPC. Check if RPC Network matches Webhook Network.`);
+        console.log(`[Warning] Transaction ${tx.signature} not found on RPC after retries. Check if RPC Network matches Webhook Network.`);
         continue;
       }
       
