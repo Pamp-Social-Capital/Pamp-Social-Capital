@@ -18,6 +18,7 @@ export const TopNav = () => {
   const [mounted, setMounted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const authPromptedRef = useRef(false);
 
   useEffect(() => {
@@ -152,7 +153,7 @@ export const TopNav = () => {
                 )}
               </Link>
               <button 
-                onClick={() => disconnect()}
+                onClick={() => setShowDisconnectModal(true)}
                 className="text-color-muted hover:text-red-400 transition-colors"
                 title="Disconnect"
               >
@@ -164,6 +165,37 @@ export const TopNav = () => {
           )}
         </div>
       </div>
+
+      {/* Disconnect Confirmation Modal */}
+      {showDisconnectModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#07090c]/80 backdrop-blur-sm">
+          <div className="bg-[#161A22] border border-color-border rounded-2xl p-6 w-[90%] max-w-sm flex flex-col gap-4 text-center shadow-2xl">
+            <h3 className="text-xl font-bold text-white">Disconnect Wallet?</h3>
+            <p className="text-color-muted text-sm leading-relaxed">
+              Are you sure you want to log out? You will need to sign a message to authenticate again when you reconnect.
+            </p>
+            <div className="flex gap-3 mt-4">
+              <button 
+                onClick={() => setShowDisconnectModal(false)}
+                className="flex-1 bg-[#07090c] border border-color-border text-white py-2.5 rounded-xl hover:bg-white/5 transition-colors font-semibold"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  disconnect();
+                  localStorage.removeItem("walletToken");
+                  setShowDisconnectModal(false);
+                  toast.success("Logged out successfully");
+                }}
+                className="flex-1 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 py-2.5 rounded-xl transition-colors font-semibold"
+              >
+                Disconnect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

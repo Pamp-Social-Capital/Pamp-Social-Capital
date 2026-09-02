@@ -65,14 +65,14 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-color-foreground text-base leading-tight">{market.ticker || market.username || "Unknown"}</h3>
                 {market.websiteUrl && (
-                  <a href={market.websiteUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-color-muted hover:text-white transition-colors">
+                  <button onClick={e => { e.preventDefault(); e.stopPropagation(); window.open(market.websiteUrl, '_blank'); }} className="text-color-muted hover:text-white transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-                  </a>
+                  </button>
                 )}
                 {market.telegramUrl && (
-                  <a href={market.telegramUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[#0088cc] hover:text-blue-400 transition-colors">
+                  <button onClick={e => { e.preventDefault(); e.stopPropagation(); window.open(market.telegramUrl, '_blank'); }} className="text-[#0088cc] hover:text-blue-400 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.62-.2-1.12-.31-1.09-.66.02-.18.27-.36.77-.55 3.02-1.31 5.03-2.18 6.04-2.6.28-.11 3.23-1.33 3.86-1.33.14 0 .45.03.62.17.14.12.18.28.19.4z"></path></svg>
-                  </a>
+                  </button>
                 )}
               </div>
               <div className="text-color-muted text-xs mt-0.5">@{market.twitterHandle}</div>

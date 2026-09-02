@@ -32,6 +32,8 @@ export default function ClaimPage() {
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [telegramUrl, setTelegramUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+  const [uploadedFileName, setUploadedFileName] = useState("");
+  const [bannerInputType, setBannerInputType] = useState<"upload" | "url">("upload");
   const [initialBuyAmount, setInitialBuyAmount] = useState("");
 
   const handleClaim = async () => {
@@ -107,6 +109,7 @@ export default function ClaimPage() {
 
       const { data } = supabase.storage.from('banners').getPublicUrl(filePath);
       setBannerUrl(data.publicUrl);
+      setUploadedFileName(file.name);
       toast.success("Image uploaded successfully!");
     } catch (error: any) {
       const errorMessage = error.message || error.error || JSON.stringify(error) || "Failed to upload image";
@@ -591,22 +594,60 @@ export default function ClaimPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-white text-sm font-semibold mb-1 block">Banner Image</label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      disabled={isUploading}
-                      className="hidden" 
-                      id="banner-upload"
-                    />
-                    <label 
-                      htmlFor="banner-upload" 
-                      className={`cursor-pointer bg-[#161A22] border ${uploadError ? 'border-red-500 text-red-400' : 'border-color-border text-white hover:border-color-buy'} rounded-lg px-4 py-3 flex items-center justify-center transition-colors text-sm font-semibold ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                  <label className="text-white text-sm font-semibold mb-2 block">Banner Image</label>
+                  
+                  {/* Tabs */}
+                  <div className="flex gap-2 mb-3 bg-[#161A22] p-1 rounded-lg w-fit border border-color-border">
+                    <button
+                      type="button"
+                      onClick={() => setBannerInputType("upload")}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${bannerInputType === "upload" ? "bg-[#07090c] text-white shadow" : "text-color-muted hover:text-white"}`}
                     >
-                      {isUploading ? 'Uploading...' : 'Upload File'}
-                    </label>
+                      Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBannerInputType("url")}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${bannerInputType === "url" ? "bg-[#07090c] text-white shadow" : "text-color-muted hover:text-white"}`}
+                    >
+                      Paste URL
+                    </button>
+                  </div>
+
+                  {bannerInputType === "upload" ? (
+                    <div className="flex flex-col gap-2">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        disabled={isUploading}
+                        className="hidden" 
+                        id="banner-upload"
+                      />
+                      <label 
+                        htmlFor="banner-upload" 
+                        className={`cursor-pointer bg-[#161A22] border ${uploadError ? 'border-red-500 text-red-400' : 'border-color-border text-white hover:border-color-buy'} rounded-lg px-4 py-3 flex flex-col items-center justify-center transition-colors text-sm font-semibold border-dashed w-full ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                      >
+                        {isUploading ? (
+                          <span>Uploading...</span>
+                        ) : bannerUrl && bannerUrl.includes('supabase.co') ? (
+                          <div className="flex flex-col items-center gap-1 text-color-buy">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                              <span>Image uploaded successfully!</span>
+                            </div>
+                            {uploadedFileName && <span className="text-xs opacity-80 break-all text-center px-2">{uploadedFileName}</span>}
+                            <span className="text-xs text-color-muted mt-1">Click to change</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2">
+                            <svg className="w-5 h-5 text-color-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            <span>Click to upload image</span>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  ) : (
                     <input 
                       type="text" 
                       value={bannerUrl} 
@@ -614,10 +655,11 @@ export default function ClaimPage() {
                         setBannerUrl(e.target.value);
                         if (uploadError) setUploadError(null);
                       }} 
-                      placeholder="Or paste image URL..." 
-                      className={`flex-1 bg-[#07090c] border ${uploadError ? 'border-red-500 focus:border-red-400' : 'border-color-border focus:border-color-buy'} rounded-lg p-3 text-white outline-none transition-colors text-sm`}
+                      placeholder="https://..." 
+                      className={`w-full bg-[#07090c] border ${uploadError ? 'border-red-500 focus:border-red-400' : 'border-color-border focus:border-color-buy'} rounded-lg p-3 text-white outline-none transition-colors text-sm`}
                     />
-                  </div>
+                  )}
+                  
                   {uploadError && (
                     <p className="text-red-500 text-xs mt-2">{uploadError}</p>
                   )}
