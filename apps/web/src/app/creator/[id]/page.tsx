@@ -128,19 +128,31 @@ export default function CreatorPage({ params }: PageProps) {
   
   return (
     <div className="flex flex-col gap-6 pb-12">
-      {/* Creator Dashboard (Only shows if connected wallet == creatorWallet, or unclaimed market owner) */}
-      {finalMarket && <CreatorDashboard marketPda={id as string} creatorWallet={onChainMarket?.creatorWallet?.toBase58() || ""} claimed={!!finalMarket.claimed} twitterHandle={finalMarket.twitterHandle || ""} />}
-      
       {/* Header Profile */}
-      <div className="flex items-center gap-6 bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg">
-        <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-inner overflow-hidden">
+      <div className="bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg flex flex-col gap-6 relative overflow-hidden group">
+        {finalMarket.bannerUrl && (
+          <>
+            <div 
+              className="absolute inset-0 z-0 opacity-30 mix-blend-luminosity group-hover:opacity-40 transition-opacity"
+              style={{ 
+                backgroundImage: `url(${finalMarket.bannerUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+            <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#12141A] from-20% via-[#12141A]/80 to-transparent pointer-events-none" />
+          </>
+        )}
+        
+        <div className="flex items-center gap-6 relative z-10">
+        <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-inner overflow-hidden shrink-0">
           {finalMarket.avatarUrl ? (
             <img src={finalMarket.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
             creatorName.charAt(0).toUpperCase()
           )}
         </div>
-        <div>
+        <div className="relative z-10 min-w-0">
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
             {finalMarket.ticker || creatorName}
             {finalMarket.claimed === false ? (
@@ -205,6 +217,7 @@ export default function CreatorPage({ params }: PageProps) {
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -287,13 +300,25 @@ export default function CreatorPage({ params }: PageProps) {
                   </p>
                   <Link 
                     href={`/profile/${onChainMarket.creatorWallet.toBase58()}`}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg transition-colors"
                   >
                     View History
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                   </Link>
                 </div>
               </div>
+
+              {/* Creator Dashboard (Only shows if connected wallet == creatorWallet, or unclaimed market owner) */}
+              {finalMarket && (
+                <div className="pt-4 mt-4 border-t border-color-border/30">
+                  <CreatorDashboard 
+                    marketPda={id as string} 
+                    creatorWallet={onChainMarket?.creatorWallet?.toBase58() || ""} 
+                    claimed={!!finalMarket.claimed} 
+                    twitterHandle={finalMarket.twitterHandle || ""} 
+                  />
+                </div>
+              )}
             </div>
           )}
 
