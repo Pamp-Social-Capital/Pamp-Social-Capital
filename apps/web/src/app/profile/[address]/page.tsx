@@ -196,18 +196,40 @@ export default function ProfilePage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-8 pb-12 animate-pulse">
-        {/* Header Skeleton */}
-        <div className="flex flex-col items-center gap-4 bg-[#12141A] p-8 rounded-2xl border border-color-border/50 shadow-lg">
-          <div className="w-24 h-24 rounded-full bg-white/5"></div>
-          <div className="h-6 w-48 bg-white/5 rounded"></div>
-          <div className="h-4 w-32 bg-white/5 rounded"></div>
+        {/* Profile Header Skeleton */}
+        <div className="bg-[#12141A] p-10 rounded-2xl border border-color-border/50 shadow-lg relative overflow-hidden">
+          <div className="flex flex-col md:flex-row items-center md:items-start justify-center gap-12 md:gap-24">
+            
+            {/* Left: Profile Info Skeleton */}
+            <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+              <div className="w-28 h-28 rounded-full bg-white/5 mb-5"></div>
+              <div className="h-8 w-48 bg-white/5 rounded mb-3"></div>
+              <div className="h-4 w-32 bg-white/5 rounded mb-4"></div>
+              <div className="h-4 w-64 bg-white/5 rounded mt-4"></div>
+            </div>
+
+            {/* Right: Portfolio Stats Skeleton */}
+            <div className="w-full md:w-80 shrink-0 bg-white/5 rounded-2xl p-6 border border-color-border/30 mt-8 md:mt-0">
+              <div className="h-5 w-32 bg-white/10 rounded mb-6"></div>
+              <div className="flex flex-col gap-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex justify-between border-b border-white/5 pb-3">
+                    <div className="h-4 w-24 bg-white/10 rounded"></div>
+                    <div className="h-4 w-16 bg-white/10 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+          </div>
         </div>
-        {/* Grid Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-48 bg-[#12141A] rounded-2xl border border-color-border/50"></div>
-          ))}
+
+        {/* Tab & Table Skeleton */}
+        <div className="flex gap-4 mt-2">
+          <div className="h-8 w-24 bg-white/5 rounded"></div>
+          <div className="h-8 w-24 bg-white/5 rounded"></div>
         </div>
+        <div className="h-64 bg-[#12141A] rounded-2xl border border-color-border/50"></div>
       </div>
     );
   }
@@ -238,82 +260,90 @@ export default function ProfilePage({ params }: PageProps) {
   return (
     <div className="flex flex-col gap-8 pb-12">
       {/* Profile Header */}
-      <div className="flex flex-col items-center gap-4 bg-gradient-to-b from-emerald-900/20 to-[#12141A] p-10 rounded-2xl border border-color-border/50 shadow-lg text-center relative overflow-hidden">
+      <div className="bg-gradient-to-b from-emerald-900/20 to-[#12141A] p-10 rounded-2xl border border-color-border/50 shadow-lg relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-color-buy to-emerald-500 opacity-70" />
         
-        <div className="w-28 h-28 rounded-full overflow-hidden bg-[#161A22] border-4 border-color-buy/30 shadow-xl">
-          <img 
-            src={userProfile?.avatarUrl || `https://api.dicebear.com/10.x/${getAvatarStyle(address)}/svg?seed=${address}`} 
-            alt="Creator Avatar" 
-            className="w-full h-full object-cover"
-          />
-        </div>
-        
-        <div>
-          <h1 className="text-2xl font-bold text-white mb-1">
-            {userProfile?.username || "Creator"}
-          </h1>
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="font-mono text-sm text-color-muted">{`${address.slice(0, 6)}...${address.slice(-4)}`}</span>
-            <button
-              onClick={() => navigator.clipboard.writeText(address)}
-              title="Copy Address"
-              className="p-1.5 bg-[#161A22] border border-color-border/50 rounded-lg text-color-muted hover:text-white transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-            </button>
-          </div>
-          {userProfile?.createdAt && (
-            <p className="text-color-muted text-xs mt-1">
-              Joined {new Date(userProfile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </p>
-          )}
+        <div className="flex flex-col md:flex-row items-center md:items-start justify-center gap-12 md:gap-24">
           
-          {userProfile?.bio && (
-            <p className="text-white text-sm mt-3 max-w-md mx-auto">{userProfile.bio}</p>
-          )}
-          
-          {isOwner && (
-            <div className="mt-4">
-              <button 
-                onClick={handleEditOpen}
-                className="bg-[#161A22] border border-color-border/50 text-white text-sm font-medium px-4 py-2 rounded-lg hover:border-color-buy/50 transition-colors"
+          {/* Left: Profile Info */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+            <div className="w-28 h-28 rounded-full overflow-hidden bg-[#161A22] border-4 border-color-buy/30 shadow-xl mb-5">
+              <img 
+                src={userProfile?.avatarUrl || `https://api.dicebear.com/10.x/${getAvatarStyle(address)}/svg?seed=${address}`} 
+                alt="Creator Avatar" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            <h1 className="text-3xl font-bold text-white mb-1">
+              {userProfile?.username || "Creator"}
+            </h1>
+            <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
+              <span className="font-mono text-sm text-color-muted">{`${address.slice(0, 6)}...${address.slice(-4)}`}</span>
+              <button
+                onClick={() => navigator.clipboard.writeText(address)}
+                title="Copy Address"
+                className="p-1.5 bg-[#161A22] border border-color-border/50 rounded-lg text-color-muted hover:text-white transition-colors"
               >
-                Edit Profile
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
               </button>
             </div>
-          )}
-        </div>
+            {userProfile?.createdAt && (
+              <p className="text-color-muted text-xs mt-1">
+                Joined {new Date(userProfile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </p>
+            )}
+            
+            {userProfile?.bio && (
+              <p className="text-white text-sm mt-4 max-w-md">{userProfile.bio}</p>
+            )}
+            
+            {isOwner && (
+              <div className="mt-5">
+                <button 
+                  onClick={handleEditOpen}
+                  className="bg-[#161A22] border border-color-border/50 text-white text-sm font-medium px-4 py-2 rounded-lg hover:border-color-buy/50 transition-colors"
+                >
+                  Edit Profile
+                </button>
+              </div>
+            )}
+          </div>
 
-      </div>
-      {/* Portfolio Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
-          <div className="bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg relative overflow-hidden xl:col-span-1">
-             <div className="text-color-muted text-sm mb-1">Portfolio Value</div>
-             <div className="text-3xl font-bold text-white">{totalValueSol} <span className="text-sm font-normal text-color-muted">SOL</span></div>
+          {/* Right: Portfolio Stats Table */}
+          <div className="w-full md:w-80 shrink-0 bg-[#161A22]/50 rounded-2xl p-6 border border-color-border/30 text-left mt-8 md:mt-0">
+            <h2 className="text-base font-bold text-white mb-4">Portfolio Stats</h2>
+            <div className="flex flex-col gap-4 text-sm">
+              <div className="flex justify-between border-b border-color-border/50 pb-3">
+                <span className="text-color-muted">Portfolio Value</span>
+                <span className="font-semibold text-white">{totalValueSol} SOL</span>
+              </div>
+              <div className="flex justify-between border-b border-color-border/50 pb-3">
+                <span className="text-color-muted">Keys Held</span>
+                <span className="font-semibold text-white">{totalKeys}</span>
+              </div>
+              <div className="flex justify-between border-b border-color-border/50 pb-3">
+                <span className="text-color-muted">Trading PnL</span>
+                <span className={`font-semibold ${totalPnLLamports >= 0 ? 'text-color-buy' : 'text-color-sell'}`}>
+                  {totalPnLLamports >= 0 ? '+' : ''}{totalPnLSol} SOL
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-color-border/50 pb-3">
+                <span className="text-color-muted">Creator Fees</span>
+                <span className="font-semibold text-blue-400">
+                  +{totalFeesSol} SOL
+                </span>
+              </div>
+              <div className="flex justify-between pb-1">
+                <span className="text-color-muted">Total Net Profit</span>
+                <span className={`font-semibold ${netProfitLamports >= 0 ? 'text-color-buy' : 'text-color-sell'}`}>
+                  {netProfitLamports >= 0 ? '+' : ''}{netProfitSol} SOL
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg xl:col-span-1">
-             <div className="text-color-muted text-sm mb-1">Keys Held</div>
-             <div className="text-3xl font-bold text-white">{totalKeys}</div>
-          </div>
-          <div className="bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg xl:col-span-1">
-             <div className="text-color-muted text-sm mb-1">Trading PnL</div>
-             <div className={`text-3xl font-bold ${totalPnLLamports >= 0 ? 'text-color-buy' : 'text-color-sell'}`}>
-                {totalPnLLamports >= 0 ? '+' : ''}{totalPnLSol} SOL
-             </div>
-          </div>
-          <div className="bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg xl:col-span-1">
-             <div className="text-color-muted text-sm mb-1">Creator Fees</div>
-             <div className="text-3xl font-bold text-blue-400">
-                +{totalFeesSol} SOL
-             </div>
-          </div>
-          <div className="bg-[#12141A] p-6 rounded-2xl border border-color-border/50 shadow-lg xl:col-span-1 relative overflow-hidden">
-             <div className="text-color-muted text-sm mb-1">Total Net Profit</div>
-             <div className={`text-3xl font-bold ${netProfitLamports >= 0 ? 'text-color-buy' : 'text-color-sell'}`}>
-                {netProfitLamports >= 0 ? '+' : ''}{netProfitSol} <span className="text-sm font-normal text-color-muted">SOL</span>
-             </div>
-          </div>
+          
+        </div>
       </div>
 
       {/* Market History */}
@@ -395,7 +425,7 @@ export default function ProfilePage({ params }: PageProps) {
         ]}
         activeTab={activeTab}
         onTabChange={(id) => setActiveTab(id as any)}
-        className="mt-8 mb-6"
+        className="mt-8"
       />
 
       {activeTab === 'keys' && (

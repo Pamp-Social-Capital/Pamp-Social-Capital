@@ -51,17 +51,16 @@ export const UserTradeHistoryComponent = ({ address }: { address?: string }) => 
 
   if (loading) {
     return (
-      <div className="overflow-x-auto mt-12 bg-color-card rounded-xl border border-color-border p-6 shadow-2xl">
-        <h2 className="text-xl font-bold text-white mb-6">Trade History</h2>
-        <div className="overflow-x-auto animate-pulse mt-6">
+      <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
+        <div className="overflow-x-auto animate-pulse">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="text-color-muted border-b border-color-border">
-                <th className="pb-4"><div className="h-4 w-12 bg-white/5 rounded"></div></th>
-                <th className="pb-4"><div className="h-4 w-16 bg-white/5 rounded"></div></th>
-                <th className="pb-4"><div className="h-4 w-24 bg-white/5 rounded"></div></th>
-                <th className="pb-4"><div className="h-4 w-20 bg-white/5 rounded"></div></th>
-                <th className="pb-4"><div className="h-4 w-20 bg-white/5 rounded"></div></th>
+                <th className="pb-4 font-medium"><div className="h-4 w-12 bg-white/5 rounded"></div></th>
+                <th className="pb-4 font-medium"><div className="h-4 w-16 bg-white/5 rounded"></div></th>
+                <th className="pb-4 font-medium"><div className="h-4 w-24 bg-white/5 rounded"></div></th>
+                <th className="pb-4 font-medium"><div className="h-4 w-20 bg-white/5 rounded"></div></th>
+                <th className="pb-4 font-medium"><div className="h-4 w-20 bg-white/5 rounded"></div></th>
               </tr>
             </thead>
             <tbody>
@@ -77,43 +76,41 @@ export const UserTradeHistoryComponent = ({ address }: { address?: string }) => 
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     );
   }
 
   if (error) {
     return (
-      <div className="overflow-x-auto mt-12 bg-color-card rounded-xl border border-color-border p-6 shadow-2xl">
-        <h2 className="text-xl font-bold text-white mb-6">Trade History</h2>
+      <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
         <div className="text-center py-12 text-color-sell">Error loading trade history</div>
-      </div>
+      </section>
     );
   }
 
   if (trades.length === 0) {
     return (
-      <div className="overflow-x-auto mt-12 bg-color-card rounded-xl border border-color-border p-6 shadow-2xl">
-        <h2 className="text-xl font-bold text-white mb-6">Trade History</h2>
+      <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
         <div className="text-center py-12 text-color-muted">No trade history found.</div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="overflow-x-auto mt-12 bg-color-card rounded-xl border border-color-border p-6 shadow-2xl">
-      <h2 className="text-xl font-bold text-white mb-6">Trade History</h2>
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="border-b border-color-border text-color-muted text-sm uppercase">
-            <th className="py-3 font-semibold">Type</th>
-            <th className="py-3 font-semibold">Keys</th>
-            <th className="py-3 font-semibold">Amount (SOL)</th>
-            <th className="py-3 font-semibold">Market PDA</th>
-            <th className="py-3 font-semibold">Time</th>
-            <th className="py-3 font-semibold">Transaction</th>
-          </tr>
-        </thead>
-        <tbody className="text-sm">
+    <section className="bg-[#12141A] border border-color-border/50 p-6 rounded-2xl shadow-lg">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="text-color-muted border-b border-color-border">
+              <th className="pb-4 font-medium">Type</th>
+              <th className="pb-4 font-medium">Keys</th>
+              <th className="pb-4 font-medium">Amount (SOL)</th>
+              <th className="pb-4 font-medium">Market PDA</th>
+              <th className="pb-4 font-medium">Time</th>
+              <th className="pb-4 font-medium">Transaction</th>
+            </tr>
+          </thead>
+          <tbody className="text-white">
           {trades.map((trade: any) => {
             const isBuy = trade.tradeType === "buy";
             const amountSol = (Number(trade.lamports) / 1e9).toFixed(4);
@@ -146,8 +143,9 @@ export const UserTradeHistoryComponent = ({ address }: { address?: string }) => 
               </tr>
             );
           })}
-        </tbody>
-      </table>
-    </div>
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 };
