@@ -159,6 +159,8 @@ export default function ClaimPage() {
 
             setOauthToken(token);
             setTwitterHandle(handle);
+            if (name) setTwitterName(name);
+            if (avatarUrl) setTwitterAvatar(avatarUrl);
             setIsXLinked(true);
 
             const isPopup = params.get("popup") === "true";
@@ -452,6 +454,13 @@ export default function ClaimPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               txSignature: typeof txSig === 'string' ? txSig : undefined,
+              ticker,
+              description,
+              websiteUrl,
+              telegramUrl,
+              bannerUrl,
+              twitterName,
+              avatarUrl: twitterAvatar
             })
           });
         } catch (e) {
@@ -473,7 +482,9 @@ export default function ClaimPage() {
               description,
               websiteUrl,
               telegramUrl,
-              bannerUrl
+              bannerUrl,
+              twitterName,
+              avatarUrl: twitterAvatar
             })
           });
         } catch (e) {

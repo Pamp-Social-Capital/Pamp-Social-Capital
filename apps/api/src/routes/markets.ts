@@ -335,14 +335,14 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
           supply: marketState.supply.toNumber(),
           reserveLamports: marketState.reserveLamports.toNumber(),
           // Only update metadata if provided in the body
-          ...(body?.ticker ? { ticker: body.ticker } : {}),
-          ...(body?.websiteUrl ? { websiteUrl: body.websiteUrl } : {}),
-          ...(body?.telegramUrl ? { telegramUrl: body.telegramUrl } : {}),
-          ...(body?.description ? { description: body.description } : {}),
-          ...(body?.bannerUrl ? { bannerUrl: body.bannerUrl } : {}),
-          ...(body?.txSignature ? { txSignature: body.txSignature } : {}),
-          ...(body?.twitterName ? { twitterName: body.twitterName } : {}),
-          ...(body?.avatarUrl ? { avatarUrl: body.avatarUrl } : {}),
+          ...(body?.ticker !== undefined ? { ticker: body.ticker } : {}),
+          ...(body?.websiteUrl !== undefined ? { websiteUrl: body.websiteUrl } : {}),
+          ...(body?.telegramUrl !== undefined ? { telegramUrl: body.telegramUrl } : {}),
+          ...(body?.description !== undefined ? { description: body.description } : {}),
+          ...(body?.bannerUrl !== undefined ? { bannerUrl: body.bannerUrl } : {}),
+          ...(body?.txSignature !== undefined ? { txSignature: body.txSignature } : {}),
+          ...(body?.twitterName !== undefined ? { twitterName: body.twitterName } : {}),
+          ...(body?.avatarUrl !== undefined ? { avatarUrl: body.avatarUrl } : {}),
         }
       });
       
