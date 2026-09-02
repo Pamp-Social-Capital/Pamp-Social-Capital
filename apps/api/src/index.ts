@@ -73,6 +73,23 @@ fastify.post("/webhook/helius", async (request, reply) => {
   }
 });
 
+fastify.post("/webhook/sync-tx", async (request, reply) => {
+  try {
+    const { signature } = request.body as { signature: string };
+    if (!signature) {
+      return reply.status(400).send({ error: "Missing signature" });
+    }
+    
+    fastify.log.info(`Manual sync requested for tx: ${signature}`);
+    await processHeliusPayload([{ signature }]);
+    
+    return reply.status(200).send({ success: true });
+  } catch (error) {
+    fastify.log.error(error);
+    return reply.status(500).send({ error: "Internal Server Error" });
+  }
+});
+
 const start = async () => {
   try {
     if (!process.env.PORT) throw new Error("PORT is required");

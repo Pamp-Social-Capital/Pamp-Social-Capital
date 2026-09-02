@@ -327,6 +327,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         telegramUrl: body?.telegramUrl || null,
         description: body?.description || null,
         bannerUrl: body?.bannerUrl || null,
+        txSignature: body?.txSignature || null,
       }).onConflictDoUpdate({
         target: creatorMarkets.marketPda,
         set: {

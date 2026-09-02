@@ -170,6 +170,14 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
       // The websocket should pick up the trade and update state automatically
       // However, we manually fetch just in case the backend webhook isn't running locally yet
       try {
+        if (typeof sig === 'string') {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/webhook/sync-tx`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ signature: sig })
+          });
+        }
+        
         const marketState = await sdk.getMarketState(creatorIdUint8);
         setSupply(marketState.supply.toNumber());
         if (publicKey) {

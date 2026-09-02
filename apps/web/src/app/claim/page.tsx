@@ -463,6 +463,14 @@ export default function ClaimPage() {
               avatarUrl: twitterAvatar
             })
           });
+
+          if (typeof txSig === 'string') {
+            await fetch(`${apiUrl}/webhook/sync-tx`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ signature: txSig })
+            });
+          }
         } catch (e) {
           console.error("Failed to update market tx sig:", e);
         }
