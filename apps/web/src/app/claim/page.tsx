@@ -329,6 +329,26 @@ export default function ClaimPage() {
 
         // Send transaction via SDK to create market
         await sdk.createCreatorMarket(creatorIdArray);
+        
+        // Sync market immediately so metadata is not lost even if claim fails
+        try {
+          await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { 
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ticker,
+              description,
+              websiteUrl,
+              telegramUrl,
+              bannerUrl,
+              twitterName,
+              avatarUrl: twitterAvatar
+            })
+          });
+        } catch (e) {
+          console.error("Failed to sync market:", e);
+        }
+
         toast.loading(`Market Created! Claiming market ownership...`, { id: loadingId });
       }
 
@@ -339,18 +359,37 @@ export default function ClaimPage() {
 
         toast.loading("Requesting backend signature for claim...", { id: loadingId });
 
-        const sigRes = await fetch(`${apiUrl}/api/auth/claim-signature`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${walletToken}`
-          },
-          body: JSON.stringify({ marketPda: marketPda.toBase58(), oauthToken })
-        });
+        let sigData: any = null;
+        let retryCount = 0;
+        const maxRetries = 4;
+        
+        while (retryCount < maxRetries) {
+          try {
+            const sigRes = await fetch(`${apiUrl}/api/auth/claim-signature`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${walletToken}`
+              },
+              body: JSON.stringify({ marketPda: marketPda.toBase58(), oauthToken })
+            });
 
-        const sigData = await sigRes.json();
-        if (!sigData.success) {
-          throw new Error(sigData.error || "Failed to fetch claim signature");
+            if (sigRes.ok) {
+              sigData = await sigRes.json();
+              if (sigData.success) break;
+            }
+            
+            // If 404 or not success, wait and retry
+            await new Promise(r => setTimeout(r, 2000));
+            retryCount++;
+          } catch (err) {
+            await new Promise(r => setTimeout(r, 2000));
+            retryCount++;
+          }
+        }
+
+        if (!sigData || !sigData.success) {
+          throw new Error(sigData?.error || "Failed to fetch claim signature after retries. The network might be congested.");
         }
 
         const { Transaction, Ed25519Program } = await import("@solana/web3.js");
@@ -391,24 +430,17 @@ export default function ClaimPage() {
         const provider = sdk.program.provider as any;
         const txSig = await provider.sendAndConfirm(tx);
 
-        // Sync market immediately to avoid webhook delays
+        // Update sync with tx signature
         try {
           await fetch(`${apiUrl}/api/markets/${marketPda.toBase58()}/sync`, { 
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              ticker,
-              description,
-              websiteUrl,
-              telegramUrl,
-              bannerUrl,
               txSignature: typeof txSig === 'string' ? txSig : undefined,
-              twitterName,
-              avatarUrl: twitterAvatar
             })
           });
         } catch (e) {
-          console.error("Failed to sync market:", e);
+          console.error("Failed to update market tx sig:", e);
         }
 
         setStatus("SUCCESS");
