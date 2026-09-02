@@ -113,7 +113,7 @@ export const TopNav = () => {
   }, [connected, publicKey, signMessage, disconnect, isAuthenticating]);
 
   return (
-    <header className="border-b border-color-border bg-[#07090c] sticky top-0 z-50">
+    <header className="border-b border-color-border bg-background sticky top-0 z-50">
       <div className="w-full px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
         
         {/* Left Side: Logo & Navigation */}
@@ -124,21 +124,40 @@ export const TopNav = () => {
           </Link>
           
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-color-muted">
-            <Link href="/dashboard" className="hover:text-white transition-colors">
-              Markets
+            <Link href="/explore" className="hover:text-white transition-colors">
+              Explore
             </Link>
             <Link href="/protocol" className="hover:text-white transition-colors">
               Protocol
             </Link>
-            <Link href="/claim" className="flex items-center gap-1 hover:text-white transition-colors text-color-buy">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-              Create Market
-            </Link>
+            
+            {/* Search Form */}
+            <div className="relative flex items-center ml-4 group">
+              <div className="absolute left-3 flex items-center justify-center pointer-events-none text-color-muted">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input 
+                type="text" 
+                placeholder="Search for coins and users..." 
+                className="w-80 h-10 pl-9 pr-14 text-sm text-white bg-[#1A1D18] border border-transparent rounded-lg outline-none transition-all placeholder:text-color-muted focus:border-[#2A3028]" 
+              />
+            </div>
           </nav>
         </div>
 
-        {/* Right Side: Wallet */}
-        <div className="flex items-center gap-6">
+        {/* Right Side: Wallet & Actions */}
+        <div className="flex items-center gap-4 sm:gap-6">
+          <Link 
+            href="/claim" 
+            className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 rounded-lg border border-color-buy text-color-buy hover:bg-color-buy/10 transition-colors text-sm font-semibold"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Create Market
+          </Link>
           {mounted && connected && publicKey ? (
             <div className="flex items-center gap-3">
               <Link href={`/profile/${publicKey.toBase58()}`} className="relative group block" title="Go to Profile">

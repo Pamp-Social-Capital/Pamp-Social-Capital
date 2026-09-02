@@ -1,8 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function LandingPage() {
+  const { data } = useSWR(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/markets`, 
+    fetcher
+  );
+
   return (
     <div className="min-h-screen bg-[#07090c] text-white overflow-hidden font-sans">
       
@@ -115,7 +123,7 @@ export default function LandingPage() {
           
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <Link 
-              href="/dashboard" 
+              href="/explore" 
               className="bg-color-buy text-[#07090c] font-semibold px-8 py-4 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2"
             >
               Launch App
@@ -127,6 +135,36 @@ export default function LandingPage() {
             >
               Read Docs
             </Link>
+          </div>
+
+          {/* Tokenized Social Capital Stats */}
+          <div className="mt-20 w-full max-w-4xl relative">
+            <div className="absolute inset-0 bg-color-buy/5 blur-[50px] rounded-full pointer-events-none" />
+            <div className="relative bg-[#0F141A]/80 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl flex flex-col sm:flex-row justify-around items-center gap-8">
+              {(() => {
+                const totalMarkets = data?.markets?.length || 0;
+                const totalTvl = (data?.markets?.reduce((acc: number, m: any) => acc + Number(m.reserveLamports), 0) / 1e9 || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const totalVol = (data?.markets?.reduce((acc: number, m: any) => acc + Number(m.totalVolumeLamports), 0) / 1e9 || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return (
+                  <>
+                    <div className="text-center">
+                      <p className="text-color-muted text-sm mb-2 font-medium tracking-wide uppercase">Total TVL</p>
+                      <p className="text-4xl font-bold text-white tracking-tight">{totalTvl} <span className="text-xl font-normal text-color-muted">SOL</span></p>
+                    </div>
+                    <div className="hidden sm:block w-px h-16 bg-white/10" />
+                    <div className="text-center">
+                      <p className="text-color-muted text-sm mb-2 font-medium tracking-wide uppercase">Total Volume</p>
+                      <p className="text-4xl font-bold text-white tracking-tight">{totalVol} <span className="text-xl font-normal text-color-muted">SOL</span></p>
+                    </div>
+                    <div className="hidden sm:block w-px h-16 bg-white/10" />
+                    <div className="text-center">
+                      <p className="text-color-muted text-sm mb-2 font-medium tracking-wide uppercase">Live Markets</p>
+                      <p className="text-4xl font-bold text-white tracking-tight">{totalMarkets}</p>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           </div>
         </section>
 

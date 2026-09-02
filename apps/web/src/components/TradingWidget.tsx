@@ -220,13 +220,13 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
 
   return (
     <>
-      <div className="bg-color-card rounded-2xl p-6 border border-color-border shadow-2xl relative">
+      <div className="bg-background rounded-xl p-6 border border-color-border shadow-lg relative hover:border-color-buy/50 transition-colors group">
         {/* Toggle Buttons */}
-        <div className="flex gap-2 mb-6 bg-[#07090c] p-1.5 rounded-xl border border-color-border">
+        <div className="flex gap-1.5 mb-5 bg-[#07090c] p-1.5 rounded-lg border border-color-border">
           <button
-            className={`flex-1 py-2.5 text-center font-semibold text-sm rounded-lg transition-all ${
+            className={`flex-1 py-1.5 text-center font-semibold text-sm rounded-md transition-all ${
               tradeType === "buy" 
-                ? "bg-color-buy text-[#07090c] shadow-md" 
+                ? "bg-color-buy text-[#07090c] shadow-sm" 
                 : "text-color-muted hover:text-white"
             }`}
             onClick={() => setTradeType("buy")}
@@ -234,9 +234,9 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
             Buy
           </button>
           <button
-            className={`flex-1 py-2.5 text-center font-semibold text-sm rounded-lg transition-all ${
+            className={`flex-1 py-1.5 text-center font-semibold text-sm rounded-md transition-all ${
               tradeType === "sell" 
-                ? "bg-color-sell text-white shadow-md" 
+                ? "bg-color-sell text-white shadow-sm" 
                 : "text-color-muted hover:text-white"
             }`}
             onClick={() => setTradeType("sell")}
@@ -246,11 +246,10 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
         </div>
 
         {/* Input Section */}
-        <div className="mb-6">
-          <div className="flex justify-between text-xs mb-2 text-color-muted font-medium">
-            <span>Amount (Keys)</span>
-            <span>Balance: {keyBalance} Keys</span>
-          </div>
+        <div className="mb-5">
+          <label className="block text-xs font-semibold text-color-muted mb-2 uppercase tracking-wide">
+            Amount (KEYS)
+          </label>
           <div className="relative">
             <input
               type="number"
@@ -259,16 +258,27 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
-              className="w-full bg-[#07090c] border border-color-border rounded-xl p-4 text-xl font-medium text-white focus:outline-none focus:border-color-buy focus:ring-1 focus:ring-color-buy transition-all"
+              className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-2xl font-bold text-white focus:outline-none focus:border-color-buy focus:ring-1 focus:ring-color-buy transition-all"
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-color-muted font-medium">KEYS</span>
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-color-muted font-bold text-xs">KEYS</span>
+          </div>
+          <div className="flex gap-2 mt-2">
+            {[1, 5, 10, 15].map((val) => (
+              <button
+                key={val}
+                onClick={() => setAmount(val.toString())}
+                className="flex-1 py-1 text-xs font-semibold rounded bg-[#07090c] border border-color-border text-color-muted hover:text-white hover:border-color-buy/50 transition-colors"
+              >
+                {val} {val === 1 ? 'KEY' : 'KEYS'}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="mb-6">
-          <div className="p-4 bg-[#07090c] rounded-xl border border-color-border text-sm flex flex-col gap-3">
-            <div className="flex justify-between">
-              <span className="text-color-muted">Base Cost/Return</span>
+        <div className="mb-5">
+          <div className="p-3 bg-[#07090c] rounded-lg border border-color-border text-xs flex flex-col gap-2.5">
+            <div className="flex justify-between items-center">
+              <span className="text-color-muted font-medium">Base Cost/Return</span>
               <span className="font-semibold text-white">{parsedAmount > 0 ? solValue.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 9 }) : "--"} SOL</span>
             </div>
             <div className="flex justify-between">
@@ -293,11 +303,11 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
         <button
           onClick={handleTrade}
           disabled={loadingMarket}
-          className={`w-full py-3.5 rounded-xl font-bold text-base transition-all shadow-lg ${
+          className={`w-full py-3 rounded-lg font-bold text-sm transition-all shadow-lg ${
             tradeType === "buy" 
-              ? "bg-color-buy text-[#07090c] hover:bg-opacity-90 shadow-color-buy/20" 
-              : "bg-color-sell text-white hover:bg-opacity-90 shadow-color-sell/20"
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
+              ? "bg-color-buy text-[#07090c] hover:bg-opacity-90 shadow-color-buy/10" 
+              : "bg-color-sell text-white hover:bg-opacity-90 shadow-color-sell/10"
+          } disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide`}
         >
           {loadingMarket ? "Loading Market..." : (tradeType === "buy" ? "Place Buy Order" : "Place Sell Order")}
         </button>
@@ -305,8 +315,8 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
 
       {/* Modal Overlay */}
       {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-color-card border border-color-border p-6 rounded-2xl shadow-2xl max-w-sm w-full relative overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#07090c]/80 backdrop-blur-sm px-4">
+          <div className="bg-background border border-color-border p-6 rounded-xl shadow-2xl max-w-sm w-full relative overflow-hidden animate-in fade-in zoom-in duration-200">
              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-color-buy to-color-sell opacity-70" />
              <div className="flex items-center gap-3 mb-3">
                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -358,7 +368,7 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
                  setShowModal(false);
                  setModalSignature("");
                }} 
-               className="w-full bg-[#161A22] border border-color-border text-white py-2.5 rounded-xl hover:bg-white/10 transition-colors font-semibold mt-2"
+               className="w-full bg-[#161A22] border border-color-border text-white py-2.5 rounded-lg hover:bg-white/10 transition-colors font-semibold mt-2"
              >
                Close
              </button>

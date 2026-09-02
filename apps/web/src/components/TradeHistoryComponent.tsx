@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface Trade {
   signature: string;
@@ -64,7 +65,7 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
   if (loading) {
     return (
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full min-w-[600px] text-left border-collapse">
           <thead>
             <tr className="border-b border-color-border text-color-muted text-sm uppercase">
               <th className="py-3 font-semibold">Type</th>
@@ -76,7 +77,7 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
           </thead>
           <tbody>
             {[1, 2, 3, 4, 5].map((i) => (
-              <tr key={i} className="border-b border-[#1A1F2B]">
+              <tr key={i} className="border-b border-color-border">
                 <td className="py-4"><div className="h-4 w-12 bg-white/5 rounded animate-pulse"></div></td>
                 <td className="py-4"><div className="h-4 w-8 bg-white/5 rounded animate-pulse"></div></td>
                 <td className="py-4"><div className="h-4 w-16 bg-white/5 rounded animate-pulse"></div></td>
@@ -96,7 +97,7 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
+      <table className="w-full min-w-[600px] text-left border-collapse">
         <thead>
           <tr className="border-b border-color-border text-color-muted text-sm uppercase">
             <th className="py-3 font-semibold">Type</th>
@@ -115,16 +116,16 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
             const shortWallet = `${trade.traderWallet.slice(0, 4)}...${trade.traderWallet.slice(-4)}`;
 
             return (
-              <tr key={trade.signature} className="border-b border-[#1A1F2B] hover:bg-[#161A22] transition-colors">
-                <td className={`py-3 font-medium ${isBuy ? 'text-color-buy' : 'text-color-sell'}`}>
+              <tr key={trade.signature} className="border-b border-color-border hover:bg-white/5 transition-colors">
+                <td className={`py-3 font-semibold ${isBuy ? 'text-color-buy' : 'text-color-sell'}`}>
                   {isBuy ? 'BUY' : 'SELL'}
                 </td>
-                <td className="py-3 text-white">{trade.amount}</td>
-                <td className="py-3 text-white">{amountSol}</td>
+                <td className="py-3 text-white font-medium">{trade.amount}</td>
+                <td className="py-3 text-white font-medium">{amountSol}</td>
                 <td className="py-3 text-color-muted font-mono">
-                  <a href={`https://solscan.io/account/${trade.traderWallet}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet' ? '?cluster=devnet' : ''}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                  <Link href={`/profile/${trade.traderWallet}`} className="hover:text-white hover:text-color-buy transition-colors">
                     {shortWallet}
-                  </a>
+                  </Link>
                 </td>
                 <td className="py-3 text-color-muted whitespace-nowrap">
                   {timeAgo}
@@ -133,7 +134,7 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
                   {trade.signature ? (
                     <a href={`https://solscan.io/tx/${trade.signature}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet' ? '?cluster=devnet' : ''}`} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
                       {trade.signature.slice(0, 4)}...{trade.signature.slice(-4)}
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                     </a>
                   ) : (
                     <span>-</span>

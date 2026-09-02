@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground text-[15px] leading-relaxed`}
       >
         <WalletContextProvider>
           <Toaster position="bottom-right" toastOptions={{ className: 'dark:bg-[#1A1F2B] dark:text-white' }} />

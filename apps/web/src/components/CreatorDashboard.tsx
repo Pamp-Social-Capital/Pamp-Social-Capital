@@ -316,7 +316,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
   // === UNCLAIMED MARKET UI ===
   if (!claimed && isUnclaimedOwner) {
     return (
-      <div className="bg-gradient-to-r from-amber-900/40 to-orange-900/40 border border-amber-500/30 p-6 rounded-2xl shadow-lg mb-6">
+      <div className="bg-gradient-to-r from-amber-900/40 to-orange-900/40 border border-amber-500/30 p-6 rounded-xl shadow-lg mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -327,7 +327,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
           </div>
         </div>
 
-        <div className="bg-[#07090c]/50 rounded-xl p-4 border border-amber-500/20 mb-4">
+        <div className="bg-[#07090c]/50 rounded-lg p-4 border border-amber-500/20 mb-4">
           <table className="w-full text-sm">
             <tbody>
               <tr className="border-b border-amber-500/10">
@@ -353,7 +353,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
         <button
           onClick={handleClaimMarket}
           disabled={isClaiming}
-          className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-amber-600/20 transition-all flex items-center justify-center gap-2"
+          className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-amber-600/20 transition-all flex items-center justify-center gap-2"
         >
           {isClaiming ? (
             <>
@@ -391,7 +391,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
         <button
           onClick={handleWithdraw}
           disabled={isWithdrawing || vaultBalance === 0 || vaultBalance === null}
-          className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+          className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg font-bold transition-all flex items-center justify-center gap-2"
         >
           {isWithdrawing ? "Withdrawing..." : "Withdraw Fees"}
         </button>
@@ -421,8 +421,8 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
 
       {/* Withdraw Result Modal */}
       {showWithdrawModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-color-card border border-color-border p-6 rounded-2xl shadow-2xl max-w-sm w-full relative overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#07090c]/80 backdrop-blur-sm px-4">
+          <div className="bg-background border border-color-border p-6 rounded-xl shadow-2xl max-w-sm w-full relative overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${
               withdrawModalStatus === 'error' 
                 ? 'from-red-500 to-orange-500' 
@@ -485,7 +485,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
                   setShowWithdrawModal(false);
                   setWithdrawModalSignature('');
                 }} 
-                className="w-full bg-[#161A22] border border-color-border text-white py-2.5 rounded-xl hover:bg-white/10 transition-colors font-semibold mt-2"
+                className="w-full bg-[#161A22] border border-color-border text-white py-2.5 rounded-lg hover:bg-white/10 transition-colors font-semibold mt-2"
               >
                 Close
               </button>

@@ -14,22 +14,20 @@ interface TabsProps {
 
 export function Tabs({ tabs, activeTab, onTabChange, className = "" }: TabsProps) {
   return (
-    <div className={`flex ${className}`}>
-      <div className="bg-[#12141A] p-1 rounded-xl flex items-center border border-color-border/50 shadow-sm overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'bg-[#282C35] text-white ring-1 ring-white/10 shadow-sm'
-                : 'text-color-muted hover:text-white'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    <div className={`flex gap-2 overflow-x-auto pb-2 md:pb-0 ${className}`}>
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => onTabChange(tab.id)}
+          className={`px-4 py-2 rounded-lg text-sm transition-all whitespace-nowrap border ${
+            activeTab === tab.id
+              ? 'bg-white text-[#0B0D0A] border-transparent font-semibold shadow-sm'
+              : 'bg-[#131711] text-color-muted border-color-border hover:bg-white/5 hover:text-white'
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
     </div>
   );
 }

@@ -21,7 +21,23 @@ export interface Market {
   description?: string;
   bannerUrl?: string;
   claimed?: boolean;
+  createdAt?: string;
 }
+
+const getRelativeTime = (dateString?: string) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays}d ago`;
+};
 
 export const MarketCard: FC<{ market: Market }> = ({ market }) => {
   // Convert lamports to SOL for display
@@ -34,19 +50,19 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
 
   return (
     <Link href={`/creator/${market.marketPda}`} className="block h-full">
-      <div className="bg-[#12141A] rounded-xl p-5 hover:bg-white/5 transition-colors border border-color-border/50 hover:border-color-border group flex flex-col justify-between h-full shadow-lg relative overflow-hidden">
+      <div className="bg-background rounded-xl p-5 hover:bg-white/5 transition-colors border border-color-border/50 hover:border-color-border group flex flex-col justify-between h-full shadow-lg relative overflow-hidden">
         
         {market.bannerUrl && (
           <>
             <div 
-              className="absolute top-0 left-0 right-0 bottom-20 z-0 opacity-30 mix-blend-luminosity group-hover:opacity-50 transition-opacity"
+              className="absolute inset-0 z-0 opacity-30 mix-blend-luminosity group-hover:opacity-50 transition-opacity"
               style={{ 
                 backgroundImage: `url(${market.bannerUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}
             />
-            <div className="absolute top-0 left-0 right-0 bottom-20 z-0 bg-gradient-to-b from-transparent via-[#12141A]/70 to-[#12141A]" />
+            <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
           </>
         )}
 
@@ -54,12 +70,20 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
           {/* Header: Avatar, Name, Followers, Action Button */}
           <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-              {market.avatarUrl ? (
-                <img src={market.avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
-              ) : (
-                initialLetter
-              )}
+            <div className="relative">
+              <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                {market.avatarUrl ? (
+                  <img src={market.avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  initialLetter
+                )}
+              </div>
+              {/* X (Twitter) Logo Badge */}
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-black rounded-full border border-color-border flex items-center justify-center">
+                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -79,6 +103,12 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
               <div className="flex items-center text-color-muted text-xs mt-1">
                 <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
                 {market.holderCount || 0} Holders
+                {market.createdAt && (
+                  <>
+                    <span className="mx-1.5 opacity-50">•</span>
+                    <span>{getRelativeTime(market.createdAt)}</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -94,7 +124,7 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
         </div>
 
         {/* Main Metric & Sparkline */}
-        <div className="flex items-end justify-between mb-8 mt-auto">
+        <div className="flex items-end justify-between mt-auto">
           <div>
             <div className="text-color-muted text-xs mb-1">Price (SOL)</div>
             <div className="text-2xl font-bold text-color-foreground">{priceSol}</div>
@@ -106,7 +136,7 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
               <svg viewBox="0 0 100 32" className="w-full h-full overflow-visible" preserveAspectRatio="none">
                 <polyline
                   fill="none"
-                  stroke="#10B981" // color-buy
+                  stroke="#7CFF6B" // color-buy / Pump Green
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -125,22 +155,6 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
                 No recent data
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Footer Metrics */}
-        <div className="flex items-center justify-between text-xs pt-4 border-t border-color-border">
-          <div>
-            <div className="text-color-muted mb-1">Supply</div>
-            <div className="text-color-foreground font-medium">{market.supply.toLocaleString()}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-color-muted mb-1">Creator Fee</div>
-            <div className="text-color-foreground font-medium">{feePercent}%</div>
-          </div>
-          <div className="text-right">
-            <div className="text-color-muted mb-1">Reserve</div>
-            <div className="text-color-foreground font-medium">{reserveSol} SOL</div>
           </div>
         </div>
       </div>

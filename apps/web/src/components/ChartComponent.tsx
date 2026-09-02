@@ -1,11 +1,12 @@
 "use client";
 
 import { createChart, ColorType, ISeriesApi, Time, CandlestickSeries } from 'lightweight-charts';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: string, resolution?: string }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const candlestickSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -25,6 +26,14 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
+        visible: true,
+        fixLeftEdge: false,
+        fixRightEdge: false,
+        rightOffset: 12,
+      },
+      rightPriceScale: {
+        visible: true,
+        autoScale: true,
       }
     });
 
@@ -34,6 +43,11 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
       borderVisible: false,
       wickUpColor: '#22c55e',
       wickDownColor: '#ef4444',
+      priceFormat: {
+        type: 'price',
+        precision: 9,
+        minMove: 0.000000001,
+      },
     });
     
     candlestickSeriesRef.current = candlestickSeries;
@@ -53,11 +67,26 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
           }));
           candlestickSeries.setData(formattedData);
           if (formattedData.length > 0) {
-            chart.timeScale().fitContent();
+            // Prevent extreme zoom when there are very few data points
+            const minBarsToShow = 60; // Show a minimum of 60 periods (e.g. 60 mins for 1m resolution)
+            if (formattedData.length < minBarsToShow) {
+              chart.timeScale().setVisibleLogicalRange({
+                from: formattedData.length - minBarsToShow,
+                to: formattedData.length + 5,
+              });
+            } else {
+              chart.timeScale().fitContent();
+            }
           }
+          setIsLoading(false);
+        } else {
+          setIsLoading(false);
         }
       })
-      .catch(err => console.error("Failed to load historical candles:", err));
+      .catch(err => {
+        console.error("Failed to load historical candles:", err);
+        setIsLoading(false);
+      });
 
     // Connect WebSocket
     const baseUrl = process.env.NEXT_PUBLIC_WS_URL as string;
@@ -116,7 +145,13 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
         #tv-attr-logo { display: none !important; }
         .tv-lightweight-charts table ~ div > a { display: none !important; }
       `}} />
-      <div className="w-full h-full" ref={chartContainerRef} />
+      <div className={`w-full h-full ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`} ref={chartContainerRef} />
+      
+      {isLoading && (
+        <div className="absolute inset-0 p-4">
+          <div className="w-full h-full bg-white/5 rounded-lg animate-pulse" />
+        </div>
+      )}
     </div>
   );
 };
