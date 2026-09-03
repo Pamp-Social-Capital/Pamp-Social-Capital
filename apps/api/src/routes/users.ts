@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { db, creatorMarkets, feeWithdrawals, users } from "@social-capital/db";
-import { desc, eq, and, sum } from "drizzle-orm";
+import { desc, eq, and, or, sum } from "drizzle-orm";
 
 export const usersRoutes = async (fastify: FastifyInstance) => {
   fastify.get("/:address/markets", async (request, reply) => {
@@ -21,7 +21,10 @@ export const usersRoutes = async (fastify: FastifyInstance) => {
       const markets = await db.query.creatorMarkets.findMany({
         where: and(
           eq(creatorMarkets.network, network),
-          eq(creatorMarkets.creatorWallet, address)
+          or(
+            eq(creatorMarkets.creatorWallet, address),
+            eq(creatorMarkets.createdBy, address)
+          )
         ),
         orderBy: [desc(creatorMarkets.createdAt)],
       });

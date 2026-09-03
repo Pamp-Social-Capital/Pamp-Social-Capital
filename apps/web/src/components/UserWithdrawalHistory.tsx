@@ -94,7 +94,33 @@ export const UserWithdrawalHistoryComponent = ({ address }: { address?: string }
     return (
       <div className="overflow-x-auto mt-12 bg-color-card rounded-xl border border-color-border p-6 shadow-2xl">
         <h2 className="text-xl font-bold text-white mb-6">Withdrawal History</h2>
-        <div className="text-center py-12 text-color-muted">No withdrawal history found.</div>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-color-border text-color-muted text-sm uppercase">
+              <th className="py-3 font-semibold">Time</th>
+              <th className="py-3 font-semibold">Amount (SOL)</th>
+              <th className="py-3 font-semibold">Market PDA</th>
+              <th className="py-3 font-semibold">Transaction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colSpan={4} className="py-12 text-center">
+                <div className="flex flex-col items-center justify-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-white/5 border border-color-border flex items-center justify-center text-color-muted mb-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                  </div>
+                  <h3 className="text-white font-semibold text-lg">No Withdrawals Yet</h3>
+                  <p className="text-color-muted text-sm max-w-sm">
+                    Creator fees that you withdraw from your markets will appear here.
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     );
   }

@@ -204,8 +204,14 @@ export default function ProfilePage({ params }: PageProps) {
           </div>
 
           {withdrawals.length === 0 ? (
-            <div className="bg-background border border-color-border rounded-xl p-6 text-center shadow-lg hover:border-color-buy/50 transition-colors group">
-              <p className="text-color-muted text-sm">No withdrawals yet.</p>
+            <div className="bg-background border border-color-border rounded-xl p-8 text-center shadow-lg flex flex-col items-center justify-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-white/5 border border-color-border flex items-center justify-center text-color-muted mb-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+              </div>
+              <h3 className="text-white font-semibold text-base">No Withdrawals Yet</h3>
+              <p className="text-color-muted text-xs">Fees withdrawn from markets will appear here.</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
