@@ -3,6 +3,7 @@
 import Link from "next/link";
 import useSWR from "swr";
 import { MarketCard, Market } from "@/components/MarketCard";
+import { UserMarquee } from "@/components/UserMarquee";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -142,17 +143,17 @@ export default function LandingPage() {
       <main className="max-w-7xl mx-auto px-6 relative z-10">
         
         {/* Hero Section */}
-        <section className="pt-32 pb-20 flex flex-col items-center text-center">
+        <section className="pt-40 pb-28 flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-color-muted mb-8">
             <span className="w-2 h-2 rounded-full bg-color-buy animate-pulse" />
             Pump Social Capital is live on Solana
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 max-w-4xl leading-tight text-transparent bg-clip-text bg-gradient-to-b from-white to-white/80 uppercase">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 max-w-6xl leading-[1.1] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/80 uppercase">
             Tokenized Social Capital<br/><span className="text-white/80 lowercase tracking-normal" style={{fontVariant: 'normal'}}>Every influencer becomes a market.</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-color-muted max-w-2xl mb-12 font-light leading-relaxed">
+          <p className="text-lg md:text-xl text-color-muted max-w-3xl mb-14 font-light leading-relaxed">
             Trade Creator Keys tied to social influence, attention and community. Built on Solana.
           </p>
           
@@ -179,6 +180,14 @@ export default function LandingPage() {
             <span className="hidden md:inline">•</span>
             <span>100% of protocol revenue → $PSC buybacks</span>
           </div>
+        </section>
+
+        {/* User Marquee */}
+        <section className="mb-20">
+          <div className="flex items-center justify-center mb-6">
+            <h3 className="text-color-muted font-medium text-sm tracking-widest uppercase">Join Top Creators</h3>
+          </div>
+          <UserMarquee />
         </section>
 
         {/* Featured Markets */}
