@@ -140,7 +140,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 relative z-10">
+      <main className="w-full max-w-[120rem] mx-auto px-6 md:px-12 lg:px-20 relative z-10">
         
         {/* Hero Section */}
         <section className="pt-40 pb-28 flex flex-col items-center text-center">
@@ -188,7 +188,7 @@ export default function LandingPage() {
 
         {/* Featured Markets */}
         {markets && markets.length > 0 && (
-          <section className="py-20 mt-12 relative w-[100vw] left-1/2 -translate-x-1/2 px-4 md:px-12 lg:px-20 max-w-[120rem]">
+          <section className="py-20 mt-12">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h4 className="text-color-buy font-medium mb-2 text-sm tracking-wider uppercase">Explore</h4>
@@ -280,7 +280,7 @@ export default function LandingPage() {
           <h4 className="text-color-buy font-medium mb-2 text-sm tracking-wider uppercase">Growth Engine</h4>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-16">Creator Economy Flywheel</h2>
           
-          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 max-w-5xl mx-auto pb-8">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 w-full mx-auto pb-8">
             {['SOCIAL INFLUENCE', 'CREATOR MARKET', 'KEY TRADING', 'CREATOR REWARDS', 'PROTOCOL REVENUE', '$PSC BUYBACKS'].map((step, i, arr) => (
               <div key={step} className="flex items-center gap-4 md:gap-6">
                 <div className="px-6 py-4 bg-white/[0.02] border border-white/[0.03] rounded-xl font-medium text-sm tracking-wide text-white/90 hover:bg-white/[0.04] hover:border-white/[0.08] transition-colors duration-300 cursor-default whitespace-nowrap">
@@ -305,7 +305,7 @@ export default function LandingPage() {
             <h2 className="text-2xl font-bold text-white uppercase tracking-widest">Live Onchain Metrics <span className="text-white/40 text-sm ml-2 bg-white/5 px-2 py-1 rounded">DEVNET</span></h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 w-full mx-auto">
             {(() => {
               const totalMarkets = data?.markets?.length || 0;
               const totalTvl = (data?.markets?.reduce((acc: number, m: any) => acc + Number(m.reserveLamports), 0) / 1e9 || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -368,7 +368,7 @@ export default function LandingPage() {
           <div className="mb-16 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-white">Why Pump Social Capital</h2>
           </div>
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 w-full mx-auto">
             <div className="group relative p-8 bg-white/[0.02] border border-white/[0.03] rounded-3xl hover:bg-white/[0.04] hover:border-white/[0.08] transition-colors duration-300 overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-[40px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
