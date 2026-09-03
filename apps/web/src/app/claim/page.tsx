@@ -35,6 +35,11 @@ export default function ClaimPage() {
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [bannerInputType, setBannerInputType] = useState<"upload" | "url">("upload");
   const [initialBuyAmount, setInitialBuyAmount] = useState("");
+  const [creationMode, setCreationMode] = useState<"oauth" | "manual">("oauth");
+  const [category, setCategory] = useState("Regular User");
+  const [xProfileUrl, setXProfileUrl] = useState("");
+  
+  const CATEGORIES = ["Regular User", "Crypto", "Streamers", "Influencers", "Athletes", "Business", "Actors", "Celebrities", "Politicians", "Musicians", "Creatives", "Companies"];
 
   const handleClaim = async () => {
     if (!publicKey || !signMessage) {
@@ -258,15 +263,40 @@ export default function ClaimPage() {
   };
 
   const handleCreateMarket = async () => {
-    if (!twitterHandle || !isXLinked) {
+    if (creationMode === "oauth" && (!twitterHandle || !isXLinked)) {
       setMessage("Please link your X (Twitter) handle first.");
       setStatus("ERROR");
+      return;
+    }
+    
+    if (creationMode === "manual" && !twitterHandle.trim()) {
+      toast.error("Please enter a Username (Handle)");
+      return;
+    }
+
+    if (creationMode === "manual" && !twitterName.trim()) {
+      toast.error("Please enter a Display Name");
       return;
     }
 
     if (!sdk || !publicKey) {
       setMessage("Wallet not connected or SDK not initialized.");
       setStatus("ERROR");
+      return;
+    }
+
+    if (!ticker.trim()) {
+      toast.error("Please enter a Ticker");
+      return;
+    }
+    
+    if (!description.trim()) {
+      toast.error("Please enter a Description");
+      return;
+    }
+    
+    if (!bannerUrl.trim()) {
+      toast.error("Please upload or provide a Banner Image URL");
       return;
     }
 
@@ -281,7 +311,7 @@ export default function ClaimPage() {
     };
 
     if (websiteUrl && !isValidUrl(websiteUrl)) {
-      toast.error("Please enter a valid Website URL (e.g., https://example.com)");
+      toast.error("Please enter a valid Link URL (e.g., https://example.com)");
       return;
     }
 
@@ -350,7 +380,8 @@ export default function ClaimPage() {
                 telegramUrl,
                 bannerUrl,
                 twitterName,
-                avatarUrl: twitterAvatar
+                avatarUrl: twitterAvatar,
+                category
               })
             });
             if (syncRes.ok) {
@@ -370,6 +401,13 @@ export default function ClaimPage() {
       }
 
       if (!marketState || !marketState.claimed) {
+        if (creationMode === "manual") {
+          setStatus("SUCCESS");
+          toast.success(`Market Created! The owner can claim it later via OAuth.`, { id: loadingId });
+          setCreatedMarketPda(marketPda.toBase58());
+          return;
+        }
+
         // We need to claim the market using Ed25519 verification
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         const walletToken = localStorage.getItem("walletToken");
@@ -460,7 +498,8 @@ export default function ClaimPage() {
               telegramUrl,
               bannerUrl,
               twitterName,
-              avatarUrl: twitterAvatar
+              avatarUrl: twitterAvatar,
+              category
             })
           });
 
@@ -492,7 +531,8 @@ export default function ClaimPage() {
               telegramUrl,
               bannerUrl,
               twitterName,
-              avatarUrl: twitterAvatar
+              avatarUrl: twitterAvatar,
+              category
             })
           });
         } catch (e) {
@@ -571,40 +611,112 @@ export default function ClaimPage() {
           <div className="flex flex-col items-center gap-6 w-full mt-4">
             <div className="text-center w-full">
               <p className="text-white font-semibold text-lg mb-1">Step 3: Market Details</p>
-              <p className="text-color-muted text-sm mb-4">
-                {isXLinked ? "Identity verified. Configure your market." : "Click below to authenticate your X (Twitter) account."}
-              </p>
+            </div>
+              <div className="flex gap-2 mb-4 bg-[#161A22] p-1 rounded-lg w-full border border-color-border mt-2">
+                <button
+                  type="button"
+                  onClick={() => setCreationMode("oauth")}
+                  className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${creationMode === "oauth" ? "bg-[#07090c] text-white shadow border border-color-border" : "text-color-muted hover:text-white"}`}
+                >
+                  Connect X
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreationMode("manual")}
+                  className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${creationMode === "manual" ? "bg-[#07090c] text-white shadow border border-color-border" : "text-color-muted hover:text-white"}`}
+                >
+                  Manual (Unclaimed)
+                </button>
+              </div>
 
-              {isXLinked && (
-                <div className="w-full bg-white/10 border border-white/30 rounded-xl p-4 flex items-center justify-center gap-2 mb-4">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
-                  <span className="font-bold text-white">@{twitterHandle}</span>
-                  <span className="bg-color-buy text-[#07090c] text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">VERIFIED</span>
+              {creationMode === "oauth" && (
+                <>
+                  <p className="text-color-muted text-sm mb-4">
+                    {isXLinked ? "Identity verified. Configure your market." : "Click below to authenticate your X (Twitter) account."}
+                  </p>
+
+                  {isXLinked && (
+                    <div className="w-full bg-white/10 border border-white/30 rounded-xl p-4 flex items-center justify-center gap-2 mb-4">
+                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                      <span className="font-bold text-white">@{twitterHandle}</span>
+                      <span className="bg-color-buy text-[#07090c] text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">VERIFIED</span>
+                    </div>
+                  )}
+
+                  {!isXLinked && (
+                    <button
+                      onClick={handleOAuthLogin}
+                      disabled={status === "LOADING"}
+                      className="w-full bg-[#161A22] border border-color-border text-white font-bold py-3.5 px-4 rounded-xl hover:bg-[#1DA1F2]/20 hover:border-[#1DA1F2]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+                    >
+                      {status === "LOADING" ? "Connecting..." : "Connect X"}
+                    </button>
+                  )}
+                </>
+              )}
+
+              {creationMode === "manual" && (
+                <div className="w-full mb-4 flex flex-col gap-4 text-left">
+                  <div>
+                    <label className="text-white text-sm font-semibold mb-1 block">X Profile URL</label>
+                    <input 
+                      type="text" 
+                      value={xProfileUrl} 
+                      onChange={e => {
+                        setXProfileUrl(e.target.value);
+                        // Auto extract username
+                        try {
+                          const url = new URL(e.target.value);
+                          let handle = url.pathname.replace('/', '');
+                          if (handle.includes('?')) handle = handle.split('?')[0];
+                          if (handle.includes('/')) handle = handle.split('/')[0];
+                          if (handle) setTwitterHandle(handle);
+                        } catch (e) {}
+                      }} 
+                      placeholder="https://x.com/username" 
+                      className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" 
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-white text-sm font-semibold mb-1 block">Username (Handle) *</label>
+                      <input type="text" value={twitterHandle} onChange={e => setTwitterHandle(e.target.value)} placeholder="e.g. username" className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                    </div>
+                    <div>
+                      <label className="text-white text-sm font-semibold mb-1 block">Display Name *</label>
+                      <input type="text" value={twitterName} onChange={e => setTwitterName(e.target.value)} placeholder="e.g. John Doe" className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-white text-sm font-semibold mb-1 block">Avatar URL</label>
+                    <input type="text" value={twitterAvatar} onChange={e => setTwitterAvatar(e.target.value)} placeholder="https://..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                  </div>
                 </div>
               )}
-            </div>
 
-            {!isXLinked ? (
-              <button
-                onClick={handleOAuthLogin}
-                disabled={status === "LOADING"}
-                className="w-full bg-[#161A22] border border-color-border text-white font-bold py-3.5 px-4 rounded-xl hover:bg-[#1DA1F2]/20 hover:border-[#1DA1F2]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
-              >
-                {status === "LOADING" ? "Connecting..." : "Connect X"}
-              </button>
-            ) : (
-              <div className="w-full flex flex-col gap-4 text-left">
+              {(creationMode === "manual" || isXLinked) && (
+                <div className="w-full flex flex-col gap-4 text-left border-t border-color-border pt-4">
+                  <div>
+                    <label className="text-white text-sm font-semibold mb-1 block">Category</label>
+                    <select 
+                      value={category} 
+                      onChange={e => setCategory(e.target.value)}
+                      className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors appearance-none"
+                    >
+                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-white text-sm font-semibold mb-1 block">Ticker *</label>
+                    <input type="text" value={ticker} onChange={e => setTicker(e.target.value)} placeholder={`e.g. $${twitterHandle?.toUpperCase()}`} className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                  </div>
                 <div>
-                  <label className="text-white text-sm font-semibold mb-1 block">Ticker *</label>
-                  <input type="text" value={ticker} onChange={e => setTicker(e.target.value)} placeholder={`e.g. $${twitterHandle?.toUpperCase()}`} className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
-                </div>
-                <div>
-                  <label className="text-white text-sm font-semibold mb-1 block">Description</label>
+                  <label className="text-white text-sm font-semibold mb-1 block">Description *</label>
                   <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="About your community..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors resize-none h-20" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-white text-sm font-semibold mb-1 block">Website</label>
+                    <label className="text-white text-sm font-semibold mb-1 block">Link</label>
                     <input type="text" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
                   </div>
                   <div>
@@ -613,7 +725,7 @@ export default function ClaimPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-white text-sm font-semibold mb-2 block">Banner Image</label>
+                  <label className="text-white text-sm font-semibold mb-2 block">Banner Image *</label>
                   
                   {/* Tabs */}
                   <div className="flex gap-2 mb-3 bg-[#161A22] p-1 rounded-lg w-fit border border-color-border">
@@ -691,7 +803,7 @@ export default function ClaimPage() {
                 
                 <button
                   onClick={handleCreateMarket}
-                  disabled={status === "LOADING" || !ticker.trim()}
+                  disabled={status === "LOADING" || !ticker.trim() || !description.trim() || !bannerUrl.trim()}
                   className="w-full bg-[#1DA1F2] text-white font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1DA1F2]/20 mt-2"
                 >
                   {status === "LOADING" ? "Creating Market..." : "Launch Market"}

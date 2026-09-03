@@ -215,26 +215,24 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="grid md:grid-cols-4 gap-8">
-            <div className="p-6 bg-[#161A22] border border-white/5 rounded-2xl">
-              <div className="text-color-buy font-mono text-sm mb-4">01</div>
-              <h3 className="text-xl font-bold text-white mb-3">Discover</h3>
-              <p className="text-color-muted font-light text-sm">Find creator markets based on attention and social momentum.</p>
-            </div>
-            <div className="p-6 bg-[#161A22] border border-white/5 rounded-2xl">
-              <div className="text-color-buy font-mono text-sm mb-4">02</div>
-              <h3 className="text-xl font-bold text-white mb-3">Trade</h3>
-              <p className="text-color-muted font-light text-sm">Buy and sell Creator Keys on Solana.</p>
-            </div>
-            <div className="p-6 bg-[#161A22] border border-white/5 rounded-2xl">
-              <div className="text-color-buy font-mono text-sm mb-4">03</div>
-              <h3 className="text-xl font-bold text-white mb-3">Creators Earn</h3>
-              <p className="text-color-muted font-light text-sm">Trading activity generates creator rewards.</p>
-            </div>
-            <div className="p-6 bg-[#161A22] border border-white/5 rounded-2xl">
-              <div className="text-color-buy font-mono text-sm mb-4">04</div>
-              <h3 className="text-xl font-bold text-white mb-3">PSC Buyback</h3>
-              <p className="text-color-muted font-light text-sm">Protocol revenue is used to buy back $PSC.</p>
-            </div>
+            {[
+              { step: '01', title: 'Discover', desc: 'Find creator markets based on attention and social momentum.' },
+              { step: '02', title: 'Trade', desc: 'Buy and sell Creator Keys on Solana.' },
+              { step: '03', title: 'Creators Earn', desc: 'Trading activity generates creator rewards.' },
+              { step: '04', title: 'PSC Buyback', desc: 'Protocol revenue is used to buy back $PSC.' }
+            ].map((item, idx) => (
+              <div key={idx} className="group relative p-6 bg-[#161A22]/80 backdrop-blur-md border border-white/5 rounded-2xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:-translate-y-1 overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 rounded-full blur-[40px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative z-10">
+                  <div className="text-color-buy font-mono text-lg mb-6 flex items-center justify-between">
+                    <span>{item.step}</span>
+                    <svg className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity group-hover:translate-x-1 duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3 tracking-tight group-hover:text-color-buy transition-colors">{item.title}</h3>
+                  <p className="text-color-muted font-light text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -249,8 +247,8 @@ export default function LandingPage() {
               <p>100% of Pump Social Capital protocol trading revenue is used to buy back $PSC.</p>
             </div>
           </div>
-          <div className="bg-[#161A22] border border-color-border rounded-3xl p-8 relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 blur-[50px]" />
+          <div className="group bg-[#161A22]/80 backdrop-blur-md border border-white/5 rounded-3xl p-8 relative overflow-hidden shadow-2xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_40px_rgba(34,197,94,0.15)]">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 rounded-full blur-[40px] -mr-10 -mt-10 opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="space-y-8">
               <div className="pb-6 border-b border-white/5">
                 <span className="text-4xl font-bold text-white tracking-tight">1.25%</span>
@@ -277,14 +275,14 @@ export default function LandingPage() {
           <h4 className="text-color-buy font-medium mb-2 text-sm tracking-wider uppercase">Growth Engine</h4>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-16">Creator Economy Flywheel</h2>
           
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 max-w-5xl mx-auto overflow-x-auto pb-8">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 max-w-5xl mx-auto pb-8">
             {['SOCIAL INFLUENCE', 'CREATOR MARKET', 'KEY TRADING', 'CREATOR REWARDS', 'PROTOCOL REVENUE', '$PSC BUYBACKS'].map((step, i, arr) => (
-              <div key={step} className="flex flex-col md:flex-row items-center gap-4 md:gap-8 shrink-0">
-                <div className="px-6 py-4 bg-[#161A22] border border-white/10 rounded-xl font-bold text-sm tracking-wide text-white">
+              <div key={step} className="flex items-center gap-4 md:gap-6">
+                <div className="px-6 py-4 bg-[#161A22]/80 backdrop-blur-md border border-white/10 rounded-xl font-bold text-sm tracking-wide text-white hover:border-color-buy/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:-translate-y-1 transition-all duration-300 cursor-default whitespace-nowrap">
                   {step}
                 </div>
                 {i < arr.length - 1 && (
-                  <svg className="w-6 h-6 text-color-buy md:-rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                  <svg className="w-5 h-5 text-color-buy -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                 )}
               </div>
             ))}
@@ -312,29 +310,47 @@ export default function LandingPage() {
               
               return (
                 <>
-                  <div className="text-center p-6 bg-[#0F141A] border border-white/5 rounded-2xl">
-                    <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase">Total Volume</p>
-                    <p className="text-3xl font-bold text-white tracking-tight">{totalVol} <span className="text-sm font-normal text-color-muted">SOL</span></p>
+                  <div className="group text-center p-6 bg-[#0F141A]/80 backdrop-blur-md border border-white/5 rounded-2xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.1)] hover:-translate-y-1 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-color-buy/10 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10">
+                      <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-color-buy/80 transition-colors">Total Volume</p>
+                      <p className="text-3xl font-bold text-white tracking-tight">{totalVol} <span className="text-sm font-normal text-color-muted">SOL</span></p>
+                    </div>
                   </div>
-                  <div className="text-center p-6 bg-[#0F141A] border border-white/5 rounded-2xl">
-                    <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase">Live Markets</p>
-                    <p className="text-3xl font-bold text-white tracking-tight">{totalMarkets}</p>
+                  <div className="group text-center p-6 bg-[#0F141A]/80 backdrop-blur-md border border-white/5 rounded-2xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.1)] hover:-translate-y-1 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-color-buy/10 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10">
+                      <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-color-buy/80 transition-colors">Live Markets</p>
+                      <p className="text-3xl font-bold text-white tracking-tight">{totalMarkets}</p>
+                    </div>
                   </div>
-                  <div className="text-center p-6 bg-[#0F141A] border border-white/5 rounded-2xl">
-                    <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase">Total Holders</p>
-                    <p className="text-3xl font-bold text-white tracking-tight">Coming Soon</p>
+                  <div className="group text-center p-6 bg-[#0F141A]/80 backdrop-blur-md border border-white/5 rounded-2xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.1)] hover:-translate-y-1 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-color-buy/10 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10">
+                      <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-color-buy/80 transition-colors">Total Holders</p>
+                      <p className="text-3xl font-bold text-white tracking-tight">Coming Soon</p>
+                    </div>
                   </div>
-                  <div className="text-center p-6 bg-[#0F141A] border border-white/5 rounded-2xl">
-                    <p className="text-color-buy text-xs mb-2 font-medium tracking-widest uppercase">Creator Rewards</p>
-                    <p className="text-3xl font-bold text-color-buy tracking-tight">Coming Soon</p>
+                  <div className="group text-center p-6 bg-[#0F141A]/80 backdrop-blur-md border border-white/5 rounded-2xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.1)] hover:-translate-y-1 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-color-buy/10 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10">
+                      <p className="text-color-buy text-xs mb-2 font-medium tracking-widest uppercase">Creator Rewards</p>
+                      <p className="text-3xl font-bold text-color-buy tracking-tight">Coming Soon</p>
+                    </div>
                   </div>
-                  <div className="text-center p-6 bg-[#0F141A] border border-white/5 rounded-2xl">
-                    <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase">Protocol Revenue</p>
-                    <p className="text-3xl font-bold text-white tracking-tight">Coming Soon</p>
+                  <div className="group text-center p-6 bg-[#0F141A]/80 backdrop-blur-md border border-white/5 rounded-2xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.1)] hover:-translate-y-1 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-color-buy/10 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10">
+                      <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-color-buy/80 transition-colors">Protocol Revenue</p>
+                      <p className="text-3xl font-bold text-white tracking-tight">Coming Soon</p>
+                    </div>
                   </div>
-                  <div className="text-center p-6 bg-[#0F141A] border border-white/5 rounded-2xl">
-                    <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase">$PSC Buyback Value</p>
-                    <p className="text-3xl font-bold text-white tracking-tight">Coming Soon</p>
+                  <div className="group text-center p-6 bg-[#0F141A]/80 backdrop-blur-md border border-white/5 rounded-2xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.1)] hover:-translate-y-1 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-color-buy/10 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10">
+                      <p className="text-color-muted text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-color-buy/80 transition-colors">$PSC Buyback Value</p>
+                      <p className="text-3xl font-bold text-white tracking-tight">Coming Soon</p>
+                    </div>
                   </div>
                 </>
               );
@@ -348,21 +364,33 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-bold text-white">Why Pump Social Capital</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <div className="p-8 bg-[#161A22] border border-white/5 rounded-3xl hover:border-color-buy/30 transition-colors">
-              <h3 className="text-xl font-bold text-white mb-3">SOCIAL IDENTITY</h3>
-              <p className="text-color-muted font-light leading-relaxed">Every creator can become a market.</p>
+            <div className="group relative p-8 bg-[#161A22]/80 backdrop-blur-md border border-white/5 rounded-3xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:-translate-y-1 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 rounded-full blur-[40px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-color-buy transition-colors">SOCIAL IDENTITY</h3>
+                <p className="text-color-muted font-light leading-relaxed">Every creator can become a market.</p>
+              </div>
             </div>
-            <div className="p-8 bg-[#161A22] border border-white/5 rounded-3xl hover:border-color-buy/30 transition-colors">
-              <h3 className="text-xl font-bold text-white mb-3">PRICE DISCOVERY</h3>
-              <p className="text-color-muted font-light leading-relaxed">Attention and market activity create real-time price discovery.</p>
+            <div className="group relative p-8 bg-[#161A22]/80 backdrop-blur-md border border-white/5 rounded-3xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:-translate-y-1 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 rounded-full blur-[40px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-color-buy transition-colors">PRICE DISCOVERY</h3>
+                <p className="text-color-muted font-light leading-relaxed">Attention and market activity create real-time price discovery.</p>
+              </div>
             </div>
-            <div className="p-8 bg-[#161A22] border border-white/5 rounded-3xl hover:border-color-buy/30 transition-colors">
-              <h3 className="text-xl font-bold text-white mb-3">CREATOR REVENUE</h3>
-              <p className="text-color-muted font-light leading-relaxed">Creators earn from trading activity around their market.</p>
+            <div className="group relative p-8 bg-[#161A22]/80 backdrop-blur-md border border-white/5 rounded-3xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:-translate-y-1 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 rounded-full blur-[40px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-color-buy transition-colors">CREATOR REVENUE</h3>
+                <p className="text-color-muted font-light leading-relaxed">Creators earn from trading activity around their market.</p>
+              </div>
             </div>
-            <div className="p-8 bg-[#161A22] border border-white/5 rounded-3xl hover:border-color-buy/30 transition-colors">
-              <h3 className="text-xl font-bold text-white mb-3">ONCHAIN</h3>
-              <p className="text-color-muted font-light leading-relaxed">Creator Key markets settle on Solana.</p>
+            <div className="group relative p-8 bg-[#161A22]/80 backdrop-blur-md border border-white/5 rounded-3xl hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:-translate-y-1 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 rounded-full blur-[40px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-color-buy transition-colors">ONCHAIN</h3>
+                <p className="text-color-muted font-light leading-relaxed">Creator Key markets settle on Solana.</p>
+              </div>
             </div>
           </div>
         </section>
@@ -375,9 +403,12 @@ export default function LandingPage() {
               Every Creator Key trade settles on Solana. Markets, trades and creator activity can be independently verified onchain. No simulated transactions. No offchain market settlement.
             </p>
             
-            <div className="bg-[#161A22] border border-color-border p-6 rounded-2xl inline-flex flex-col items-center gap-4">
-              <div className="text-xs text-color-muted uppercase tracking-widest font-semibold">Program ID</div>
-              <div className="font-mono text-color-buy text-sm md:text-base break-all px-4">HmFYeVa2bdxEsT7huH8er8KrYrB2fWgM7Kx7hkAyYPZj</div>
+            <div className="group bg-[#161A22]/80 backdrop-blur-md border border-color-border p-6 rounded-2xl inline-flex flex-col items-center gap-4 hover:border-color-buy/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-color-buy/10 rounded-full blur-[40px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10 text-center">
+                <div className="text-xs text-color-muted uppercase tracking-widest font-semibold mb-2">Program ID</div>
+                <div className="font-mono text-color-buy text-sm md:text-base break-all px-4 bg-black/40 py-2 rounded-lg border border-white/5 group-hover:border-color-buy/30 transition-colors">HmFYeVa2bdxEsT7huH8er8KrYrB2fWgM7Kx7hkAyYPZj</div>
+              </div>
             </div>
             
             <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">

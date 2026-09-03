@@ -24,6 +24,7 @@ export const creatorMarkets = pgTable("creator_markets", {
   telegramUrl: text("telegram_url"),
   description: text("description"),
   bannerUrl: text("banner_url"),
+  category: text("category").default("Regular User"),
   avatarUrl: text("avatar_url"), // Cached avatar from Twitter
   supply: bigint("supply", { mode: "number" }).default(0).notNull(),
   reserveLamports: bigint("reserve_lamports", { mode: "number" }).default(0).notNull(),

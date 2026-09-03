@@ -308,8 +308,8 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       
       const creatorWalletStr = marketState.creatorWallet.toString();
       
-      // Twitter profile metadata (name, avatar) can now be passed from the frontend.
-      const body = request.body as { ticker?: string, websiteUrl?: string, telegramUrl?: string, description?: string, bannerUrl?: string, txSignature?: string, twitterName?: string, avatarUrl?: string } | undefined;
+      // Twitter profile metadata (name, avatar, category) can now be passed from the frontend.
+      const body = request.body as { ticker?: string, websiteUrl?: string, telegramUrl?: string, description?: string, bannerUrl?: string, txSignature?: string, twitterName?: string, avatarUrl?: string, category?: string } | undefined;
 
       await db.insert(creatorMarkets).values({
         marketPda: pda,
@@ -327,6 +327,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         telegramUrl: body?.telegramUrl || null,
         description: body?.description || null,
         bannerUrl: body?.bannerUrl || null,
+        category: body?.category || "Regular User",
         txSignature: body?.txSignature || null,
       }).onConflictDoUpdate({
         target: creatorMarkets.marketPda,
@@ -338,6 +339,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
           // Only update metadata if provided in the body
           ...(body?.ticker !== undefined ? { ticker: body.ticker } : {}),
           ...(body?.websiteUrl !== undefined ? { websiteUrl: body.websiteUrl } : {}),
+          ...(body?.category !== undefined ? { category: body.category } : {}),
           ...(body?.telegramUrl !== undefined ? { telegramUrl: body.telegramUrl } : {}),
           ...(body?.description !== undefined ? { description: body.description } : {}),
           ...(body?.bannerUrl !== undefined ? { bannerUrl: body.bannerUrl } : {}),
