@@ -12,7 +12,28 @@ import bs58 from "bs58";
 import { useRouter } from "next/navigation";
 import { useSocialCapital } from "../../hooks/useSocialCapital";
 import toast from "react-hot-toast";
+import GhostCursor from "./GhostCursor";
 
+const isValidUrl = (url: string) => {
+  if (!url) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const InfoTooltip = ({ text }: { text: string }) => (
+  <div className="relative group cursor-pointer inline-flex items-center ml-auto">
+    <svg className="w-4 h-4 text-color-muted hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div className="absolute right-0 bottom-full mb-2 w-48 p-2 bg-background border border-color-border/50 rounded-lg text-xs text-white opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-xl hidden group-hover:block font-normal">
+      {text}
+    </div>
+  </div>
+);
 export default function ClaimPage() {
   const router = useRouter();
   const sdk = useSocialCapital();
@@ -25,6 +46,7 @@ export default function ClaimPage() {
   const [oauthToken, setOauthToken] = useState("");
   const [isXLinked, setIsXLinked] = useState(false);
   const [createdMarketPda, setCreatedMarketPda] = useState("");
+  const [createdTxSig, setCreatedTxSig] = useState<string | null>(null);
   const [ticker, setTicker] = useState("");
   const [description, setDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -34,6 +56,10 @@ export default function ClaimPage() {
   const [bannerUrl, setBannerUrl] = useState("");
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [bannerInputType, setBannerInputType] = useState<"upload" | "url">("upload");
+  const [avatarInputType, setAvatarInputType] = useState<"upload" | "url">("upload");
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+  const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
+  const [uploadedAvatarName, setUploadedAvatarName] = useState("");
   const [initialBuyAmount, setInitialBuyAmount] = useState("");
   const [creationMode, setCreationMode] = useState<"oauth" | "manual">("oauth");
   const [category, setCategory] = useState("Regular User");
@@ -41,11 +67,11 @@ export default function ClaimPage() {
   
   const CATEGORIES = ["Regular User", "Crypto", "Streamers", "Influencers", "Athletes", "Business", "Actors", "Celebrities", "Politicians", "Musicians", "Creatives", "Companies"];
 
-  const handleClaim = async () => {
+  const handleClaim = async (): Promise<boolean> => {
     if (!publicKey || !signMessage) {
       setMessage("Please connect your wallet first.");
       setStatus("ERROR");
-      return;
+      return false;
     }
 
     try {
@@ -82,12 +108,14 @@ export default function ClaimPage() {
 
       localStorage.setItem("walletToken", verifyData.token);
       setStatus("AUTHENTICATED");
-      toast.success("Wallet authenticated! Please link your X account.", { id: loadingId });
+      toast.success("Wallet authenticated!", { id: loadingId });
+      return true;
 
     } catch (err: any) {
       console.error(err);
       setStatus("ERROR");
       toast.error(err.message || "An unknown error occurred");
+      return false;
     }
   };
 
@@ -122,6 +150,40 @@ export default function ClaimPage() {
       toast.error(errorMessage);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAvatarUploadError(null);
+    try {
+      setIsAvatarUploading(true);
+      const { supabase } = await import("../../lib/supabase");
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from('banners')
+        .upload(filePath, file);
+
+      if (uploadErr) {
+        throw uploadErr;
+      }
+
+      const { data } = supabase.storage.from('banners').getPublicUrl(filePath);
+      setTwitterAvatar(data.publicUrl);
+      setUploadedAvatarName(file.name);
+      toast.success("Avatar uploaded successfully!");
+    } catch (error: any) {
+      const errorMessage = error.message || error.error || JSON.stringify(error) || "Failed to upload avatar";
+      setAvatarUploadError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsAvatarUploading(false);
     }
   };
 
@@ -242,7 +304,12 @@ export default function ClaimPage() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const handleOAuthLogin = () => {
+  const handleOAuthLogin = async () => {
+    if (status !== "AUTHENTICATED" && status !== "SUCCESS") {
+      const success = await handleClaim();
+      if (!success) return;
+    }
+
     setStatus("LOADING");
     setMessage("Waiting for X (Twitter) authentication...");
 
@@ -263,18 +330,17 @@ export default function ClaimPage() {
   };
 
   const handleCreateMarket = async () => {
-    if (creationMode === "oauth" && (!twitterHandle || !isXLinked)) {
-      setMessage("Please link your X (Twitter) handle first.");
-      setStatus("ERROR");
-      return;
+    if (status !== "AUTHENTICATED" && status !== "SUCCESS") {
+      const success = await handleClaim();
+      if (!success) return;
     }
-    
-    if (creationMode === "manual" && !twitterHandle.trim()) {
+
+    if (!isXLinked && !twitterHandle.trim()) {
       toast.error("Please enter a Username (Handle)");
       return;
     }
 
-    if (creationMode === "manual" && !twitterName.trim()) {
+    if (!isXLinked && !twitterName.trim()) {
       toast.error("Please enter a Display Name");
       return;
     }
@@ -401,7 +467,7 @@ export default function ClaimPage() {
       }
 
       if (!marketState || !marketState.claimed) {
-        if (creationMode === "manual") {
+        if (!isXLinked) {
           setStatus("SUCCESS");
           toast.success(`Market Created! The owner can claim it later via OAuth.`, { id: loadingId });
           setCreatedMarketPda(marketPda.toBase58());
@@ -517,6 +583,7 @@ export default function ClaimPage() {
         setStatus("SUCCESS");
         toast.success(`Market Claimed Successfully!`, { id: loadingId });
         setCreatedMarketPda(marketPda.toBase58());
+        if (typeof txSig === 'string') setCreatedTxSig(txSig);
       } else {
         // Even if it's already claimed, sync it just in case
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -565,106 +632,191 @@ export default function ClaimPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] gap-8">
-      <div className="text-center mt-8">
-        <h1 className="text-4xl font-bold text-white mb-4">Create Your Market</h1>
-        <p className="text-color-muted max-w-md mx-auto text-sm">
-          Connect your creator wallet, authenticate, and link your X identity to launch your Social Capital market.
-        </p>
-      </div>
+    <div className="relative min-h-[calc(100vh-80px)] w-full">
+      <GhostCursor
+        // Visuals
+        color="#00ff12"
+        brightness={0.5}
+        edgeIntensity={0}
 
-      <div className="bg-color-card border border-color-border p-8 rounded-2xl w-full max-w-md flex flex-col gap-8 items-center shadow-2xl relative overflow-hidden">
-        {/* Subtle glow effect */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-color-buy to-transparent opacity-50" />
+        // Trail and motion
+        trailLength={30}
+        inertia={0.12}
 
-        {/* Steps Tracker */}
-        <div className="w-full flex justify-between px-4 relative">
-          <div className="absolute top-1/2 left-8 right-8 h-0.5 bg-color-border -z-10 -translate-y-1/2" />
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${publicKey ? "bg-color-buy text-[#07090c]" : "bg-[#161A22] border-2 border-color-muted text-color-muted"}`}>1</div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${(status === "AUTHENTICATED" || status === "SUCCESS") ? "bg-color-buy text-[#07090c]" : (publicKey ? "bg-[#161A22] border-2 border-color-buy text-color-buy" : "bg-[#161A22] border-2 border-color-muted text-color-muted")}`}>2</div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${status === "SUCCESS" ? "bg-color-buy text-[#07090c]" : (status === "AUTHENTICATED" ? "bg-[#161A22] border-2 border-color-buy text-color-buy" : "bg-[#161A22] border-2 border-color-muted text-color-muted")}`}>3</div>
+        // Post-processing
+        grainIntensity={0.03}
+        bloomStrength={0}
+        bloomRadius={2.15}
+        bloomThreshold={0.025}
+
+        // Fade-out behavior
+        fadeDelayMs={1000}
+        fadeDurationMs={1700}
+      />
+      <div className="relative z-10 max-w-[85rem] mx-auto px-6 py-12 md:py-24">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-start">
+          {/* Left Side: Information */}
+        <div className="flex flex-col gap-8 bg-background/30 backdrop-blur-sm p-5 sm:p-8 md:p-10 rounded-2xl relative lg:sticky lg:top-24 h-fit z-0">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-color-muted mb-6">
+              <span className="w-2 h-2 rounded-full bg-color-buy animate-pulse" />
+              Creator Portal
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight tracking-tight">
+              Launch Your <span className="text-color-buy">Social Market.</span>
+            </h1>
+            <p className="text-color-muted text-lg leading-relaxed">
+              Tokenize your social influence. Build a community-driven economy where your most loyal supporters become stakeholders in your success.
+            </p>
+          </div>
+          
+          <div className="flex flex-col gap-6 mt-4">
+            {[
+              { title: 'Two Creation Modes', desc: 'Link your X account for instant setup and a "Verified" badge, or enter your details manually.' },
+              { title: 'Market Ticker', desc: 'Choose a unique symbol for your token (e.g. $YOURNAME). This will be your permanent identifier.' },
+              { title: 'Anti-Sniper Protection', desc: 'Use the Initial Buy feature to secure your own tokens in the very first transaction before anyone else can.' },
+              { title: 'Creator Revenue', desc: 'Earn 95% of all trading fees generated by your market.' },
+              { title: 'Instant Setup', desc: 'No coding required. Link your X account and go live in seconds.' }
+            ].map(feature => (
+              <div key={feature.title} className="flex gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-color-buy" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-base mb-1">{feature.title}</h3>
+                  <p className="text-color-muted text-sm leading-relaxed">{feature.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
+        {/* Right Side: Action Card */}
+        <div className="bg-background border border-color-border/50 p-5 sm:p-8 md:p-10 rounded-2xl w-full shadow-lg relative overflow-hidden">
+          {/* Subtle glow effect */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-color-buy to-transparent opacity-50" />
+
         {!publicKey ? (
-          <div className="flex flex-col items-center gap-6 w-full mt-4">
-            <p className="text-white font-semibold text-lg">Step 1: Connect Wallet</p>
-            <WalletMultiButton className="!bg-[#161A22] !border !border-color-border hover:!border-color-buy !transition-all !text-white !h-12 !px-8 !rounded-xl !font-sans !font-semibold w-full flex justify-center shadow-lg" />
+          <div className="flex flex-col items-center gap-6 w-full">
+            <div className="text-center w-full mb-2">
+              <h2 className="text-2xl font-bold text-white mb-2">Connect Wallet</h2>
+              <p className="text-color-muted text-sm">Connect your Solana wallet to begin.</p>
+            </div>
+            <WalletMultiButton className="!bg-[#161A22] !border !border-color-border hover:!border-color-buy !transition-all !text-white !h-14 !px-8 !rounded-xl !font-sans !font-semibold w-full flex justify-center shadow-lg" />
           </div>
-        ) : status === "IDLE" || status === "ERROR" || (status === "LOADING" && !isXLinked && !twitterHandle) ? (
-          <div className="flex flex-col items-center gap-6 w-full mt-4">
+        ) : status === "SUCCESS" ? (
+          <div className="flex flex-col items-center gap-4 w-full">
+            <div className="w-16 h-16 bg-color-buy/20 rounded-full flex items-center justify-center text-color-buy mb-2">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
             <div className="text-center">
-              <p className="text-white font-semibold text-lg mb-1">Step 2: Authenticate</p>
-              <p className="text-color-muted text-xs break-all bg-[#07090c] border border-color-border px-3 py-2 rounded-lg font-mono">
-                {publicKey.toBase58()}
-              </p>
+              <p className="text-white font-bold text-xl mb-1">Market Launched!</p>
+              <p className="text-color-muted text-sm">Your bonding curve is now live.</p>
+            </div>
+            
+            <div className="bg-white/5 border border-color-border/50 rounded-xl p-4 w-full flex flex-col gap-3 my-4">
+              <div className="flex justify-between items-center text-sm border-b border-color-border/30 pb-2">
+                <span className="text-color-muted">Date</span>
+                <span className="text-white">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm border-b border-color-border/30 pb-2">
+                <span className="text-color-muted">Market PDA</span>
+                <span className="text-white font-mono">{createdMarketPda.slice(0,8)}...{createdMarketPda.slice(-8)}</span>
+              </div>
+              {createdTxSig && (
+                <div className="flex justify-between items-center text-sm border-b border-color-border/30 pb-2">
+                  <span className="text-color-muted">Transaction</span>
+                  <a href={`https://solscan.io/tx/${createdTxSig}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="text-color-buy hover:underline font-mono">
+                    {createdTxSig.slice(0,6)}...{createdTxSig.slice(-6)}
+                  </a>
+                </div>
+              )}
+              <div className="flex justify-between items-center text-sm border-b border-color-border/30 pb-2">
+                <span className="text-color-muted">Creator</span>
+                <span className="text-white font-bold">{twitterName} <span className="font-normal text-color-muted">(@{twitterHandle})</span></span>
+              </div>
+              <div className="flex justify-between items-center text-sm border-b border-color-border/30 pb-2">
+                <span className="text-color-muted">Ticker</span>
+                <span className="text-color-buy font-bold">{ticker}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-color-muted">Category</span>
+                <span className="text-white">{category}</span>
+              </div>
             </div>
 
-            <button
-              onClick={handleClaim}
-              disabled={status === "LOADING"}
-              className="w-full bg-color-buy text-[#07090c] font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-color-buy/20 shadow-lg"
-            >
-              {status === "LOADING" ? "Awaiting Signature..." : "Sign Challenge"}
-            </button>
-          </div>
-        ) : status === "AUTHENTICATED" || (status === "LOADING" && (twitterHandle || isXLinked)) ? (
-          <div className="flex flex-col items-center gap-6 w-full mt-4">
-            <div className="text-center w-full">
-              <p className="text-white font-semibold text-lg mb-1">Step 3: Market Details</p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <button 
+                onClick={() => router.push(`/creator/${createdMarketPda}`)}
+                className="flex-1 bg-color-buy text-[#07090c] font-bold py-3 px-4 rounded-xl hover:bg-opacity-90 transition-colors"
+              >
+                Go to Market
+              </button>
+              <button 
+                onClick={() => router.push(`/profile/${publicKey.toBase58()}`)}
+                className="flex-1 bg-white/5 border border-color-border/50 text-white font-bold py-3 px-4 rounded-xl hover:border-color-buy transition-colors"
+              >
+                View Profile
+              </button>
             </div>
-              <div className="flex gap-2 mb-4 bg-[#161A22] p-1 rounded-lg w-full border border-color-border mt-2">
-                <button
-                  type="button"
-                  onClick={() => setCreationMode("oauth")}
-                  className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${creationMode === "oauth" ? "bg-[#07090c] text-white shadow border border-color-border" : "text-color-muted hover:text-white"}`}
-                >
-                  Connect X
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCreationMode("manual")}
-                  className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${creationMode === "manual" ? "bg-[#07090c] text-white shadow border border-color-border" : "text-color-muted hover:text-white"}`}
-                >
-                  Manual (Unclaimed)
-                </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6 w-full">
+            <div className="text-center w-full mb-2">
+              <h2 className="text-2xl font-bold text-white mb-2">Market Details</h2>
+              <p className="text-color-muted text-sm">Configure your tokenized social market.</p>
+            </div>
+            
+            {/* Identity Section */}
+            <div className="w-full flex flex-col gap-4 text-left bg-white/5 border border-color-border/50 p-5 rounded-2xl">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <h3 className="text-white font-bold text-lg">Creator Identity</h3>
+                {!isXLinked && (
+                  <button
+                    onClick={handleOAuthLogin}
+                    disabled={status === "LOADING"}
+                    className="bg-[#1DA1F2] text-white hover:bg-[#1a8cd8] font-semibold py-1.5 px-4 rounded-lg text-sm transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                    {status === "LOADING" ? "Connecting..." : "Verify with X"}
+                  </button>
+                )}
               </div>
 
-              {creationMode === "oauth" && (
-                <>
-                  <p className="text-color-muted text-sm mb-4">
-                    {isXLinked ? "Identity verified. Configure your market." : "Click below to authenticate your X (Twitter) account."}
-                  </p>
-
-                  {isXLinked && (
-                    <div className="w-full bg-white/10 border border-white/30 rounded-xl p-4 flex items-center justify-center gap-2 mb-4">
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
-                      <span className="font-bold text-white">@{twitterHandle}</span>
-                      <span className="bg-color-buy text-[#07090c] text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">VERIFIED</span>
+              {isXLinked ? (
+                <div className="w-full bg-background border border-color-buy/30 rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {twitterAvatar ? (
+                      <img src={twitterAvatar} alt={twitterName} className="w-10 h-10 rounded-full bg-white/5" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-color-muted" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                      </div>
+                    )}
+                    <div>
+                      <div className="font-bold text-white flex items-center gap-2">
+                        {twitterName}
+                        <span className="bg-color-buy text-[#07090c] text-[9px] font-bold px-1.5 py-0.5 rounded-sm">VERIFIED</span>
+                      </div>
+                      <div className="text-color-muted text-sm">@{twitterHandle}</div>
                     </div>
-                  )}
-
-                  {!isXLinked && (
-                    <button
-                      onClick={handleOAuthLogin}
-                      disabled={status === "LOADING"}
-                      className="w-full bg-[#161A22] border border-color-border text-white font-bold py-3.5 px-4 rounded-xl hover:bg-[#1DA1F2]/20 hover:border-[#1DA1F2]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
-                    >
-                      {status === "LOADING" ? "Connecting..." : "Connect X"}
-                    </button>
-                  )}
-                </>
-              )}
-
-              {creationMode === "manual" && (
-                <div className="w-full mb-4 flex flex-col gap-4 text-left">
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <p className="text-color-muted text-xs">Linking your X account is recommended for trust and verification. Otherwise, you can enter details manually.</p>
                   <div>
-                    <label className="text-white text-sm font-semibold mb-1 block">X Profile URL</label>
+                    <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
+                      X Profile URL <span className="text-red-500">*</span>
+                      <InfoTooltip text="Paste your full X profile URL to auto-fill your details." />
+                    </label>
                     <input 
                       type="text" 
                       value={xProfileUrl} 
                       onChange={e => {
                         setXProfileUrl(e.target.value);
-                        // Auto extract username
                         try {
                           const url = new URL(e.target.value);
                           let handle = url.pathname.replace('/', '');
@@ -674,164 +826,283 @@ export default function ClaimPage() {
                         } catch (e) {}
                       }} 
                       placeholder="https://x.com/username" 
-                      className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" 
+                      className={`w-full bg-white/5 border ${!isValidUrl(xProfileUrl) && xProfileUrl.trim().length > 0 ? 'border-red-500 focus:border-red-400' : 'border-color-border/50 focus:border-color-buy'} rounded-xl p-3 text-white outline-none transition-colors`} 
                     />
+                    {!isValidUrl(xProfileUrl) && xProfileUrl.trim().length > 0 && (
+                      <p className="text-red-500 text-xs mt-1">Please enter a valid URL (e.g. https://...)</p>
+                    )}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-white text-sm font-semibold mb-1 block">Username (Handle) *</label>
-                      <input type="text" value={twitterHandle} onChange={e => setTwitterHandle(e.target.value)} placeholder="e.g. username" className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                      <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
+                        Username <span className="text-red-500">*</span>
+                        <InfoTooltip text="Your X handle without the @ symbol." />
+                      </label>
+                      <input 
+                        type="text" 
+                        value={twitterHandle} 
+                        onChange={e => setTwitterHandle(e.target.value)} 
+                        placeholder="e.g. username" 
+                        disabled={!!xProfileUrl.trim()}
+                        className={`w-full bg-white/5 border border-color-border/50 rounded-xl p-3 text-white outline-none transition-colors ${xProfileUrl.trim() ? 'opacity-50 cursor-not-allowed' : 'focus:border-color-buy'}`} 
+                      />
                     </div>
                     <div>
-                      <label className="text-white text-sm font-semibold mb-1 block">Display Name *</label>
-                      <input type="text" value={twitterName} onChange={e => setTwitterName(e.target.value)} placeholder="e.g. John Doe" className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                      <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
+                        Display Name <span className="text-red-500">*</span>
+                        <InfoTooltip text="Your full name or community name." />
+                      </label>
+                      <input type="text" value={twitterName} onChange={e => setTwitterName(e.target.value)} placeholder="e.g. John Doe" className="w-full bg-white/5 border border-color-border/50 rounded-xl p-3 text-white focus:border-color-buy outline-none transition-colors" />
                     </div>
                   </div>
                   <div>
-                    <label className="text-white text-sm font-semibold mb-1 block">Avatar URL</label>
-                    <input type="text" value={twitterAvatar} onChange={e => setTwitterAvatar(e.target.value)} placeholder="https://..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
+                    <label className="flex items-center gap-2 text-white text-sm font-semibold mb-2">
+                      Avatar Image
+                      <InfoTooltip text="Upload an image or provide a direct link for your profile picture." />
+                    </label>
+
+                    <div className="flex gap-2 mb-3 bg-white/5 p-1 rounded-xl w-fit border border-color-border/50">
+                      <button
+                        type="button"
+                        onClick={() => setAvatarInputType("upload")}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${avatarInputType === "upload" ? "bg-white/10 text-white shadow" : "text-color-muted hover:text-white"}`}
+                      >
+                        Upload File
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAvatarInputType("url")}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${avatarInputType === "url" ? "bg-white/10 text-white shadow" : "text-color-muted hover:text-white"}`}
+                      >
+                        Paste URL
+                      </button>
+                    </div>
+
+                    {avatarInputType === "upload" ? (
+                      <div className="flex flex-col gap-2">
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                          disabled={isAvatarUploading}
+                          className="hidden" 
+                          id="avatar-upload"
+                        />
+                        <label 
+                          htmlFor="avatar-upload" 
+                          className={`cursor-pointer bg-white/5 border ${avatarUploadError ? 'border-red-500 text-red-400' : 'border-color-border/50 text-white hover:border-color-buy'} rounded-xl px-4 py-3 flex flex-col items-center justify-center transition-colors text-sm font-semibold border-dashed w-full ${isAvatarUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                        >
+                          {isAvatarUploading ? (
+                            <span>Uploading...</span>
+                          ) : twitterAvatar && twitterAvatar.includes('supabase.co') ? (
+                            <div className="flex flex-col items-center gap-1 text-color-buy">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Image uploaded successfully!</span>
+                              </div>
+                              {uploadedAvatarName && <span className="text-xs opacity-80 break-all text-center px-2">{uploadedAvatarName}</span>}
+                              <span className="text-xs text-color-muted mt-1">Click to change</span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center gap-2">
+                              <svg className="w-5 h-5 text-color-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                              <span>Click to upload image</span>
+                            </div>
+                          )}
+                        </label>
+                        {avatarUploadError && (
+                          <p className="text-red-500 text-xs mt-1">{avatarUploadError}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <input 
+                          type="text" 
+                          value={twitterAvatar} 
+                          onChange={e => {
+                            setTwitterAvatar(e.target.value);
+                            if (avatarUploadError) setAvatarUploadError(null);
+                          }} 
+                          placeholder="https://..." 
+                          className={`w-full bg-white/5 border ${avatarUploadError || (!isValidUrl(twitterAvatar) && twitterAvatar.trim().length > 0) ? 'border-red-500 focus:border-red-400' : 'border-color-border/50 focus:border-color-buy'} rounded-xl p-3 text-white outline-none transition-colors text-sm`}
+                        />
+                        {!isValidUrl(twitterAvatar) && twitterAvatar.trim().length > 0 && !avatarUploadError && (
+                          <p className="text-red-500 text-xs mt-1">Please enter a valid URL (e.g. https://...)</p>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               )}
+            </div>
 
-              {(creationMode === "manual" || isXLinked) && (
-                <div className="w-full flex flex-col gap-4 text-left border-t border-color-border pt-4">
-                  <div>
-                    <label className="text-white text-sm font-semibold mb-1 block">Category</label>
-                    <select 
-                      value={category} 
-                      onChange={e => setCategory(e.target.value)}
-                      className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors appearance-none"
-                    >
-                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-white text-sm font-semibold mb-1 block">Ticker *</label>
-                    <input type="text" value={ticker} onChange={e => setTicker(e.target.value)} placeholder={`e.g. $${twitterHandle?.toUpperCase()}`} className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
-                  </div>
-                <div>
-                  <label className="text-white text-sm font-semibold mb-1 block">Description *</label>
-                  <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="About your community..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors resize-none h-20" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-white text-sm font-semibold mb-1 block">Link</label>
-                    <input type="text" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
-                  </div>
-                  <div>
-                    <label className="text-white text-sm font-semibold mb-1 block">Telegram</label>
-                    <input type="text" value={telegramUrl} onChange={e => setTelegramUrl(e.target.value)} placeholder="https://t.me/..." className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors text-sm" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-white text-sm font-semibold mb-2 block">Banner Image *</label>
-                  
-                  {/* Tabs */}
-                  <div className="flex gap-2 mb-3 bg-[#161A22] p-1 rounded-lg w-fit border border-color-border">
-                    <button
-                      type="button"
-                      onClick={() => setBannerInputType("upload")}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${bannerInputType === "upload" ? "bg-[#07090c] text-white shadow" : "text-color-muted hover:text-white"}`}
-                    >
-                      Upload File
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBannerInputType("url")}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${bannerInputType === "url" ? "bg-[#07090c] text-white shadow" : "text-color-muted hover:text-white"}`}
-                    >
-                      Paste URL
-                    </button>
-                  </div>
-
-                  {bannerInputType === "upload" ? (
-                    <div className="flex flex-col gap-2">
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        disabled={isUploading}
-                        className="hidden" 
-                        id="banner-upload"
-                      />
-                      <label 
-                        htmlFor="banner-upload" 
-                        className={`cursor-pointer bg-[#161A22] border ${uploadError ? 'border-red-500 text-red-400' : 'border-color-border text-white hover:border-color-buy'} rounded-lg px-4 py-3 flex flex-col items-center justify-center transition-colors text-sm font-semibold border-dashed w-full ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
-                      >
-                        {isUploading ? (
-                          <span>Uploading...</span>
-                        ) : bannerUrl && bannerUrl.includes('supabase.co') ? (
-                          <div className="flex flex-col items-center gap-1 text-color-buy">
-                            <div className="flex items-center gap-2">
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                              <span>Image uploaded successfully!</span>
-                            </div>
-                            {uploadedFileName && <span className="text-xs opacity-80 break-all text-center px-2">{uploadedFileName}</span>}
-                            <span className="text-xs text-color-muted mt-1">Click to change</span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center gap-2">
-                            <svg className="w-5 h-5 text-color-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                            <span>Click to upload image</span>
-                          </div>
-                        )}
-                      </label>
-                    </div>
-                  ) : (
-                    <input 
-                      type="text" 
-                      value={bannerUrl} 
-                      onChange={e => {
-                        setBannerUrl(e.target.value);
-                        if (uploadError) setUploadError(null);
-                      }} 
-                      placeholder="https://..." 
-                      className={`w-full bg-[#07090c] border ${uploadError ? 'border-red-500 focus:border-red-400' : 'border-color-border focus:border-color-buy'} rounded-lg p-3 text-white outline-none transition-colors text-sm`}
-                    />
-                  )}
-                  
-                  {uploadError && (
-                    <p className="text-red-500 text-xs mt-2">{uploadError}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="text-white text-sm font-semibold mb-1 block">Initial Buy (Keys)</label>
-                  <input type="number" min="0" value={initialBuyAmount} onChange={e => setInitialBuyAmount(e.target.value)} placeholder="0" className="w-full bg-[#07090c] border border-color-border rounded-lg p-3 text-white focus:border-color-buy outline-none transition-colors" />
-                  <p className="text-color-muted text-xs mt-1">Optional. Buy keys in the same transaction to prevent snipers.</p>
-                </div>
-                
-                <button
-                  onClick={handleCreateMarket}
-                  disabled={status === "LOADING" || !ticker.trim() || !description.trim() || !bannerUrl.trim()}
-                  className="w-full bg-[#1DA1F2] text-white font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#1DA1F2]/20 mt-2"
+            {/* Token Details Section */}
+            <div className="w-full flex flex-col gap-4 text-left mt-2">
+              <div>
+                <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
+                  Category <span className="text-red-500">*</span>
+                  <InfoTooltip text="Select the sector that best fits your community." />
+                </label>
+                <select 
+                  value={category} 
+                  onChange={e => setCategory(e.target.value)}
+                  className="w-full bg-white/5 border border-color-border/50 rounded-xl p-3 text-white focus:border-color-buy outline-none transition-colors appearance-none"
                 >
-                  {status === "LOADING" ? "Creating Market..." : "Launch Market"}
+                  {CATEGORIES.map(c => <option key={c} value={c} className="bg-background">{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
+                  Ticker <span className="text-red-500">*</span>
+                  <InfoTooltip text="The symbol for your market token (e.g. $YOURNAME). Cannot be changed." />
+                </label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    value={ticker} 
+                    onChange={e => setTicker(e.target.value)} 
+                    placeholder={`e.g. $${twitterHandle?.toUpperCase() || 'TICKER'}`} 
+                    className="w-full bg-white/5 border border-color-border/50 rounded-xl p-3 pr-24 text-white focus:border-color-buy outline-none transition-colors" 
+                  />
+                  {twitterHandle && !ticker && (
+                    <button 
+                      type="button"
+                      onClick={() => setTicker(`$${twitterHandle.toUpperCase()}`)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white shadow text-xs font-semibold py-1.5 px-3 rounded-lg transition-colors"
+                    >
+                      Use ${twitterHandle.toUpperCase()}
+                    </button>
+                  )}
+                </div>
+              </div>
+            <div>
+              <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
+                Description <span className="text-red-500">*</span>
+                <InfoTooltip text="Tell people about your market, roadmap, and what holders get." />
+              </label>
+              <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="About your community..." className="w-full bg-white/5 border border-color-border/50 rounded-xl p-3 text-white focus:border-color-buy outline-none transition-colors resize-none h-20" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
+                  Link
+                  <InfoTooltip text="Link to your website or primary social profile." />
+                </label>
+                <input type="text" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://..." className={`w-full bg-white/5 border ${!isValidUrl(websiteUrl) && websiteUrl.trim().length > 0 ? 'border-red-500 focus:border-red-400' : 'border-color-border/50 focus:border-color-buy'} rounded-xl p-3 text-white outline-none transition-colors text-sm`} />
+                {!isValidUrl(websiteUrl) && websiteUrl.trim().length > 0 && (
+                  <p className="text-red-500 text-xs mt-1">Please enter a valid URL (e.g. https://...)</p>
+                )}
+              </div>
+              <div>
+                <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
+                  Telegram
+                  <InfoTooltip text="Link to your community Telegram group." />
+                </label>
+                <input type="text" value={telegramUrl} onChange={e => setTelegramUrl(e.target.value)} placeholder="https://t.me/..." className={`w-full bg-white/5 border ${!isValidUrl(telegramUrl) && telegramUrl.trim().length > 0 ? 'border-red-500 focus:border-red-400' : 'border-color-border/50 focus:border-color-buy'} rounded-xl p-3 text-white outline-none transition-colors text-sm`} />
+                {!isValidUrl(telegramUrl) && telegramUrl.trim().length > 0 && (
+                  <p className="text-red-500 text-xs mt-1">Please enter a valid URL (e.g. https://...)</p>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-white text-sm font-semibold mb-2">
+                Banner Image <span className="text-red-500">*</span>
+                <InfoTooltip text="A wide image (recommended 3:1 ratio) that will be displayed at the top of your market page." />
+              </label>
+              
+              {/* Tabs */}
+              <div className="flex gap-2 mb-3 bg-white/5 p-1 rounded-xl w-fit border border-color-border/50">
+                <button
+                  type="button"
+                  onClick={() => setBannerInputType("upload")}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${bannerInputType === "upload" ? "bg-white/10 text-white shadow" : "text-color-muted hover:text-white"}`}
+                >
+                  Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBannerInputType("url")}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${bannerInputType === "url" ? "bg-white/10 text-white shadow" : "text-color-muted hover:text-white"}`}
+                >
+                  Paste URL
                 </button>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-4 w-full mt-4">
-            <div className="w-16 h-16 bg-color-buy/20 rounded-full flex items-center justify-center text-color-buy mb-2">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-            </div>
-            <div className="text-center">
-              <p className="text-white font-bold text-xl mb-1">Market Launched!</p>
-              <p className="text-color-muted text-sm">Your bonding curve is now live.</p>
-            </div>
-            {createdMarketPda && (
-              <button
-                onClick={() => router.push(`/creator/${createdMarketPda}`)}
-                className="mt-4 w-full bg-[#1DA1F2] text-white font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 transition-all shadow-lg shadow-[#1DA1F2]/20"
-              >
-                View Your Market
-              </button>
-            )}
-          </div>
-        )}
 
+              {bannerInputType === "upload" ? (
+                <div className="flex flex-col gap-2">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    disabled={isUploading}
+                    className="hidden" 
+                    id="banner-upload"
+                  />
+                  <label 
+                    htmlFor="banner-upload" 
+                    className={`cursor-pointer bg-white/5 border ${uploadError ? 'border-red-500 text-red-400' : 'border-color-border/50 text-white hover:border-color-buy'} rounded-xl px-4 py-3 flex flex-col items-center justify-center transition-colors text-sm font-semibold border-dashed w-full ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    {isUploading ? (
+                      <span>Uploading...</span>
+                    ) : bannerUrl && bannerUrl.includes('supabase.co') ? (
+                      <div className="flex flex-col items-center gap-1 text-color-buy">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                          <span>Image uploaded successfully!</span>
+                        </div>
+                        {uploadedFileName && <span className="text-xs opacity-80 break-all text-center px-2">{uploadedFileName}</span>}
+                        <span className="text-xs text-color-muted mt-1">Click to change</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <svg className="w-5 h-5 text-color-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        <span>Click to upload image</span>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              ) : (
+                <input 
+                  type="text" 
+                  value={bannerUrl} 
+                  onChange={e => {
+                    setBannerUrl(e.target.value);
+                    if (uploadError) setUploadError(null);
+                  }} 
+                  placeholder="https://..." 
+                  className={`w-full bg-white/5 border ${uploadError || (!isValidUrl(bannerUrl) && bannerUrl.trim().length > 0) ? 'border-red-500 focus:border-red-400' : 'border-color-border/50 focus:border-color-buy'} rounded-xl p-3 text-white outline-none transition-colors text-sm`}
+                />
+              )}
+              
+              {!isValidUrl(bannerUrl) && bannerUrl.trim().length > 0 && !uploadError && bannerInputType === 'url' && (
+                <p className="text-red-500 text-xs mt-2">Please enter a valid URL (e.g. https://...)</p>
+              )}
+              {uploadError && (
+                <p className="text-red-500 text-xs mt-2">{uploadError}</p>
+              )}
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
+                Initial Buy (Keys)
+                <InfoTooltip text="Buy tokens in the same transaction as creation to secure a position before bots can." />
+              </label>
+              <input type="number" min="0" value={initialBuyAmount} onChange={e => setInitialBuyAmount(e.target.value)} placeholder="0" className="w-full bg-white/5 border border-color-border/50 rounded-xl p-3 text-white focus:border-color-buy outline-none transition-colors" />
+              <p className="text-color-muted text-xs mt-1">Optional. Buy keys in the same transaction to prevent snipers.</p>
+            </div>
+            
+            <button
+              onClick={handleCreateMarket}
+              disabled={status === "LOADING" || !ticker.trim() || !description.trim() || !bannerUrl.trim()}
+              className="w-full bg-color-buy text-[#07090c] font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-color-buy/20 mt-2"
+            >
+              {status === "LOADING" ? "Creating Market..." : status !== "AUTHENTICATED" ? "Sign & Launch Market" : "Launch Market"}
+            </button>
+          </div>
+        </div>
+        )}
       </div>
+      </div>
+    </div>
     </div>
   );
 }
