@@ -7,6 +7,7 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const candlestickSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -67,6 +68,7 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
           }));
           candlestickSeries.setData(formattedData);
           if (formattedData.length > 0) {
+            setIsEmpty(false);
             // Prevent extreme zoom when there are very few data points
             const minBarsToShow = 60; // Show a minimum of 60 periods (e.g. 60 mins for 1m resolution)
             if (formattedData.length < minBarsToShow) {
@@ -77,9 +79,12 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
             } else {
               chart.timeScale().fitContent();
             }
+          } else {
+            setIsEmpty(true);
           }
           setIsLoading(false);
         } else {
+          setIsEmpty(true);
           setIsLoading(false);
         }
       })
@@ -111,6 +116,7 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
               low: Number(c.low) / 1e9,
               close: Number(c.close) / 1e9,
             });
+            setIsEmpty(false);
           } catch (updateErr) {
             console.warn("Skipping outdated candle update");
           }
@@ -150,6 +156,21 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
       {isLoading && (
         <div className="absolute inset-0 p-4">
           <div className="w-full h-full bg-white/5 rounded-lg animate-pulse" />
+        </div>
+      )}
+      {!isLoading && isEmpty && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-white/5 border border-color-border flex items-center justify-center text-color-muted mb-2">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+              </svg>
+            </div>
+            <h3 className="text-white font-semibold text-lg">No Chart Data Yet</h3>
+            <p className="text-color-muted text-sm max-w-sm text-center">
+              The chart will appear here once the first trade occurs.
+            </p>
+          </div>
         </div>
       )}
     </div>
