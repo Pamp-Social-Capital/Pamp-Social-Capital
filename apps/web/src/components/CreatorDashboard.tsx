@@ -7,6 +7,12 @@ import { PublicKey } from "@solana/web3.js";
 import toast from "react-hot-toast";
 import bs58 from "bs58";
 
+import dynamic from "next/dynamic";
+const WalletMultiButton = dynamic(
+  () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
+  { ssr: false }
+);
+
 interface CreatorDashboardProps {
   marketPda: string;
   creatorWallet: string;
@@ -74,6 +80,43 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
     };
     checkLinkedHandle();
   }, [publicKey, claimed]);
+
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data?.type === 'OAUTH_LINK_SUCCESS') {
+        const { token, handle } = event.data;
+        if (token && handle) {
+          try {
+            const walletToken = localStorage.getItem("walletToken");
+            if (walletToken) {
+              const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+              const linkRes = await fetch(`${apiUrl}/api/oauth/twitter/link`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ oauthToken: token, walletToken })
+              });
+              const linkData = await linkRes.json();
+              if (linkData.success) {
+                localStorage.setItem("oauthToken", token);
+                setLinkedHandle(handle);
+                toast.success(`Successfully connected X account: @${handle}`);
+              } else {
+                toast.error(linkData.error || "Failed to link X account");
+              }
+            } else {
+              localStorage.setItem("oauthToken", token);
+              setLinkedHandle(handle);
+              toast.success(`Successfully connected X account: @${handle}`);
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   useEffect(() => {
     if (!shouldShow || !sdk) return;
@@ -179,6 +222,22 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
     }
   };
 
+  const handleTwitterLogin = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const redirectUrl = encodeURIComponent(window.location.origin + window.location.pathname + "?popup=true");
+
+    const width = 600;
+    const height = 700;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+
+    window.open(
+      `${apiUrl}/api/oauth/twitter/login?redirect_to=${redirectUrl}`,
+      "TwitterLogin",
+      `width=${width},height=${height},left=${left},top=${top},toolbar=0,location=0,menubar=0`
+    );
+  };
+
   const copyWithdrawSignature = () => {
     if (withdrawModalSignature) {
       navigator.clipboard.writeText(withdrawModalSignature);
@@ -190,6 +249,22 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
 
   const handleClaimMarket = async () => {
     if (!sdk || !publicKey || !signMessage) return;
+
+    if (!linkedHandle) {
+      toast.error("Please connect your X (Twitter) account first to claim this market.");
+      return;
+    }
+
+    if (linkedHandle.toLowerCase() !== twitterHandle.toLowerCase()) {
+      toast.error(`Your connected X account (@${linkedHandle}) does not match the market creator (@${twitterHandle}).`);
+      return;
+    }
+
+    const oauthToken = localStorage.getItem("oauthToken");
+    if (!oauthToken) {
+      toast.error("Twitter session expired. Please reconnect your X account.");
+      return;
+    }
 
     let loadingId: string | undefined;
 
@@ -250,7 +325,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
           "Content-Type": "application/json",
           "Authorization": `Bearer ${walletToken}`
         },
-        body: JSON.stringify({ marketPda })
+        body: JSON.stringify({ marketPda, oauthToken })
       });
 
       const sigData = await sigRes.json();
@@ -350,23 +425,51 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
           </table>
         </div>
 
-        <button
-          onClick={handleClaimMarket}
-          disabled={isClaiming}
-          className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-amber-600/20 transition-all flex items-center justify-center gap-2"
-        >
-          {isClaiming ? (
-            <>
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              Claiming...
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-              Claim This Market
-            </>
-          )}
-        </button>
+        {!publicKey ? (
+          <WalletMultiButton className="!w-full !justify-center !bg-amber-600 hover:!bg-amber-500 !text-white !px-6 !py-3 !rounded-lg !font-bold !shadow-lg !shadow-amber-600/20 !transition-all" />
+        ) : !linkedHandle ? (
+          <button
+            onClick={handleTwitterLogin}
+            className="w-full bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-[#1DA1F2]/20 transition-all flex items-center justify-center gap-2"
+          >
+            Connect X (Twitter)
+          </button>
+        ) : !linkedHandle ? (
+          <button
+            onClick={handleTwitterLogin}
+            className="w-full bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-[#1DA1F2]/20 transition-all flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+            Connect X (Twitter)
+          </button>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <div className={`text-xs text-center px-3 py-2 rounded-lg border ${linkedHandle.toLowerCase() === twitterHandle.toLowerCase() ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+              Connected to X as <strong>@{linkedHandle}</strong>
+              {linkedHandle.toLowerCase() !== twitterHandle.toLowerCase() && (
+                <div className="mt-1 text-red-300/70">
+                  Does not match market creator (@{twitterHandle}). 
+                  <button onClick={handleTwitterLogin} className="underline hover:text-white ml-1 transition-colors">Switch X Account</button>
+                </div>
+              )}
+            </div>
+            
+            <button
+              onClick={handleClaimMarket}
+              disabled={isClaiming || linkedHandle.toLowerCase() !== twitterHandle.toLowerCase()}
+              className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-amber-600/20 transition-all flex items-center justify-center gap-2"
+            >
+              {isClaiming ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Processing...
+                </>
+              ) : (
+                "Claim Ownership"
+              )}
+            </button>
+          </div>
+        )}
       </div>
     );
   }

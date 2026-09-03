@@ -30,9 +30,30 @@ export default function CreatorPage({ params }: PageProps) {
   };
 
   const sdk = useSocialCapital();
+  const { publicKey } = useWallet();
   const [onChainMarket, setOnChainMarket] = useState<any>(null);
   const [isChainLoading, setIsChainLoading] = useState(true);
   const [chartResolution, setChartResolution] = useState("5m");
+  const [keyBalance, setKeyBalance] = useState<number>(0);
+
+  useEffect(() => {
+    if (!publicKey || !sdk || !id) return;
+    const fetchBalance = async () => {
+      try {
+        const pda = new PublicKey(id);
+        const positionPda = sdk.getUserPositionPda(pda, publicKey);
+        const pos = await sdk.program.account.userPosition.fetch(positionPda);
+        setKeyBalance(pos.keyBalance.toNumber());
+      } catch (e) {
+        setKeyBalance(0);
+      }
+    };
+    fetchBalance();
+    
+    // Set interval to poll for balance updates
+    const interval = setInterval(fetchBalance, 5000);
+    return () => clearInterval(interval);
+  }, [publicKey, sdk, id]);
   
   // Fetch from database API
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -309,7 +330,7 @@ export default function CreatorPage({ params }: PageProps) {
               <span className="text-color-muted mr-1 font-medium">Holders:</span> {dbMarket?.holderCount || 0}
             </span>
             <span className="bg-white/5 border border-color-border px-3 py-1.5 rounded-lg text-white flex items-center text-xs font-semibold whitespace-nowrap">
-              <span className="text-color-muted mr-1 font-medium">Keys:</span> {supply.toLocaleString()}
+              <span className="text-color-muted mr-1 font-medium">Circulating Keys:</span> {supply.toLocaleString()}
             </span>
             <span className="bg-color-buy/10 border border-color-buy/20 px-3 py-1.5 rounded-lg text-color-buy flex items-center text-xs font-bold whitespace-nowrap">
               <span className="text-color-buy/70 mr-1 font-medium">Price:</span> {price} SOL
@@ -380,7 +401,14 @@ export default function CreatorPage({ params }: PageProps) {
           {/* Main Chart */}
           <section className="bg-background border border-color-border pt-5 rounded-xl shadow-lg hover:border-color-buy/50 transition-colors group overflow-hidden flex flex-col">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 px-5">
-              <h2 className="text-[11px] font-bold text-color-muted uppercase tracking-[0.15em]">PRICE HISTORY</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-[11px] font-bold text-color-muted uppercase tracking-[0.15em]">PRICE HISTORY</h2>
+                {publicKey && (
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-white/5 border border-color-border text-color-muted">
+                    Keys Owned: <span className="text-white">{keyBalance}</span>
+                  </span>
+                )}
+              </div>
               <div className="flex gap-1.5">
                 <button 
                   onClick={() => setChartResolution("1m")}
@@ -490,28 +518,73 @@ export default function CreatorPage({ params }: PageProps) {
                   </button>
                 </div>
                 
+                {dbMarket?.createdBy && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-color-muted">Created by</span>
+                    <Link 
+                      href={`/profile/${dbMarket.createdBy}`}
+                      className="font-mono text-white hover:text-color-buy transition-colors"
+                      title="View Profile"
+                    >
+                      {dbMarket.createdBy.slice(0, 6)}...{dbMarket.createdBy.slice(-6)}
+                    </Link>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center">
-                  <span className="text-color-muted">Owner</span>
-                  <Link 
-                    href={`/profile/${onChainMarket.creatorWallet.toBase58()}`}
-                    className="font-mono text-white hover:text-color-buy transition-colors"
-                    title="View Profile"
-                  >
-                    {onChainMarket.creatorWallet.toBase58().slice(0, 6)}...{onChainMarket.creatorWallet.toBase58().slice(-6)}
-                  </Link>
+                  <span className="text-color-muted">{finalMarket.claimed ? "Claimed by" : "Owner"}</span>
+                  {finalMarket.claimed ? (
+                    <Link 
+                      href={`/profile/${onChainMarket.creatorWallet.toBase58()}`}
+                      className="font-mono text-white hover:text-color-buy transition-colors"
+                      title="View Profile"
+                    >
+                      {onChainMarket.creatorWallet.toBase58().slice(0, 6)}...{onChainMarket.creatorWallet.toBase58().slice(-6)}
+                    </Link>
+                  ) : (
+                    <span className="font-mono text-color-muted">Unclaimed</span>
+                  )}
                 </div>
                 
                 <div className="flex justify-between items-center">
-                  <span className="text-color-muted">Verified by</span>
-                  <span className="text-white text-right max-w-[150px] sm:max-w-none">
-                    {finalMarket.claimed ? "Signed in with the platform" : "Unverified"}
+                  <span className="text-color-muted">Status</span>
+                  <span className={`font-mono text-right ${finalMarket.claimed ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {finalMarket.claimed ? "Verified" : "Unverified"}
                   </span>
                 </div>
-                
-                {finalMarket.claimed && dbMarket?.createdAt && (
+
+                {dbMarket?.createTxSignature && (
                   <div className="flex justify-between items-center">
-                    <span className="text-color-muted">Verified at</span>
-                    <span className="font-mono text-white">
+                    <span className="text-color-muted">Create TX</span>
+                    <a 
+                      href={`https://explorer.solana.com/tx/${dbMarket.createTxSignature}?cluster=devnet`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="font-mono text-white hover:text-color-buy transition-colors"
+                    >
+                      {dbMarket.createTxSignature.slice(0, 6)}...{dbMarket.createTxSignature.slice(-6)}
+                    </a>
+                  </div>
+                )}
+
+                {dbMarket?.claimTxSignature && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-color-muted">Claim TX</span>
+                    <a 
+                      href={`https://explorer.solana.com/tx/${dbMarket.claimTxSignature}?cluster=devnet`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="font-mono text-white hover:text-color-buy transition-colors"
+                    >
+                      {dbMarket.claimTxSignature.slice(0, 6)}...{dbMarket.claimTxSignature.slice(-6)}
+                    </a>
+                  </div>
+                )}
+                
+                {dbMarket?.createdAt && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-color-muted">Created at</span>
+                    <span className="font-mono text-white text-right">
                       {new Date(dbMarket.createdAt).toISOString().replace('T', ' ').substring(0, 19)}Z
                     </span>
                   </div>

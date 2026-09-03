@@ -179,7 +179,7 @@ export default function ProfilePage({ params }: PageProps) {
       <div className="lg:col-span-6 flex flex-col gap-6 lg:px-8 lg:py-6">
         <Tabs
           tabs={[
-            { id: 'keys', label: 'Tokens Held' },
+            { id: 'keys', label: 'Keys Owned' },
             { id: 'trades', label: 'Trades' },
           ]}
           activeTab={activeTab}

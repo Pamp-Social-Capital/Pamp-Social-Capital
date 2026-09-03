@@ -69,7 +69,7 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
           <thead>
             <tr className="border-b border-color-border text-color-muted text-sm uppercase">
               <th className="py-3 font-semibold">Type</th>
-              <th className="py-3 font-semibold">Keys</th>
+              <th className="py-3 font-semibold">Amount (KEYS)</th>
               <th className="py-3 font-semibold">Amount (SOL)</th>
               <th className="py-3 font-semibold">Trader</th>
               <th className="py-3 font-semibold">Time</th>
@@ -101,7 +101,7 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
         <thead>
           <tr className="border-b border-color-border text-color-muted text-sm uppercase">
             <th className="py-3 font-semibold">Type</th>
-            <th className="py-3 font-semibold">Keys</th>
+            <th className="py-3 font-semibold">Amount (KEYS)</th>
             <th className="py-3 font-semibold">Amount (SOL)</th>
             <th className="py-3 font-semibold">Trader</th>
             <th className="py-3 font-semibold">Time</th>

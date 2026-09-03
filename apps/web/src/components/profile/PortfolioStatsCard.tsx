@@ -28,7 +28,7 @@ export const PortfolioStatsCard: React.FC<PortfolioStatsCardProps> = ({
           <span className="font-semibold text-white">{totalValueSol} SOL</span>
         </div>
         <div className="flex justify-between border-b border-color-border/50 pb-3">
-          <span className="text-color-muted">Keys Held</span>
+          <span className="text-color-muted">Keys Owned</span>
           <span className="font-semibold text-white">{totalKeys}</span>
         </div>
         <div className="flex justify-between border-b border-color-border/50 pb-3">

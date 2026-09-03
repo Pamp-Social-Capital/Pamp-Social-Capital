@@ -7,6 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useState, useRef } from "react";
 import bs58 from "bs58";
 import toast from "react-hot-toast";
+import { useSocialCapital } from "../hooks/useSocialCapital";
 
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
@@ -27,6 +28,35 @@ export const TopNav = () => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const authPromptedRef = useRef(false);
+  
+  const sdk = useSocialCapital();
+  const [totalKeys, setTotalKeys] = useState<number>(0);
+
+  useEffect(() => {
+    if (!publicKey || !sdk) {
+      setTotalKeys(0);
+      return;
+    }
+    const fetchTotalKeys = async () => {
+      try {
+        const positions = await sdk.program.account.userPosition.all([
+          {
+            memcmp: {
+              offset: 8,
+              bytes: publicKey.toBase58(),
+            },
+          },
+        ]);
+        const sum = positions.reduce((acc: number, pos: any) => acc + pos.account.keyBalance.toNumber(), 0);
+        setTotalKeys(sum);
+      } catch (err) {
+        console.error("Failed to fetch total keys", err);
+      }
+    };
+    fetchTotalKeys();
+    const interval = setInterval(fetchTotalKeys, 5000);
+    return () => clearInterval(interval);
+  }, [publicKey, sdk]);
 
   useEffect(() => {
     setMounted(true);
@@ -149,15 +179,23 @@ export const TopNav = () => {
 
         {/* Right Side: Wallet & Actions */}
         <div className="flex items-center gap-4 sm:gap-6">
-          <Link 
-            href="/claim" 
-            className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 rounded-lg border border-color-buy text-color-buy hover:bg-color-buy/10 transition-colors text-sm font-semibold"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Create Market
-          </Link>
+          <div className="hidden sm:flex items-center gap-3">
+            <Link 
+              href="/claim" 
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg border border-color-buy text-color-buy hover:bg-color-buy/10 transition-colors text-sm font-semibold"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Create Market
+            </Link>
+            {mounted && connected && publicKey && (
+              <div className="flex flex-col items-start ml-1">
+                <span className="text-[10px] font-bold text-color-muted uppercase tracking-wider">Total Keys</span>
+                <span className="text-sm font-semibold text-white bg-white/5 px-2 py-0.5 rounded border border-color-border">{totalKeys}</span>
+              </div>
+            )}
+          </div>
           {mounted && connected && publicKey ? (
             <div className="flex items-center gap-3">
               <Link href={`/profile/${publicKey.toBase58()}`} className="relative group block" title="Go to Profile">

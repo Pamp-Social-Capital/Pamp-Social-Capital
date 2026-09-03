@@ -247,9 +247,20 @@ export const TradingWidget: FC<{ marketPda: string, twitterHandle?: string }> = 
 
         {/* Input Section */}
         <div className="mb-5">
-          <label className="block text-xs font-semibold text-color-muted mb-2 uppercase tracking-wide">
-            Amount (KEYS)
-          </label>
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-xs font-semibold text-color-muted uppercase tracking-wide">
+              Amount (KEYS)
+            </label>
+            {publicKey && (
+              <button 
+                onClick={() => setAmount(keyBalance.toString())}
+                className="text-[11px] font-semibold text-color-muted hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer"
+                title="Click to max"
+              >
+                Balance: <span className="text-white">{keyBalance}</span> KEYS
+              </button>
+            )}
+          </div>
           <div className="relative">
             <input
               type="number"
