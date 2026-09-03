@@ -309,7 +309,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       const creatorWalletStr = marketState.creatorWallet.toString();
       
       // Twitter profile metadata (name, avatar, category) can now be passed from the frontend.
-      const body = request.body as { ticker?: string, websiteUrl?: string, telegramUrl?: string, description?: string, bannerUrl?: string, txSignature?: string, twitterName?: string, avatarUrl?: string, category?: string } | undefined;
+      const body = request.body as { ticker?: string, websiteUrl?: string, telegramUrl?: string, description?: string, bannerUrl?: string, createTxSignature?: string, claimTxSignature?: string, createdBy?: string, twitterName?: string, avatarUrl?: string, category?: string } | undefined;
 
       await db.insert(creatorMarkets).values({
         marketPda: pda,
@@ -328,7 +328,9 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         description: body?.description || null,
         bannerUrl: body?.bannerUrl || null,
         category: body?.category || "Regular User",
-        txSignature: body?.txSignature || null,
+        createTxSignature: body?.createTxSignature || null,
+        claimTxSignature: body?.claimTxSignature || null,
+        createdBy: body?.createdBy || null,
       }).onConflictDoUpdate({
         target: creatorMarkets.marketPda,
         set: {
@@ -343,7 +345,9 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
           ...(body?.telegramUrl !== undefined ? { telegramUrl: body.telegramUrl } : {}),
           ...(body?.description !== undefined ? { description: body.description } : {}),
           ...(body?.bannerUrl !== undefined ? { bannerUrl: body.bannerUrl } : {}),
-          ...(body?.txSignature !== undefined ? { txSignature: body.txSignature } : {}),
+          ...(body?.createTxSignature !== undefined ? { createTxSignature: body.createTxSignature } : {}),
+          ...(body?.claimTxSignature !== undefined ? { claimTxSignature: body.claimTxSignature } : {}),
+          ...(body?.createdBy !== undefined ? { createdBy: body.createdBy } : {}),
           ...(body?.twitterName !== undefined ? { twitterName: body.twitterName } : {}),
           ...(body?.avatarUrl !== undefined ? { avatarUrl: body.avatarUrl } : {}),
         }

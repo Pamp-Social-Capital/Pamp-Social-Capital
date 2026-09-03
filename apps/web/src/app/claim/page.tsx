@@ -429,7 +429,7 @@ export default function ClaimPage() {
         }
 
         // Send transaction via SDK to create market
-        await sdk.createCreatorMarket(creatorIdArray);
+        const createTxSig = await sdk.createCreatorMarket(creatorIdArray);
         
         // Sync market immediately so metadata is not lost even if claim fails
         let syncSuccess = false;
@@ -440,6 +440,8 @@ export default function ClaimPage() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
+                createTxSignature: typeof createTxSig === 'string' ? createTxSig : undefined,
+                createdBy: publicKey.toBase58(),
                 ticker,
                 description,
                 websiteUrl,
@@ -557,7 +559,7 @@ export default function ClaimPage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              txSignature: typeof txSig === 'string' ? txSig : undefined,
+              claimTxSignature: typeof txSig === 'string' ? txSig : undefined,
               ticker,
               description,
               websiteUrl,

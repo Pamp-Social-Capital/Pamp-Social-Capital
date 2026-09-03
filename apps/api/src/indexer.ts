@@ -140,7 +140,7 @@ export async function processHeliusPayload(transactions: any[]) {
             supply: 0,
             reserveLamports: 0,
             totalVolumeLamports: "0",
-            txSignature: tx.signature
+            createTxSignature: tx.signature
           }).onConflictDoNothing();
           
           await db.insert(activityLogs).values({ network,
@@ -277,7 +277,7 @@ export async function processHeliusPayload(transactions: any[]) {
             .set({
               creatorWallet: creatorWallet,
               claimed: true,
-              txSignature: tx.signature,
+              claimTxSignature: tx.signature,
             })
             .where(and(eq(creatorMarkets.network, network), eq(creatorMarkets.marketPda, marketPda)));
 

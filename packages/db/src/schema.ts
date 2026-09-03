@@ -32,7 +32,9 @@ export const creatorMarkets = pgTable("creator_markets", {
   claimed: boolean("claimed").default(false).notNull(),
   paused: boolean("paused").default(false).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
-  txSignature: text("tx_signature"), // Transaction hash for market creation/claim
+  createdBy: text("created_by"), // Wallet that actually created the market
+  createTxSignature: text("create_tx_signature"), // Transaction hash for market creation
+  claimTxSignature: text("claim_tx_signature"), // Transaction hash for market claim
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -38,7 +38,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
   const isUnclaimedOwner = !claimed && linkedHandle && twitterHandle && linkedHandle.toLowerCase() === twitterHandle.toLowerCase();
 
   // Should show the dashboard at all?
-  const shouldShow = isCreator || isUnclaimedOwner;
+  const shouldShow = isCreator || !claimed;
 
   // Check linked Twitter handle from API
   useEffect(() => {
@@ -283,7 +283,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
         await fetch(`${apiUrl}/api/markets/${marketPda}/sync`, { 
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ txSignature: typeof claimTxSig === 'string' ? claimTxSig : undefined })
+          body: JSON.stringify({ claimTxSignature: typeof claimTxSig === 'string' ? claimTxSig : undefined })
         });
       } catch (e) {
         console.error("Failed to sync after claim:", e);
@@ -314,7 +314,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
   const holderCount = analytics ? analytics.holderCount : "...";
 
   // === UNCLAIMED MARKET UI ===
-  if (!claimed && isUnclaimedOwner) {
+  if (!claimed) {
     return (
       <div className="bg-gradient-to-r from-amber-900/40 to-orange-900/40 border border-amber-500/30 p-6 rounded-xl shadow-lg mb-6">
         <div className="flex items-center justify-between mb-4">
