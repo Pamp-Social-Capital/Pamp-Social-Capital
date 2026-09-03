@@ -24,9 +24,9 @@ export function UserMarquee() {
             <div className="relative shrink-0">
               <div className="w-10 h-10 rounded-full overflow-hidden">
                 <img 
-                  src={user.avatar} 
+                  src={user.avatar?.includes('twimg.com') ? `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}` : user.avatar} 
                   alt={user.name} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover bg-white/5"
                   onError={(e) => {
                     e.currentTarget.src = `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`;
                   }}
@@ -60,9 +60,9 @@ export function UserMarquee() {
             <div className="relative shrink-0">
               <div className="w-10 h-10 rounded-full overflow-hidden">
                 <img 
-                  src={user.avatar} 
+                  src={user.avatar?.includes('twimg.com') ? `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}` : user.avatar} 
                   alt={user.name} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover bg-white/5"
                   onError={(e) => {
                     e.currentTarget.src = `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`;
                   }}
