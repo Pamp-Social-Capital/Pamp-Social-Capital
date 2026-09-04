@@ -130,7 +130,7 @@ export class PumpSocialCapitalSDK {
     maxSolCost: anchor.BN
   ): Promise<string> {
     const ix = await this.buyKeysInstruction(creatorId, amount, maxSolCost);
-    const computeIx = anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 100000 });
+    const computeIx = anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1000000 });
     const tx = new anchor.web3.Transaction().add(computeIx).add(ix);
     return await this.program.provider.sendAndConfirm!(tx, undefined, { commitment: "confirmed", skipPreflight: true });
   }
@@ -166,7 +166,7 @@ export class PumpSocialCapitalSDK {
     minSolOutput: anchor.BN
   ): Promise<string> {
     const ix = await this.sellKeysInstruction(creatorId, amount, minSolOutput);
-    const computeIx = anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 100000 });
+    const computeIx = anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1000000 });
     const tx = new anchor.web3.Transaction().add(computeIx).add(ix);
     return await this.program.provider.sendAndConfirm!(tx, undefined, { commitment: "confirmed", skipPreflight: true });
   }

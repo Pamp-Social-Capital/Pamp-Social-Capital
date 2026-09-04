@@ -17,8 +17,14 @@ export default function ProtocolDashboard() {
     totalPscBurned: 0,
   };
 
-  const feesSol = (Number(stats.totalProtocolFeesLamports) / 1e9).toFixed(6);
-  const buybackSol = (Number(stats.totalBuybackSolSpentLamports) / 1e9).toFixed(6);
+  const formatSol = (lamports: number | string) => {
+    const sol = Number(lamports) / 1e9;
+    if (sol === 0) return "0.0000";
+    return sol < 0.0001 ? sol.toFixed(6) : sol.toFixed(4);
+  };
+
+  const feesSol = formatSol(stats.totalProtocolFeesLamports);
+  const buybackSol = formatSol(stats.totalBuybackSolSpentLamports);
   const pscBought = (Number(stats.totalPscBought) / 1e6).toFixed(2);
   const pscBurned = (Number(stats.totalPscBurned) / 1e6).toFixed(2);
 
@@ -114,7 +120,7 @@ export default function ProtocolDashboard() {
                       <img src={`https://api.dicebear.com/10.x/critters/svg?seed=${fee.signature}`} alt="" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-white font-mono text-sm font-semibold">+{(Number(fee.amount) / 1e9).toFixed(6)} SOL</span>
+                      <span className="text-white font-mono text-sm font-semibold">+{formatSol(fee.amount)} SOL</span>
                       <a 
                         href={`https://solscan.io/tx/${fee.signature}${network === 'devnet' ? '?cluster=devnet' : ''}`} 
                         target="_blank" 
@@ -165,8 +171,8 @@ export default function ProtocolDashboard() {
                     </span>
                   </div>
                   <div className="text-xs text-color-muted font-mono bg-white/[0.02] border border-color-border/30 p-2.5 rounded-lg break-words leading-relaxed">
-                    {isSkipped && details.reason && `${details.reason} (Vault: ${(details.vaultBalance / 1e9).toFixed(4)} SOL)`}
-                    {isSuccess && `Spent: ${(details.solSpent / 1e9).toFixed(4)} SOL | Burned: ${(details.pscReceived / 1e6).toFixed(2)} PSC`}
+                    {isSkipped && details.reason && `${details.reason} (Vault: ${formatSol(details.vaultBalance || 0)} SOL)`}
+                    {isSuccess && `Spent: ${formatSol(details.solSpent || 0)} SOL | Burned: ${(details.pscReceived / 1e6).toFixed(2)} PSC`}
                     {!isSkipped && !isSuccess && (log.errorMessage || "Unknown Error")}
                   </div>
                 </div>

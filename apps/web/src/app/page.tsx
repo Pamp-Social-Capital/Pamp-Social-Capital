@@ -302,14 +302,15 @@ export default function LandingPage() {
         <section className="py-24 border-t border-white/5">
           <div className="flex items-center gap-3 mb-12 justify-center">
             <span className="w-2.5 h-2.5 rounded-full bg-color-buy animate-pulse" />
-            <h2 className="text-2xl font-bold text-white uppercase tracking-widest">Live Onchain Metrics <span className="text-white/40 text-sm ml-2 bg-white/5 px-2 py-1 rounded">DEVNET</span></h2>
+            <h2 className="text-2xl font-bold text-white uppercase tracking-widest">Live Onchain Metrics</h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 w-full mx-auto">
+          <div className={`grid grid-cols-2 md:grid-cols-3 ${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'mainnet-beta' ? 'lg:grid-cols-3 max-w-4xl' : 'lg:grid-cols-6 max-w-full'} gap-8 w-full mx-auto`}>
             {(() => {
               const totalMarkets = data?.markets?.length || 0;
               const totalTvl = (data?.markets?.reduce((acc: number, m: any) => acc + Number(m.reserveLamports), 0) / 1e9 || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
               const totalVol = (data?.markets?.reduce((acc: number, m: any) => acc + Number(m.totalVolumeLamports), 0) / 1e9 || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              const totalHolders = data?.markets?.reduce((acc: number, m: any) => acc + (Number(m.holderCount) || 0), 0) || 0;
               
               // Note: placeholder for rewards until actual endpoint provided
               
@@ -333,30 +334,34 @@ export default function LandingPage() {
                     <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="relative z-10">
                       <p className="text-white/40 text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-white/70 transition-colors">Total Holders</p>
-                      <p className="text-3xl font-medium text-white/90 tracking-tight">Coming Soon</p>
+                      <p className="text-3xl font-medium text-white/90 tracking-tight">{totalHolders.toLocaleString()}</p>
                     </div>
                   </div>
-                  <div className="group text-center p-6 bg-white/[0.02] border border-white/[0.03] rounded-2xl hover:bg-white/[0.04] hover:border-white/[0.08] transition-colors duration-300 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <div className="relative z-10">
-                      <p className="text-white/40 text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-white/70 transition-colors">Creator Rewards</p>
-                      <p className="text-3xl font-medium text-white/90 tracking-tight">Coming Soon</p>
-                    </div>
-                  </div>
-                  <div className="group text-center p-6 bg-white/[0.02] border border-white/[0.03] rounded-2xl hover:bg-white/[0.04] hover:border-white/[0.08] transition-colors duration-300 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <div className="relative z-10">
-                      <p className="text-white/40 text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-white/70 transition-colors">Protocol Revenue</p>
-                      <p className="text-3xl font-medium text-white/90 tracking-tight">Coming Soon</p>
-                    </div>
-                  </div>
-                  <div className="group text-center p-6 bg-white/[0.02] border border-white/[0.03] rounded-2xl hover:bg-white/[0.04] hover:border-white/[0.08] transition-colors duration-300 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <div className="relative z-10">
-                      <p className="text-white/40 text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-white/70 transition-colors">$PSC Buyback Value</p>
-                      <p className="text-3xl font-medium text-white/90 tracking-tight">Coming Soon</p>
-                    </div>
-                  </div>
+                  {process.env.NEXT_PUBLIC_SOLANA_NETWORK !== 'mainnet-beta' && (
+                    <>
+                      <div className="group text-center p-6 bg-white/[0.02] border border-white/[0.03] rounded-2xl hover:bg-white/[0.04] hover:border-white/[0.08] transition-colors duration-300 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <div className="relative z-10">
+                          <p className="text-white/40 text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-white/70 transition-colors">Creator Rewards</p>
+                          <p className="text-3xl font-medium text-white/90 tracking-tight">Coming Soon</p>
+                        </div>
+                      </div>
+                      <div className="group text-center p-6 bg-white/[0.02] border border-white/[0.03] rounded-2xl hover:bg-white/[0.04] hover:border-white/[0.08] transition-colors duration-300 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <div className="relative z-10">
+                          <p className="text-white/40 text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-white/70 transition-colors">Protocol Revenue</p>
+                          <p className="text-3xl font-medium text-white/90 tracking-tight">Coming Soon</p>
+                        </div>
+                      </div>
+                      <div className="group text-center p-6 bg-white/[0.02] border border-white/[0.03] rounded-2xl hover:bg-white/[0.04] hover:border-white/[0.08] transition-colors duration-300 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-[30px] -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <div className="relative z-10">
+                          <p className="text-white/40 text-xs mb-2 font-medium tracking-widest uppercase group-hover:text-white/70 transition-colors">$PSC Buyback Value</p>
+                          <p className="text-3xl font-medium text-white/90 tracking-tight">Coming Soon</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </>
               );
             })()}
@@ -451,7 +456,6 @@ export default function LandingPage() {
         </section>
 
       </main>
-
 
     </div>
   );

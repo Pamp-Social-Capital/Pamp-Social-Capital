@@ -189,81 +189,7 @@ export default function ClaimPage() {
 
   const hasLinkedRef = useRef(false);
 
-  useEffect(() => {
-    // Check if returning from OAuth
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get("oauth_token");
-      const handle = params.get("handle");
-      const name = params.get("name");
-      const avatarUrl = params.get("avatarUrl");
 
-      if (token && handle) {
-        const linkTwitter = async () => {
-          if (hasLinkedRef.current) return;
-          hasLinkedRef.current = true;
-          
-          try {
-            const walletToken = localStorage.getItem("walletToken");
-            if (!walletToken) {
-              throw new Error("Wallet not authenticated. Please connect wallet first.");
-            }
-
-            setStatus("LOADING");
-            const loadingId = toast.loading("Linking X account to your wallet...");
-
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const linkRes = await fetch(`${apiUrl}/api/oauth/twitter/link`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ oauthToken: token, walletToken })
-            });
-
-            const linkData = await linkRes.json();
-            if (!linkData.success) {
-              throw new Error(linkData.error || "Failed to link Twitter account");
-            }
-
-            setOauthToken(token);
-            setTwitterHandle(handle);
-            if (name) setTwitterName(name);
-            if (avatarUrl) setTwitterAvatar(avatarUrl);
-            setIsXLinked(true);
-
-            const isPopup = params.get("popup") === "true";
-
-            if (isPopup) {
-              if (window.opener) {
-                window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle, name, avatarUrl }, '*');
-              }
-              window.close();
-              return;
-            } else {
-              setStatus("AUTHENTICATED");
-              toast.success("X account linked successfully!", { id: loadingId });
-              // Clean up URL without refreshing
-              window.history.replaceState({}, document.title, window.location.pathname);
-            }
-          } catch (err: any) {
-            console.error(err);
-            const isPopup = params.get("popup") === "true";
-            if (isPopup) {
-              if (window.opener) {
-                window.opener.postMessage({ type: 'OAUTH_LINK_ERROR', error: err.message }, '*');
-              }
-              window.close();
-              return;
-            }
-
-            setStatus("ERROR");
-            toast.error(err.message || "An error occurred while linking X account.");
-          }
-        };
-
-        linkTwitter();
-      }
-    }
-  }, []);
 
   // Listen for global oauth updates
   useEffect(() => {
@@ -296,8 +222,18 @@ export default function ClaimPage() {
       // Note: Toast success is already handled by TopNav globally
     };
 
+    const handleOAuthError = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setStatus("ERROR");
+      setMessage(customEvent.detail?.error || "Failed to authenticate with X");
+    };
+
     window.addEventListener('oauth_updated', handleOAuthUpdated);
-    return () => window.removeEventListener('oauth_updated', handleOAuthUpdated);
+    window.addEventListener('oauth_error', handleOAuthError);
+    return () => {
+      window.removeEventListener('oauth_updated', handleOAuthUpdated);
+      window.removeEventListener('oauth_error', handleOAuthError);
+    };
   }, []);
 
   const handleOAuthLogin = async () => {

@@ -25,6 +25,7 @@ export const TopNav = () => {
   };
   const [mounted, setMounted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const authPromptedRef = useRef(false);
@@ -101,14 +102,16 @@ export const TopNav = () => {
                 window.dispatchEvent(new CustomEvent('oauth_updated', { detail: event.data }));
               } else {
                 toast.error(linkData.error || "Failed to link X account");
+                window.dispatchEvent(new CustomEvent('oauth_error', { detail: { error: linkData.error } }));
               }
             } else {
               localStorage.setItem("oauthToken", token);
               toast.success(`Successfully connected X account: @${handle}`);
               window.dispatchEvent(new CustomEvent('oauth_updated', { detail: event.data }));
             }
-          } catch (e) {
+          } catch (e: any) {
             console.error(e);
+            window.dispatchEvent(new CustomEvent('oauth_error', { detail: { error: e.message } }));
           }
         }
       } else if (event.data?.type === 'OAUTH_LINK_ERROR') {
@@ -185,8 +188,9 @@ export const TopNav = () => {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
             const res = await fetch(`${apiUrl}/api/users/${publicKey.toBase58()}/markets`);
             const data = await res.json();
-            if (data.success && data.userProfile?.avatarUrl) {
-              setAvatarUrl(data.userProfile.avatarUrl);
+            if (data.success && data.userProfile) {
+              setAvatarUrl(data.userProfile.avatarUrl || null);
+              setUsername(data.userProfile.username || null);
             }
           } catch (e) {
             console.error("Failed to fetch user profile avatar:", e);
@@ -197,6 +201,7 @@ export const TopNav = () => {
       authenticateAndFetch();
     } else {
       setAvatarUrl(null);
+      setUsername(null);
     }
   }, [connected, publicKey, signMessage, disconnect, isAuthenticating]);
 
@@ -256,23 +261,35 @@ export const TopNav = () => {
           </div>
           {mounted && connected && publicKey ? (
             <div className="flex items-center gap-3">
-              <Link href={`/profile/${publicKey.toBase58()}`} className="relative group block" title="Go to Profile">
-                <div className="w-10 h-10 rounded-full bg-[#161A22] border border-color-border overflow-hidden group-hover:border-indigo-500 transition-colors">
-                  <img 
-                    src={avatarUrl || `https://api.dicebear.com/10.x/${getAvatarStyle(publicKey.toBase58())}/svg?seed=${publicKey.toBase58()}`} 
-                    alt="User Avatar" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {wallet?.adapter?.icon && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#07090c] flex items-center justify-center">
+              <Link href={`/profile/${publicKey.toBase58()}`} className="relative group flex items-center gap-2 bg-transparent pr-4 pl-1 py-1 rounded-full border border-color-border hover:border-color-buy hover:bg-white/[0.03] transition-all cursor-pointer" title="Go to Profile">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-[#161A22] border border-color-border overflow-hidden group-hover:border-indigo-500 transition-colors">
                     <img 
-                      src={wallet.adapter.icon} 
-                      alt={wallet.adapter.name} 
-                      className="w-4 h-4 rounded-full"
+                      src={avatarUrl || `https://api.dicebear.com/10.x/${getAvatarStyle(publicKey.toBase58())}/svg?seed=${publicKey.toBase58()}`} 
+                      alt="User Avatar" 
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                )}
+                  {wallet?.adapter?.icon && (
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#07090c] flex items-center justify-center">
+                      <img 
+                        src={wallet.adapter.icon} 
+                        alt={wallet.adapter.name} 
+                        className="w-4 h-4 rounded-full"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col text-left">
+                  {username ? (
+                    <span className="text-sm font-semibold text-white leading-tight">@{username}</span>
+                  ) : (
+                    <span className="text-sm font-semibold text-white leading-tight">Connected</span>
+                  )}
+                  <span className="text-xs font-mono text-color-muted leading-tight">
+                    {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+                  </span>
+                </div>
               </Link>
               <button 
                 onClick={() => setShowDisconnectModal(true)}
