@@ -24,7 +24,7 @@ export function UserMarquee() {
             <div className="relative shrink-0">
               <div className="w-10 h-10 rounded-full overflow-hidden">
                 <img 
-                  src={user.avatar?.includes('twimg.com') ? `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}` : user.avatar} 
+                  src={user.avatar || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`} 
                   alt={user.name} 
                   className="w-full h-full object-cover bg-white/5"
                   onError={(e) => {
@@ -36,13 +36,13 @@ export function UserMarquee() {
                 href={`https://x.com/${user.username}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="absolute -bottom-1 -right-1 bg-[#07090c] rounded-full p-1 opacity-60 hover:opacity-100 hover:text-white transition-opacity"
+                className="absolute -bottom-2 -right-2 bg-[#07090c] rounded-full p-1.5 opacity-60 hover:opacity-100 hover:text-white transition-opacity"
                 title={`Visit @${user.username} on X`}
               >
-                <svg className="w-2.5 h-2.5 text-current" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                <svg className="w-3.5 h-3.5 text-current" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
               </a>
             </div>
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col justify-center text-left">
               <span className="text-white/90 font-medium text-sm tracking-tight leading-tight">{user.name}</span>
               <span className="text-white/50 text-xs mt-0.5">@{user.username}</span>
             </div>
@@ -60,7 +60,7 @@ export function UserMarquee() {
             <div className="relative shrink-0">
               <div className="w-10 h-10 rounded-full overflow-hidden">
                 <img 
-                  src={user.avatar?.includes('twimg.com') ? `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}` : user.avatar} 
+                  src={user.avatar || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`} 
                   alt={user.name} 
                   className="w-full h-full object-cover bg-white/5"
                   onError={(e) => {
@@ -72,13 +72,13 @@ export function UserMarquee() {
                 href={`https://x.com/${user.username}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="absolute -bottom-1 -right-1 bg-[#07090c] rounded-full p-1 opacity-60 hover:opacity-100 hover:text-white transition-opacity"
+                className="absolute -bottom-2 -right-2 bg-[#07090c] rounded-full p-1.5 opacity-60 hover:opacity-100 hover:text-white transition-opacity"
                 title={`Visit @${user.username} on X`}
               >
-                <svg className="w-2.5 h-2.5 text-current" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                <svg className="w-3.5 h-3.5 text-current" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
               </a>
             </div>
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col justify-center text-left">
               <span className="text-white/90 font-medium text-sm tracking-tight leading-tight">{user.name}</span>
               <span className="text-white/50 text-xs mt-0.5">@{user.username}</span>
             </div>
