@@ -1051,6 +1051,7 @@ export default function ClaimPage() {
                 </div>
               )}
             </div>
+            {/* 
             <div>
               <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
                 Initial Buy (Keys)
@@ -1059,6 +1060,7 @@ export default function ClaimPage() {
               <input type="number" min="0" value={initialBuyAmount} onChange={e => setInitialBuyAmount(e.target.value)} placeholder="0" className="w-full bg-white/5 border border-color-border/50 rounded-xl p-3 text-white focus:border-color-buy outline-none transition-colors" />
               <p className="text-color-muted text-xs mt-1">Optional. Buy keys in the same transaction to prevent snipers.</p>
             </div>
+            */}
             
             <button
               onClick={handleCreateMarket}
