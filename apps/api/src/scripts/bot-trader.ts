@@ -97,6 +97,13 @@ export async function startBotTrader() {
         const maxSolCost = new anchor.BN(5 * anchor.web3.LAMPORTS_PER_SOL); 
         const signature = await sdk.buyKeys(creatorId, amountBN, maxSolCost);
         console.log(`✅ BUY Success! Tx: ${signature}`);
+        try {
+          const { processHeliusPayload } = await import("../indexer");
+          await processHeliusPayload([{ signature }]);
+          console.log(`✅ Indexed BUY Tx: ${signature}`);
+        } catch (e) {
+          console.error(`❌ Failed to index BUY Tx:`, e);
+        }
       } else {
         // Can only sell up to what we own
         const sellAmount = Math.min(amount, keysOwned);
@@ -107,6 +114,13 @@ export async function startBotTrader() {
         const minSolOutput = new anchor.BN(0);
         const signature = await sdk.sellKeys(creatorId, sellAmountBN, minSolOutput);
         console.log(`✅ SELL Success! Tx: ${signature}`);
+        try {
+          const { processHeliusPayload } = await import("../indexer");
+          await processHeliusPayload([{ signature }]);
+          console.log(`✅ Indexed SELL Tx: ${signature}`);
+        } catch (e) {
+          console.error(`❌ Failed to index SELL Tx:`, e);
+        }
       }
 
     } catch (error: any) {
