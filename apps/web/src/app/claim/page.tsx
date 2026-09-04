@@ -1039,6 +1039,17 @@ export default function ClaimPage() {
               {uploadError && (
                 <p className="text-red-500 text-xs mt-2">{uploadError}</p>
               )}
+              
+              {/* Preview Image if valid URL */}
+              {bannerUrl.trim().length > 0 && isValidUrl(bannerUrl) && !uploadError && (
+                <div className="mt-3 w-full h-32 rounded-xl overflow-hidden border border-color-border/50 bg-white/5 relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMzMzMiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM4ODgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbnZhbGlkIEltYWdlIFVSTDwvdGV4dD48L3N2Zz4=';
+                  }} />
+                  <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur-sm font-semibold">PREVIEW</div>
+                </div>
+              )}
             </div>
             <div>
               <label className="flex items-center gap-2 text-white text-sm font-semibold mb-1">
