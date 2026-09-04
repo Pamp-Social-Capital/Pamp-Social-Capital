@@ -254,11 +254,17 @@ export default function ClaimPage() {
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
 
-    window.open(
+    const popup = window.open(
       `${apiUrl}/api/oauth/twitter/login?redirect_to=${redirectUrl}`,
-      "TwitterLogin",
-      `width=${width},height=${height},left=${left},top=${top},toolbar=0,location=0,menubar=0`
+      "twitter_oauth",
+      `width=${width},height=${height},left=${left},top=${top},toolbar=0,status=0,menubar=0`
     );
+
+    if (!popup) {
+      toast.error("Popup was blocked by the browser. Please allow popups and try again.");
+      setStatus("AUTHENTICATED");
+      return;
+    }
   };
 
   const handleCreateMarket = async () => {

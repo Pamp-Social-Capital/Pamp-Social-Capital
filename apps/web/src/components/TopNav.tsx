@@ -98,6 +98,8 @@ export const TopNav = () => {
               const linkData = await linkRes.json();
               if (linkData.success) {
                 localStorage.setItem("oauthToken", token);
+                setUsername(handle);
+                if (avatarUrl) setAvatarUrl(avatarUrl);
                 toast.success(`Successfully connected X account: @${handle}`);
                 window.dispatchEvent(new CustomEvent('oauth_updated', { detail: event.data }));
               } else {
@@ -106,6 +108,8 @@ export const TopNav = () => {
               }
             } else {
               localStorage.setItem("oauthToken", token);
+              setUsername(handle);
+              if (avatarUrl) setAvatarUrl(avatarUrl);
               toast.success(`Successfully connected X account: @${handle}`);
               window.dispatchEvent(new CustomEvent('oauth_updated', { detail: event.data }));
             }

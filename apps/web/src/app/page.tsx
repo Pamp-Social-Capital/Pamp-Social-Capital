@@ -166,7 +166,7 @@ export default function LandingPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </Link>
             <Link
-              href="/apply" 
+              href="/claim" 
               className="bg-white/5 border border-white/10 text-white font-semibold px-8 py-4 rounded-full hover:bg-white/10 transition-all flex items-center justify-center"
             >
               Apply as a Creator
@@ -445,7 +445,7 @@ export default function LandingPage() {
                Apply to list your creator market or claim an existing market linked to your X identity.
              </p>
              <div className="flex flex-col sm:flex-row justify-center gap-4">
-               <Link href="/apply" className="bg-color-buy text-[#07090c] font-bold px-8 py-4 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,197,94,0.2)]">
+               <Link href="/claim" className="bg-color-buy text-[#07090c] font-bold px-8 py-4 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,197,94,0.2)]">
                  Apply as a Creator
                </Link>
                <Link href="/claim" className="bg-[#161A22] border border-white/10 text-white font-bold px-8 py-4 rounded-full hover:bg-white/5 transition-all">
