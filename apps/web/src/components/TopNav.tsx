@@ -70,11 +70,10 @@ export const TopNav = () => {
         const handle = urlParams.get("handle");
         const name = urlParams.get("name");
         const avatarUrl = urlParams.get("avatarUrl");
-        const bannerUrl = urlParams.get("bannerUrl");
         
         if (window.opener) {
           // Send message back to main window
-          window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle, name, avatarUrl, bannerUrl }, '*');
+          window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle, name, avatarUrl }, '*');
           window.close();
         }
       }
@@ -85,7 +84,7 @@ export const TopNav = () => {
   useEffect(() => {
     const handleOAuthMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'OAUTH_LINK_SUCCESS') {
-        const { token, handle, name, avatarUrl, bannerUrl } = event.data;
+        const { token, handle, name, avatarUrl } = event.data;
         if (token && handle) {
           try {
             const walletToken = localStorage.getItem("walletToken");

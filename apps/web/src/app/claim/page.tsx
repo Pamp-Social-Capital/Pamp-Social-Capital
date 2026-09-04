@@ -195,7 +195,7 @@ export default function ClaimPage() {
   useEffect(() => {
     const handleOAuthUpdated = async (e: Event) => {
       const customEvent = e as CustomEvent;
-      const { token, handle, name, avatarUrl, bannerUrl } = customEvent.detail;
+      const { token, handle, name, avatarUrl } = customEvent.detail;
 
       // Check if market already exists before proceeding
       try {
@@ -217,10 +217,6 @@ export default function ClaimPage() {
       setTwitterHandle(handle);
       if (name) setTwitterName(name);
       if (avatarUrl) setTwitterAvatar(avatarUrl);
-      if (bannerUrl) {
-        setBannerUrl(bannerUrl);
-        setBannerInputType("url");
-      }
       setIsXLinked(true);
       setStatus("AUTHENTICATED");
       // Note: Toast success is already handled by TopNav globally

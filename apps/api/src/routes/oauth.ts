@@ -99,16 +99,6 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       const twitterHandle = user.data.username;
       const twitterName = user.data.name;
       const avatarUrl = user.data.profile_image_url;
-
-      let bannerUrl = undefined;
-      try {
-        const v1User = await loggedClient.v1.user({ user_id: user.data.id });
-        if (v1User && v1User.profile_banner_url) {
-          bannerUrl = v1User.profile_banner_url;
-        }
-      } catch (err) {
-        fastify.log.warn("Could not fetch v1 profile banner (likely OAuth2 scope or v2-only app limitation)");
-      }
       
       // Create OAuth token for our frontend to use
       const oauthToken = jwt.sign(
@@ -124,9 +114,6 @@ export const oauthRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
       redirectUrlObj.searchParams.append("name", twitterName);
       if (avatarUrl) {
         redirectUrlObj.searchParams.append("avatarUrl", avatarUrl);
-      }
-      if (bannerUrl) {
-        redirectUrlObj.searchParams.append("bannerUrl", bannerUrl);
       }
       return reply.redirect(redirectUrlObj.toString());
       
