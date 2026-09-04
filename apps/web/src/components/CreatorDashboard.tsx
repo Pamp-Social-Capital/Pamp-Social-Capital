@@ -46,76 +46,59 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
   // Should show the dashboard at all?
   const shouldShow = isCreator || !claimed;
 
-  // Check linked Twitter handle from API
+  // Check linked Twitter handle from OAuth Token
   useEffect(() => {
     if (!publicKey || claimed) return;
     
-    const checkLinkedHandle = async () => {
-      try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
-        const walletToken = localStorage.getItem("walletToken");
-        if (!walletToken) {
-          setLinkedHandle(null);
-          return;
-        }
+    const checkLinkedHandle = () => {
+      const oauthToken = localStorage.getItem("oauthToken");
+      if (!oauthToken) {
+        setLinkedHandle(null);
+        return;
+      }
 
-        const res = await fetch(`${API_URL}/api/auth/me`, {
-          headers: { "Authorization": `Bearer ${walletToken}` }
-        });
-        const data = await res.json();
+      try {
+        // Decode JWT payload
+        const payload = JSON.parse(atob(oauthToken.split('.')[1]));
         
-        // Verify that the token actually belongs to the CURRENTLY connected wallet
-        if (data.success && data.user?.username && data.user?.walletAddress === publicKey.toBase58()) {
-          setLinkedHandle(data.user.username);
+        // Check if token is expired
+        if (payload.exp && payload.exp * 1000 > Date.now()) {
+          setLinkedHandle(payload.twitterHandle);
         } else {
-          // Stale session (token belongs to a different wallet than currently connected)
+          // Token expired
+          localStorage.removeItem("oauthToken");
           setLinkedHandle(null);
-          if (data.user?.walletAddress && data.user.walletAddress !== publicKey.toBase58()) {
-             localStorage.removeItem("walletToken"); // Clear stale token
-          }
         }
       } catch (e) {
-        // silently ignore
+        setLinkedHandle(null);
       }
     };
+    
     checkLinkedHandle();
+    
+    // Periodically check in case it expires
+    const interval = setInterval(checkLinkedHandle, 60000);
+    return () => clearInterval(interval);
   }, [publicKey, claimed]);
 
   useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data?.type === 'OAUTH_LINK_SUCCESS') {
-        const { token, handle } = event.data;
-        if (token && handle) {
-          try {
-            const walletToken = localStorage.getItem("walletToken");
-            if (walletToken) {
-              const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-              const linkRes = await fetch(`${apiUrl}/api/oauth/twitter/link`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ oauthToken: token, walletToken })
-              });
-              const linkData = await linkRes.json();
-              if (linkData.success) {
-                localStorage.setItem("oauthToken", token);
-                setLinkedHandle(handle);
-                toast.success(`Successfully connected X account: @${handle}`);
-              } else {
-                toast.error(linkData.error || "Failed to link X account");
-              }
-            } else {
-              localStorage.setItem("oauthToken", token);
-              setLinkedHandle(handle);
-              toast.success(`Successfully connected X account: @${handle}`);
-            }
-          } catch (e) {
-            console.error(e);
+    const handleOAuthUpdated = () => {
+      // Just re-check token since TopNav handled the API calls and toasts
+      const oauthToken = localStorage.getItem("oauthToken");
+      if (oauthToken) {
+        try {
+          const payload = JSON.parse(atob(oauthToken.split('.')[1]));
+          if (payload.exp && payload.exp * 1000 > Date.now()) {
+            setLinkedHandle(payload.twitterHandle);
           }
+        } catch (e) {
+          // ignore
         }
       }
     };
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
+    
+    window.addEventListener("oauth_updated", handleOAuthUpdated);
+    return () => window.removeEventListener("oauth_updated", handleOAuthUpdated);
   }, []);
 
   useEffect(() => {
@@ -439,7 +422,7 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
             onClick={handleTwitterLogin}
             className="w-full bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-[#1DA1F2]/20 transition-all flex items-center justify-center gap-2"
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             Connect X (Twitter)
           </button>
         ) : (
@@ -447,9 +430,15 @@ export const CreatorDashboard = ({ marketPda, creatorWallet, claimed, twitterHan
             <div className={`text-xs text-center px-3 py-2 rounded-lg border ${linkedHandle.toLowerCase() === twitterHandle.toLowerCase() ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
               Connected to X as <strong>@{linkedHandle}</strong>
               {linkedHandle.toLowerCase() !== twitterHandle.toLowerCase() && (
-                <div className="mt-1 text-red-300/70">
-                  Does not match market creator (@{twitterHandle}). 
-                  <button onClick={handleTwitterLogin} className="underline hover:text-white ml-1 transition-colors">Switch X Account</button>
+                <div className="mt-3 flex flex-col items-center gap-2">
+                  <span className="text-red-300/80">Does not match market creator (@{twitterHandle}).</span>
+                  <button 
+                    onClick={handleTwitterLogin} 
+                    className="px-4 py-2 bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white rounded-lg font-semibold transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    Switch X Account
+                  </button>
                 </div>
               )}
             </div>

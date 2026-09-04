@@ -60,6 +60,64 @@ export const TopNav = () => {
 
   useEffect(() => {
     setMounted(true);
+    
+    // Global handler for OAuth popups returning from Twitter
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("popup") === "true") {
+        const token = urlParams.get("oauth_token");
+        const handle = urlParams.get("handle");
+        const name = urlParams.get("name");
+        const avatarUrl = urlParams.get("avatarUrl");
+        
+        if (window.opener) {
+          // Send message back to main window
+          window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle, name, avatarUrl }, '*');
+          window.close();
+        }
+      }
+    }
+  }, []);
+
+  // Global listener for OAUTH_LINK_SUCCESS to prevent double toasts
+  useEffect(() => {
+    const handleOAuthMessage = async (event: MessageEvent) => {
+      if (event.data?.type === 'OAUTH_LINK_SUCCESS') {
+        const { token, handle, name, avatarUrl } = event.data;
+        if (token && handle) {
+          try {
+            const walletToken = localStorage.getItem("walletToken");
+            if (walletToken) {
+              const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+              const linkRes = await fetch(`${apiUrl}/api/oauth/twitter/link`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ oauthToken: token, walletToken })
+              });
+              const linkData = await linkRes.json();
+              if (linkData.success) {
+                localStorage.setItem("oauthToken", token);
+                toast.success(`Successfully connected X account: @${handle}`);
+                window.dispatchEvent(new CustomEvent('oauth_updated', { detail: event.data }));
+              } else {
+                toast.error(linkData.error || "Failed to link X account");
+              }
+            } else {
+              localStorage.setItem("oauthToken", token);
+              toast.success(`Successfully connected X account: @${handle}`);
+              window.dispatchEvent(new CustomEvent('oauth_updated', { detail: event.data }));
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      } else if (event.data?.type === 'OAUTH_LINK_ERROR') {
+        toast.error(event.data.error || "An error occurred while linking X account.");
+      }
+    };
+    
+    window.addEventListener("message", handleOAuthMessage);
+    return () => window.removeEventListener("message", handleOAuthMessage);
   }, []);
 
   useEffect(() => {

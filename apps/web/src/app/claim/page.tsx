@@ -265,43 +265,39 @@ export default function ClaimPage() {
     }
   }, []);
 
-  // Listen for popup messages
+  // Listen for global oauth updates
   useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data?.type === 'OAUTH_LINK_SUCCESS') {
-        const handle = event.data.handle;
+    const handleOAuthUpdated = async (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { token, handle, name, avatarUrl } = customEvent.detail;
 
-        // Check if market already exists before proceeding
-        try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-          const checkRes = await fetch(`${apiUrl}/api/markets/check/${encodeURIComponent(handle)}`);
-          const checkData = await checkRes.json();
+      // Check if market already exists before proceeding
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const checkRes = await fetch(`${apiUrl}/api/markets/check/${encodeURIComponent(handle)}`);
+        const checkData = await checkRes.json();
 
-          if (checkData.exists) {
-            toast.error("This X (Twitter) account is already registered as a creator.");
-            setStatus("ERROR");
-            setMessage(`The account @${handle} already has an active market. Please use a different X account.`);
-            return;
-          }
-        } catch (e) {
-          console.error("Failed to check market existence:", e);
+        if (checkData.exists) {
+          toast.error("This X (Twitter) account is already registered as a creator.");
+          setStatus("ERROR");
+          setMessage(`The account @${handle} already has an active market. Please use a different X account.`);
+          return;
         }
-
-        setOauthToken(event.data.token);
-        setTwitterHandle(handle);
-        if (event.data.name) setTwitterName(event.data.name);
-        if (event.data.avatarUrl) setTwitterAvatar(event.data.avatarUrl);
-        setIsXLinked(true);
-        setStatus("AUTHENTICATED");
-        toast.success("X account linked successfully!");
-      } else if (event.data?.type === 'OAUTH_LINK_ERROR') {
-        setStatus("ERROR");
-        toast.error(event.data.error || "An error occurred while linking X account.");
+      } catch (e) {
+        console.error("Failed to check market existence:", e);
       }
+
+      setOauthToken(token);
+      setTwitterHandle(handle);
+      if (name) setTwitterName(name);
+      if (avatarUrl) setTwitterAvatar(avatarUrl);
+      setIsXLinked(true);
+      setStatus("AUTHENTICATED");
+      // Note: Toast success is already handled by TopNav globally
     };
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener('oauth_updated', handleOAuthUpdated);
+    return () => window.removeEventListener('oauth_updated', handleOAuthUpdated);
   }, []);
 
   const handleOAuthLogin = async () => {
