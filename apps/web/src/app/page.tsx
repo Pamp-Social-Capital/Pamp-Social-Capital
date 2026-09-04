@@ -144,9 +144,21 @@ export default function LandingPage() {
         
         {/* Hero Section */}
         <section className="pt-40 pb-28 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-color-muted mb-8">
-            <span className="w-2 h-2 rounded-full bg-color-buy animate-pulse" />
-            Pump Social Capital is live on Solana
+          <div className="flex flex-col items-center gap-2 mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-color-muted">
+              <span className="w-2 h-2 rounded-full bg-color-buy animate-pulse" />
+              Pump Social Capital is live on Solana
+            </div>
+            {process.env.NEXT_PUBLIC_PSC_MINT_ADDRESS && (
+              <a 
+                href={`https://pump.fun/coin/${process.env.NEXT_PUBLIC_PSC_MINT_ADDRESS}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-color-muted hover:bg-white/10 transition-colors hover:text-white"
+              >
+                CA: {process.env.NEXT_PUBLIC_PSC_MINT_ADDRESS}
+              </a>
+            )}
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 max-w-6xl leading-[1.1] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/80 uppercase">
