@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Keypair, Connection, TransactionInstruction, SystemProgram } from "@solana/web3.js";
-import { IDL, SocialCapital } from "./idl/social_capital";
+import { IDL, SocialCapital } from "./idl/social_capital.js";
 export { IDL };
 export type { SocialCapital };
 export class PumpSocialCapitalSDK {

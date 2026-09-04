@@ -402,7 +402,7 @@ export default function LandingPage() {
 
         {/* Live On Solana Devnet (Proof) */}
         <section className="py-24 border-t border-white/5 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 uppercase tracking-wide">Live On Solana Devnet</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 uppercase tracking-wide">Live On Solana {process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'mainnet-beta' ? 'Mainnet' : 'Devnet'}</h2>
           <div className="max-w-2xl mx-auto space-y-8">
             <p className="text-white/60 text-lg font-light leading-relaxed">
               Every Creator Key trade settles on Solana. Markets, trades and creator activity can be independently verified onchain. No simulated transactions. No offchain market settlement.
@@ -412,12 +412,19 @@ export default function LandingPage() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-[40px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10 text-center">
                 <div className="text-xs text-white/40 uppercase tracking-widest font-medium mb-2">Program ID</div>
-                <div className="font-mono text-white/90 text-sm md:text-base break-all px-4 bg-black/40 py-2 rounded-lg border border-white/5 group-hover:border-white/10 transition-colors">HmFYeVa2bdxEsT7huH8er8KrYrB2fWgM7Kx7hkAyYPZj</div>
+                <div className="font-mono text-white/90 text-sm md:text-base break-all px-4 bg-black/40 py-2 rounded-lg border border-white/5 group-hover:border-white/10 transition-colors">
+                  {process.env.NEXT_PUBLIC_PROGRAM_ID}
+                </div>
               </div>
             </div>
             
             <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
-              <a href="https://solscan.io/account/HmFYeVa2bdxEsT7huH8er8KrYrB2fWgM7Kx7hkAyYPZj?cluster=devnet" target="_blank" rel="noopener noreferrer" className="bg-white/5 border border-white/10 text-white/90 font-medium px-6 py-3 rounded-full hover:bg-white/10 transition-colors text-sm">
+              <a 
+                href={`https://solscan.io/account/${process.env.NEXT_PUBLIC_PROGRAM_ID}${process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'mainnet-beta' ? '' : '?cluster=' + process.env.NEXT_PUBLIC_SOLANA_NETWORK}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-white/5 border border-white/10 text-white/90 font-medium px-6 py-3 rounded-full hover:bg-white/10 transition-colors text-sm"
+              >
                 View Program on Solscan
               </a>
             </div>

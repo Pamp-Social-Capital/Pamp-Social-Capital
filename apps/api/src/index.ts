@@ -96,6 +96,14 @@ const start = async () => {
     const port = parseInt(process.env.PORT);
     await fastify.listen({ port, host: '0.0.0.0' });
     fastify.log.info(`Server listening on port ${port}`);
+
+    // Automatically start bot trader if enabled in environment variables
+    if (process.env.ENABLE_BOT_TRADER === "true") {
+      fastify.log.info("Starting Devnet Bot Trader...");
+      import("./scripts/bot-trader").then((module) => {
+        module.startBotTrader();
+      }).catch((err) => fastify.log.error(err, "Failed to load bot trader script"));
+    }
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
