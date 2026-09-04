@@ -22,6 +22,7 @@ export interface Market {
   bannerUrl?: string;
   claimed?: boolean;
   createdAt?: string;
+  category?: string;
 }
 
 const getRelativeTime = (dateString?: string) => {

@@ -27,7 +27,7 @@ export default function Home() {
   };
 
   // Map API response to the Market interface expected by MarketCard
-  const markets: Market[] = data?.markets?.map((m: any) => {
+  const rawMarkets: Market[] = data?.markets?.map((m: any) => {
     const currentPriceLamports = m.currentPriceLamports || calculateNextKeyPriceLamports(m.supply);
     return {
       id: m.id,
@@ -50,8 +50,27 @@ export default function Home() {
       telegramUrl: m.telegramUrl,
       claimed: m.claimed,
       createdAt: m.createdAt,
+      category: m.category,
     };
   }) || [];
+
+  let markets = [...rawMarkets];
+  
+  if (selectedCategory) {
+    markets = markets.filter(m => m.category === selectedCategory);
+  }
+
+  // Apply sorting based on activeTab
+  if (activeTab === "volume") {
+    markets.sort((a, b) => Number(b.totalVolumeLamports) - Number(a.totalVolumeLamports));
+  } else if (activeTab === "newest") {
+    markets.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  } else if (activeTab === "holders") {
+    markets.sort((a, b) => (b.holderCount || 0) - (a.holderCount || 0));
+  } else {
+    // overall - sort by market cap (default)
+    markets.sort((a, b) => Number(b.marketCapLamports) - Number(a.marketCapLamports));
+  }
 
   return (
     <div className="flex flex-col gap-8 pb-12">
@@ -111,24 +130,26 @@ export default function Home() {
       <section>
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 mt-2">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-[#12141A] rounded-xl p-5 border border-color-border/50 flex flex-col justify-between h-[200px] animate-pulse shadow-lg">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/5"></div>
-                    <div>
-                      <div className="h-4 w-24 bg-white/5 rounded mb-2"></div>
-                      <div className="h-3 w-16 bg-white/5 rounded"></div>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="bg-background rounded-xl p-5 border border-color-border/50 flex flex-col justify-between h-[196px] animate-pulse shadow-lg">
+                <div className="flex items-start justify-between gap-2 mb-6">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-10 h-10 rounded-full bg-white/10 shrink-0"></div>
+                    <div className="flex-1">
+                      <div className="h-4 w-24 bg-white/10 rounded mb-1.5"></div>
+                      <div className="h-3 w-16 bg-white/10 rounded mb-1.5"></div>
+                      <div className="h-2.5 w-20 bg-white/10 rounded"></div>
                     </div>
                   </div>
-                  <div className="w-20 h-7 bg-white/5 rounded-full"></div>
+                  <div className="w-16 h-6 bg-white/10 rounded-full shrink-0"></div>
                 </div>
-                <div className="flex items-end justify-between">
+                <div className="flex items-end justify-between mt-auto">
                   <div>
-                    <div className="h-3 w-16 bg-white/5 rounded mb-2"></div>
-                    <div className="h-6 w-24 bg-white/5 rounded mb-2"></div>
-                    <div className="h-3 w-20 bg-white/5 rounded"></div>
+                    <div className="h-3 w-16 bg-white/10 rounded mb-1.5"></div>
+                    <div className="h-6 w-24 bg-white/10 rounded mb-1.5"></div>
+                    <div className="h-3 w-20 bg-white/10 rounded"></div>
                   </div>
+                  <div className="h-8 w-24 bg-white/10 rounded"></div>
                 </div>
               </div>
             ))}
