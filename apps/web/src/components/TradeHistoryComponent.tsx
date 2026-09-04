@@ -143,7 +143,10 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
         <tbody className="text-sm">
           {trades.map((trade) => {
             const isBuy = trade.tradeType === "buy";
-            const amountSol = (Number(trade.lamports) / 1e9).toFixed(4);
+            const rawSol = Number(trade.lamports) / 1e9;
+            const amountSol = rawSol < 0.0001 && rawSol > 0 
+              ? rawSol.toFixed(6) 
+              : rawSol.toFixed(4);
             const timeAgo = new Date(trade.timestamp).toLocaleTimeString();
             const shortWallet = `${trade.traderWallet.slice(0, 4)}...${trade.traderWallet.slice(-4)}`;
 

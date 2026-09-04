@@ -24,7 +24,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
         const counts = await db.execute(sql`
           SELECT market_pda, COUNT(DISTINCT wallet_address) as count
           FROM user_positions
-          WHERE market_pda IN (${inClause}) AND key_balance > 0
+          WHERE market_pda IN (${inClause}) AND network = ${network} AND key_balance > 0
           GROUP BY market_pda
         `);
         for (const row of counts) {
@@ -38,7 +38,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
             SELECT market_pda, close, timestamp,
                    ROW_NUMBER() OVER (PARTITION BY market_pda ORDER BY timestamp DESC) as rn
             FROM price_candles
-            WHERE market_pda IN (${inClause}) AND resolution = '1h'
+            WHERE market_pda IN (${inClause}) AND network = ${network} AND resolution = '1h'
           ) sub
           WHERE rn <= 20
           ORDER BY timestamp ASC
@@ -74,7 +74,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
           COUNT(DISTINCT t.trader_wallet) AS unique_traders
         FROM trade_history t
         JOIN creator_markets m ON t.market_pda = m.market_pda
-        WHERE t.timestamp >= ${oneDayAgo} AND m.is_active = true
+        WHERE t.timestamp >= ${oneDayAgo} AND m.is_active = true AND t.network = ${network} AND m.network = ${network}
         GROUP BY t.market_pda
         ORDER BY volume_lamports DESC
         LIMIT 20
@@ -269,7 +269,7 @@ export const marketRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       const holderCountResult = await db.execute(sql`
         SELECT COUNT(DISTINCT wallet_address) as count
         FROM user_positions
-        WHERE market_pda = ${pda} AND key_balance > 0
+        WHERE market_pda = ${pda} AND network = ${network} AND key_balance > 0
       `);
       
       const holderCount = Number(holderCountResult[0]?.count || 0);

@@ -130,15 +130,16 @@ export class PumpSocialCapitalSDK {
     maxSolCost: anchor.BN
   ): Promise<string> {
     const ix = await this.buyKeysInstruction(creatorId, amount, maxSolCost);
-    const tx = new anchor.web3.Transaction().add(ix);
-    return await this.program.provider.sendAndConfirm!(tx);
+    const computeIx = anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 100000 });
+    const tx = new anchor.web3.Transaction().add(computeIx).add(ix);
+    return await this.program.provider.sendAndConfirm!(tx, undefined, { commitment: "confirmed", skipPreflight: true });
   }
 
-  public async sellKeys(
+  public async sellKeysInstruction(
     creatorId: Uint8Array,
     amount: anchor.BN,
     minSolOutput: anchor.BN
-  ): Promise<string> {
+  ): Promise<anchor.web3.TransactionInstruction> {
     const marketPda = this.getCreatorMarketPda(creatorId);
     const positionPda = this.getUserPositionPda(marketPda, this.wallet.publicKey);
     const feeVault = this.getCreatorFeeVaultPda(marketPda);
@@ -156,7 +157,18 @@ export class PumpSocialCapitalSDK {
         seller: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       } as any)
-      .rpc();
+      .instruction();
+  }
+
+  public async sellKeys(
+    creatorId: Uint8Array,
+    amount: anchor.BN,
+    minSolOutput: anchor.BN
+  ): Promise<string> {
+    const ix = await this.sellKeysInstruction(creatorId, amount, minSolOutput);
+    const computeIx = anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 100000 });
+    const tx = new anchor.web3.Transaction().add(computeIx).add(ix);
+    return await this.program.provider.sendAndConfirm!(tx, undefined, { commitment: "confirmed", skipPreflight: true });
   }
 
   public async claimCreatorInstruction(creatorId: Uint8Array): Promise<TransactionInstruction> {
