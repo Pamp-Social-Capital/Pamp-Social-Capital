@@ -195,7 +195,7 @@ export default function ClaimPage() {
   useEffect(() => {
     const handleOAuthUpdated = async (e: Event) => {
       const customEvent = e as CustomEvent;
-      const { token, handle, name, avatarUrl } = customEvent.detail;
+      const { token, handle, name, avatarUrl, bannerUrl } = customEvent.detail;
 
       // Check if market already exists before proceeding
       try {
@@ -217,6 +217,10 @@ export default function ClaimPage() {
       setTwitterHandle(handle);
       if (name) setTwitterName(name);
       if (avatarUrl) setTwitterAvatar(avatarUrl);
+      if (bannerUrl) {
+        setBannerUrl(bannerUrl);
+        setBannerInputType("url");
+      }
       setIsXLinked(true);
       setStatus("AUTHENTICATED");
       // Note: Toast success is already handled by TopNav globally
@@ -743,6 +747,21 @@ export default function ClaimPage() {
                       <div className="text-color-muted text-sm">@{twitterHandle}</div>
                     </div>
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsXLinked(false);
+                      setCreationMode("manual");
+                      setTwitterHandle("");
+                      setTwitterName("");
+                      setTwitterAvatar("");
+                      setOauthToken("");
+                      setStatus("IDLE");
+                    }}
+                    className="text-xs text-red-500 hover:text-red-400 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors font-semibold"
+                  >
+                    Unlink
+                  </button>
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">

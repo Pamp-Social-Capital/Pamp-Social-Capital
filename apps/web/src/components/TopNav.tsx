@@ -70,10 +70,11 @@ export const TopNav = () => {
         const handle = urlParams.get("handle");
         const name = urlParams.get("name");
         const avatarUrl = urlParams.get("avatarUrl");
+        const bannerUrl = urlParams.get("bannerUrl");
         
         if (window.opener) {
           // Send message back to main window
-          window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle, name, avatarUrl }, '*');
+          window.opener.postMessage({ type: 'OAUTH_LINK_SUCCESS', token, handle, name, avatarUrl, bannerUrl }, '*');
           window.close();
         }
       }
@@ -84,7 +85,7 @@ export const TopNav = () => {
   useEffect(() => {
     const handleOAuthMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'OAUTH_LINK_SUCCESS') {
-        const { token, handle, name, avatarUrl } = event.data;
+        const { token, handle, name, avatarUrl, bannerUrl } = event.data;
         if (token && handle) {
           try {
             const walletToken = localStorage.getItem("walletToken");
@@ -98,8 +99,6 @@ export const TopNav = () => {
               const linkData = await linkRes.json();
               if (linkData.success) {
                 localStorage.setItem("oauthToken", token);
-                setUsername(handle);
-                if (avatarUrl) setAvatarUrl(avatarUrl);
                 toast.success(`Successfully connected X account: @${handle}`);
                 window.dispatchEvent(new CustomEvent('oauth_updated', { detail: event.data }));
               } else {
@@ -108,8 +107,6 @@ export const TopNav = () => {
               }
             } else {
               localStorage.setItem("oauthToken", token);
-              setUsername(handle);
-              if (avatarUrl) setAvatarUrl(avatarUrl);
               toast.success(`Successfully connected X account: @${handle}`);
               window.dispatchEvent(new CustomEvent('oauth_updated', { detail: event.data }));
             }
