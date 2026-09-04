@@ -115,7 +115,8 @@ export const UserTradeHistoryComponent = ({ address }: { address?: string }) => 
           <tbody className="text-white">
           {trades.map((trade: any) => {
             const isBuy = trade.tradeType === "buy";
-            const amountSol = (Number(trade.lamports) / 1e9).toFixed(4);
+            const rawAmountSol = Number(trade.lamports) / 1e9;
+            const amountSol = rawAmountSol < 0.0001 && rawAmountSol > 0 ? rawAmountSol.toFixed(6) : rawAmountSol.toFixed(4);
             const timeAgo = new Date(trade.timestamp).toLocaleTimeString();
             const shortMarket = `${trade.marketPda.slice(0, 4)}...${trade.marketPda.slice(-4)}`;
             const marketName = trade.marketDetails?.twitterHandle || "Unknown Creator";

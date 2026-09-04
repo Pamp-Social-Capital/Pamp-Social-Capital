@@ -44,7 +44,10 @@ export const MarketCard: FC<{ market: Market }> = ({ market }) => {
   // Convert lamports to SOL for display
   const volumeSol = (Number(market.totalVolumeLamports) / 1e9).toFixed(2);
   const reserveSol = (market.reserveLamports / 1e9).toFixed(2);
-  const priceSol = (Number(market.currentPriceLamports) / 1e9).toFixed(4);
+  const rawPriceSol = Number(market.currentPriceLamports) / 1e9;
+  const priceSol = rawPriceSol < 0.0001 && rawPriceSol > 0 
+    ? rawPriceSol.toFixed(6) 
+    : rawPriceSol.toFixed(4);
   const mcapSol = (Number(market.marketCapLamports) / 1e9).toFixed(2);
   const feePercent = (market.creatorFeeBps / 100).toFixed(1);
   const initialLetter = (market.username || market.ticker || "U").charAt(0).toUpperCase();

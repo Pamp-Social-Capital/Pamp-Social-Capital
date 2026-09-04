@@ -23,9 +23,14 @@ export const TokensHeldTable: React.FC<TokensHeldTableProps> = ({ positions }) =
             </thead>
             <tbody className="text-white">
               {positions.map((pos: any, i: number) => {
-                const valSol = (Number(pos.currentValueLamports) / 1e9).toFixed(4);
-                const pnlSol = (Number(pos.pnlLamports) / 1e9).toFixed(4);
-                const isPositive = Number(pos.pnlLamports) >= 0;
+                const rawValSol = Number(pos.currentValueLamports) / 1e9;
+                const valSol = rawValSol < 0.0001 && rawValSol > 0 ? rawValSol.toFixed(6) : rawValSol.toFixed(4);
+                
+                const rawPnlSol = Number(pos.pnlLamports) / 1e9;
+                const absPnlSol = Math.abs(rawPnlSol);
+                const pnlSol = absPnlSol < 0.0001 && absPnlSol > 0 ? absPnlSol.toFixed(6) : absPnlSol.toFixed(4);
+                
+                const isPositive = rawPnlSol >= 0;
                 const shortMarket = `${pos.marketPda.substring(0,8)}...`;
                 const marketName = pos.marketDetails?.twitterHandle || "Unknown Creator";
                 const avatarUrl = pos.marketDetails?.avatarUrl || `https://api.dicebear.com/10.x/bottts/svg?seed=${pos.marketPda}`;

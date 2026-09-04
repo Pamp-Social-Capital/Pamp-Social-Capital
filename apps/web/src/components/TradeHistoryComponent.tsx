@@ -38,9 +38,9 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
     const baseUrl = process.env.NEXT_PUBLIC_WS_URL as string;
     const WS_URL = baseUrl.endsWith('/ws') ? baseUrl : `${baseUrl}/ws`;
     if (!WS_URL || WS_URL === "/ws") return;
-    
+
     const ws = new WebSocket(WS_URL);
-    
+
     ws.onopen = () => {
       // Subscribe to the market trades
       ws.send(JSON.stringify({ type: "subscribe", marketPda }));
@@ -144,8 +144,8 @@ export const TradeHistoryComponent = ({ marketPda }: { marketPda: string }) => {
           {trades.map((trade) => {
             const isBuy = trade.tradeType === "buy";
             const rawSol = Number(trade.lamports) / 1e9;
-            const amountSol = rawSol < 0.0001 && rawSol > 0 
-              ? rawSol.toFixed(6) 
+            const amountSol = rawSol < 0.0001 && rawSol > 0
+              ? rawSol.toFixed(6)
               : rawSol.toFixed(4);
             const timeAgo = new Date(trade.timestamp).toLocaleTimeString();
             const shortWallet = `${trade.traderWallet.slice(0, 4)}...${trade.traderWallet.slice(-4)}`;

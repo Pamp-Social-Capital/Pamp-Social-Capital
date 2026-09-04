@@ -50,7 +50,7 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
         minMove: 0.000000001,
       },
     });
-    
+
     candlestickSeriesRef.current = candlestickSeries;
 
     // Fetch initial historical candles
@@ -97,7 +97,7 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
     const baseUrl = process.env.NEXT_PUBLIC_WS_URL as string;
     const WS_URL = baseUrl.endsWith('/ws') ? baseUrl : `${baseUrl}/ws`;
     const ws = new WebSocket(WS_URL);
-    
+
     ws.onopen = () => {
       // Subscribe to the market
       ws.send(JSON.stringify({ type: "subscribe", marketPda }));
@@ -128,7 +128,7 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
 
     const handleResize = () => {
       if (chartContainerRef.current) {
-        chart.applyOptions({ 
+        chart.applyOptions({
           width: chartContainerRef.current.clientWidth,
           height: chartContainerRef.current.clientHeight
         });
@@ -146,13 +146,14 @@ export const ChartComponent = ({ marketPda, resolution = "1m" }: { marketPda: st
 
   return (
     <div className="relative w-full h-[300px] md:h-[400px]">
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         /* Hide the TradingView watermark/logo */
         #tv-attr-logo { display: none !important; }
         .tv-lightweight-charts table ~ div > a { display: none !important; }
       `}} />
       <div className={`w-full h-full ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`} ref={chartContainerRef} />
-      
+
       {isLoading && (
         <div className="absolute inset-0 p-4">
           <div className="w-full h-full bg-white/5 rounded-lg animate-pulse" />
